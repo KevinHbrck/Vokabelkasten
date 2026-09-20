@@ -1,0 +1,17 @@
+{
+  "name": "Vokabelkasten",
+  "short_name": "Vokabeln",
+  "description": "Karteikasten für Englischvokabeln, alle Daten bleiben auf dem Gerät.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e9ebee",
+  "theme_color": "#e9ebee",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
