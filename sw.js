@@ -5,7 +5,7 @@
  * und ohne Verbindung startet die zuletzt geladene aus dem Speicher.
  */
 
-var FASSUNG = "2026-09-25-5";
+var FASSUNG = "2026-09-25-6";
 var SPEICHER = "vokabelkasten-" + FASSUNG;
 var GRUNDGERUEST = ["./", "./index.html", "./manifest.json", "./icon.png"];
 
