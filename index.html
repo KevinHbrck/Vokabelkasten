@@ -1186,12 +1186,40 @@
   html[data-vintage] .du-punkte { font-family: var(--f-brand); }
   html[data-vintage] .du-pname, html[data-vintage] .du-knoepfe button { font-family: var(--f-mono); letter-spacing: .03em; }
   html[data-vintage] .du-spieler, html[data-vintage] .du-knoepfe button { border-radius: 6px; }
+
+  /* ---------- Startseite: Kacheln ---------- */
+  nav { display: none !important; }   /* die Kacheln ersetzen die Leiste unten */
+  header h1 { flex: 1; min-width: 0; }
+  .kopf-zurueck {
+    flex: none; align-self: center; width: 40px; height: 40px; margin: -6px 2px -6px -8px; padding: 0;
+    display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--ink);
+  }
+  .kopf-zurueck[hidden] { display: none; }
+  .kopf-zurueck svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .kacheln { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+  .kachel {
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 2px;
+    min-height: 138px; padding: 14px 14px 13px; text-align: left; border-radius: 10px;
+    background: var(--card); color: var(--ink); border: 1px solid var(--rule); box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  }
+  .kachel svg { width: 30px; height: 30px; margin-bottom: auto; fill: none; stroke: var(--indigo); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .kachel b { font-size: 17px; font-weight: 600; margin-top: 14px; }
+  .kachel small { font-size: 13px; line-height: 1.35; color: var(--ink-soft); }
+  .kachel.haupt { background: #ef7b17; border-color: #ef7b17; color: #fff; }
+  .kachel.haupt svg { stroke: #fff; }
+  .kachel.haupt small { color: rgba(255,255,255,.9); }
+  .kachel:active { transform: scale(.98); }
+  html[data-vintage] .kachel { border-radius: 7px; background: var(--raised, var(--card)); }
+  html[data-vintage] .kachel b { font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .04em; font-size: 15px; }
+  html[data-vintage] .kachel.haupt { background: #ef7b17; }
+  #view-ueben #modus { display: none; }   /* Karten oder Hören wählt man jetzt über die Kacheln */
 </style>
 </head>
 <body>
 
 <header>
-  <h1 class="serif">Vokabelkasten</h1>
+  <button type="button" id="btn-start" class="kopf-zurueck" hidden aria-label="Zur Startseite" title="Zur Startseite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1 class="serif" id="kopf-titel">Vokabelkasten</h1>
   <span id="status"></span>
 </header>
 
@@ -1202,7 +1230,37 @@
 </div>
 
 <main>
-  <section id="view-ueben" class="view active">
+  <!-- Startseite: große Kacheln statt Leiste unten -->
+  <section id="view-start" class="view active">
+    <div class="kacheln">
+      <button type="button" class="kachel haupt" data-ziel="karten">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/></svg>
+        <b>Vokabelkasten</b><small id="k-karten"></small>
+      </button>
+      <button type="button" class="kachel" data-ziel="hoeren">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.5"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.5"/></svg>
+        <b>Hörtraining</b><small id="k-hoeren"></small>
+      </button>
+      <button type="button" class="kachel" data-ziel="quiz">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5.5h2.5v1.5a3 3 0 0 1-3 3M7 5.5H4.5v1.5a3 3 0 0 0 3 3M12 14v4M8.5 20.5h7"/></svg>
+        <b>Quiz-Duell</b><small>Zu zweit mit Punkten</small>
+      </button>
+      <button type="button" class="kachel" data-ziel="liste">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
+        <b>Liste</b><small id="k-liste"></small>
+      </button>
+      <button type="button" class="kachel" data-ziel="neu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>
+        <b>Neu</b><small>Vokabeln hinzufügen</small>
+      </button>
+      <button type="button" class="kachel" data-ziel="sichern">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        <b>Einstellungen</b><small>Darstellung, Stimmen, Sichern</small>
+      </button>
+    </div>
+  </section>
+
+  <section id="view-ueben" class="view">
     <div id="warnbox" class="warn" hidden></div>
 
     <!-- zwei Arten zu lernen; jede zeigt nur ihre eigenen Bedienelemente -->
@@ -1735,7 +1793,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-26-2";
+  var FASSUNG = "2026-09-26-3";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -3137,7 +3195,7 @@
   var ansicht = "ueben";
   function wechsle(name) {
     ansicht = name;
-    ["ueben", "liste", "neu", "quiz", "sichern", "statistik"].forEach(function (v) {
+    ["start", "ueben", "liste", "neu", "quiz", "sichern", "statistik"].forEach(function (v) {
       document.getElementById("view-" + v).classList.toggle("active", v === name);
     });
     var navName = name === "statistik" ? "ueben" : name;   // die Statistik gehört zum Üben
@@ -3156,8 +3214,37 @@
     }
     if (name === "sichern") { zeichneStats(); uwEinstellungenZeigen(); stimmTipp(); }
     if (name === "quiz") duEinstellungenZeigen();
+    if (name === "start") zeichneKacheln();
+    kopfZeigen();
     document.querySelector("main").scrollTop = 0;
   }
+
+  function kopfZeigen() {
+    var titel = { start: "Vokabelkasten", ueben: modus === "hoeren" ? "Hörtraining" : "Vokabelkasten", liste: "Liste",
+                  neu: "Neu", quiz: "Quiz-Duell", sichern: "Einstellungen", statistik: "Statistik" }[ansicht] || "Vokabelkasten";
+    document.getElementById("kopf-titel").textContent = titel;
+    document.getElementById("btn-start").hidden = ansicht === "start";
+  }
+  function zeichneKacheln() {
+    var f = daten.cards.filter(function (c) { return c.aktiv && c.due <= heute(); }).length, k = imKasten().length;
+    document.getElementById("k-karten").textContent = k ? f + " heute fällig · " + k + " im Kasten" : "Karten üben";
+    document.getElementById("k-hoeren").textContent = "Vorlesen lassen, freihändig";
+    document.getElementById("k-liste").textContent = daten.cards.length + " Vokabeln";
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".kachel"), function (b) {
+    b.addEventListener("click", function () {
+      var z = b.dataset.ziel;
+      if (z === "karten" || z === "hoeren") {
+        setzeModus(z);
+        sichern();
+        wechsle("ueben");
+        if (z === "karten") zeichneUeben();
+      } else wechsle(z);
+    });
+  });
+  document.getElementById("btn-start").addEventListener("click", function () {
+    wechsle(ansicht === "statistik" ? "ueben" : "start");
+  });
 
   /* ---------- Aufbau ---------- */
   function fuelleSelects() {
@@ -3490,7 +3577,7 @@
   var waechter = false, waechterUeberspringen = 0;
   function obenauf() {
     return !document.getElementById("blatt").hidden || !document.getElementById("unterwegs").hidden || !document.getElementById("duell").hidden ||
-      document.getElementById("auswahl").open || ansicht !== "ueben";
+      document.getElementById("auswahl").open || ansicht !== "start";
   }
   function waechterAbgleichen() {
     var soll = obenauf();
@@ -3504,7 +3591,7 @@
     else if (!document.getElementById("unterwegs").hidden) uwBeenden();
     else if (!document.getElementById("duell").hidden) duSchliessen();
     else if (document.getElementById("auswahl").open) document.getElementById("auswahl").open = false;
-    else if (ansicht !== "ueben") wechsle("ueben");
+    else if (ansicht !== "start") wechsle(ansicht === "statistik" ? "ueben" : "start");
     waechterAbgleichen();
   });
 
@@ -3897,6 +3984,7 @@
       b.setAttribute("aria-pressed", b.dataset.modus === modus ? "true" : "false");
     });
     if (hoeren) { uwEinstellungenZeigen(); hoerInfo(); }
+    if (typeof ansicht !== "undefined") kopfZeigen();
     zeichneAuswahlText();   // die Abfragerichtung gilt nur für den Karteikasten
   }
   Array.prototype.forEach.call(document.querySelectorAll("#modus button"), function (b) {
@@ -3968,6 +4056,7 @@
   // Probe hören: kurzer Satz mit der gewählten Stimme und Lautstärke
   function stimmProbe(kurz) {
     if (!sprache) return;
+    tonMischen(true);
     sprache.cancel();
     var lang = kurz === "de" ? "de-DE" : "en-GB";
     var u = new SpeechSynthesisUtterance(kurz === "de"
@@ -3988,6 +4077,7 @@
   function sprichWenn(text, lang, laeuft) {
     return new Promise(function (fertig) {
       if (!text || !laeuft()) { fertig(); return; }
+      tonStandard();
       var u = new SpeechSynthesisUtterance(sprechbar(text));
       u.lang = lang;
       var st = stimmeFuer(lang);
@@ -4016,8 +4106,13 @@
      iPhone/iPad (Safari 16.4+): Audio-Sitzung "ambient" statt Wiedergabe, die andere Apps anhält.
      Nur mit „Im Hintergrund weiterlaufen“ läuft eine echte Wiedergabe ("playback"). */
   function tonMischen(mischen) {
-    try { if (navigator.audioSession) navigator.audioSession.type = mischen ? "ambient" : "playback"; } catch (e) {}
+    try {
+      var soll = mischen ? "ambient" : "playback";
+      if (navigator.audioSession && navigator.audioSession.type !== soll) navigator.audioSession.type = soll;
+    } catch (e) {}
   }
+  // vor jeder Ansage: mischen - außer „Im Hintergrund weiterlaufen“ ist in einer laufenden Hörrunde an
+  function tonStandard() { tonMischen(!(uw && uwEinstellungen().hintergrund)); }
   function stilleAn() {
     tonMischen(!uwEinstellungen().hintergrund);
     if (uwStille) return;
@@ -4466,6 +4561,7 @@
     var offline = navigator.onLine === false ? " Gerade besteht keine Internetverbindung – die Erkennung wird dann vermutlich nicht funktionieren." : "";
     zeige("", "Spracherkennung verfügbar",
       "Sie läuft je nach Gerät meist über einen Onlinedienst (Google bzw. Apple) und braucht dann Internet." + offline +
+      " Solange das Mikrofon zuhört, halten die meisten Handys Musik (z. B. Spotify) an – ohne Mikrofon (Punkte per Knopf) läuft sie weiter." +
       " Die Namenserkennung ist experimentell: Fahrgeräusche, Musik oder gleichzeitiges Sprechen können sie stören – dann fragt die App nach.");
     // Neuere Chrome-Versionen können melden, ob die Erkennung auf dem Gerät möglich ist
     var e = duEinstellungen(), lang = e.richtung === "de" ? "en-GB" : "de-DE";
@@ -4610,6 +4706,7 @@
         rec.onresult = rec.onend = rec.onerror = null;
         try { rec.abort(); } catch (x) {}
         if (du) du.rec = null;
+        tonMischen(true);
         // Zeit um, aber ein Satz war noch unfertig: den letzten Stand trotzdem werten
         if (grund === "zeit" && zwischenText) { var t = zwischenText; zwischenText = ""; if (jeder([t], true)) grund = "entschieden"; }
         fertig({ grund: grund, fehler: fehler, sprachBeginn: du ? du.sprachBeginn : null });
@@ -4658,6 +4755,7 @@
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
+      tonMischen(true);
       if (!duTonCtx) duTonCtx = new AC();
       if (duTonCtx.state === "suspended") duTonCtx.resume();
       var t = duTonCtx.currentTime, o = duTonCtx.createOscillator(), g = duTonCtx.createGain();
@@ -5121,6 +5219,8 @@
   document.getElementById("sel-richtung").value = richtung;
   if (!sitzungFortsetzen()) rundeStarten(false);
   uwWeiterKnopf();
+  tonMischen(true);   // von Anfang an: Musik anderer Apps läuft weiter
+  wechsle("start");
 })();
 </script>
 </body>
