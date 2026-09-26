@@ -1656,6 +1656,13 @@
           <select id="uw-stimme-de"></select>
           <button type="button" class="ghost probe" data-probe="de" aria-label="Deutsche Stimme probehören">&#9654; Probe</button>
         </div>
+        <label for="st-detempo">Tempo der deutschen Stimme</label>
+        <select id="st-detempo" style="width:100%;margin-bottom:12px">
+          <option value="1">Normal (1×)</option>
+          <option value="1.25">Etwas schneller (1,25×)</option>
+          <option value="1.5">Schneller (1,5×)</option>
+          <option value="2">Doppelt so schnell (2×)</option>
+        </select>
         <label for="uw-stimme-en">Englisch</label>
         <div class="stimm-zeile">
           <select id="uw-stimme-en"></select>
@@ -1863,7 +1870,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-2";
+  var FASSUNG = "2026-09-27-3";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -3714,7 +3721,7 @@
     u.lang = lang;
     var st = stimmeFuer(lang);
     if (st) { u.voice = st; u.lang = st.lang; }
-    u.rate = 0.9;
+    u.rate = tempo(lang, 0.9);
     u.volume = uwEinstellungen().laut;
     Array.prototype.forEach.call(document.querySelectorAll(".spricht"), function (x) { x.classList.remove("spricht"); });
     if (el) el.classList.add("spricht");
@@ -4153,7 +4160,7 @@
     u.lang = lang;
     var st = stimmeFuer(lang);
     if (st) { u.voice = st; u.lang = st.lang; }
-    u.rate = 0.95;
+    u.rate = tempo(lang, 0.95);
     u.volume = uwEinstellungen().laut;
     setTimeout(function () { sprache.speak(u); }, kurz === "de" ? 420 : 220);
   }
@@ -4163,6 +4170,9 @@
     return sprichWenn(text, lang, function () { return uw && lauf === uw.lauf; });
   }
   /* „Deutsch vorlesen mit“: deutscher Stimme, englischer Stimme oder gar nicht (daten.deStimme) */
+  /* Tempo der deutschen Stimme (daten.deTempo): die ist auf vielen Handys sehr träge - standardmäßig 1,5-fach */
+  function deTempo() { return [1, 1.25, 1.5, 2].indexOf(daten.deTempo) > -1 ? daten.deTempo : 1.5; }
+  function tempo(lang, basis) { return /^de/i.test(lang) ? Math.min(2, basis * deTempo()) : basis; }
   function deModus() { return daten.deStimme === "en" || daten.deStimme === "aus" ? daten.deStimme : "de"; }
   function spracheFuer(lang) {
     if (!/^de/i.test(lang)) return lang;
@@ -4179,7 +4189,7 @@
       u.lang = lang;
       var st = stimmeFuer(lang);
       if (st) u.voice = st;
-      u.rate = 0.95;
+      u.rate = tempo(lang, 0.95);
       u.volume = uwEinstellungen().laut;
       var erledigt = false, notbremse = null;
       function ende() { if (erledigt) return; erledigt = true; clearTimeout(notbremse); fertig(); }
@@ -5192,6 +5202,14 @@
     document.getElementById(id).addEventListener("change", function () { duEinstellungenMerken(); if (id === "du-richtung") duStatusZeigen(); });
   });
   document.getElementById("du-test").addEventListener("click", duMikroTest);
+  (function () {
+    var t = document.getElementById("st-detempo");
+    t.value = String(deTempo());
+    t.addEventListener("change", function () {
+      daten.deTempo = Number(t.value) || 1.5; sichern();
+      if (sprache && !uw && !du) stimmProbe("de");   // gleich hören, wie schnell es jetzt ist
+    });
+  })();
   ["du-destimme", "st-destimme"].forEach(function (id) {
     var sel = document.getElementById(id);
     sel.value = deModus();
