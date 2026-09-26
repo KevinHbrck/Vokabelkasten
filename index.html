@@ -1537,7 +1537,7 @@
     <div class="du-titel"><h2>Vokabel-Duell</h2><span class="du-exp">experimentell</span></div>
     <p class="du-warn"><b>Im Auto: Nur die mitfahrende Person bedient das Handy.</b> Wer fährt, spielt nur mit der Stimme mit und fasst das Handy nicht an.</p>
     <div class="hoer-panel du-panel">
-      <p class="du-regeln">Die App liest eine Vokabel vor, dann kommt ein Signalton. Wer antwortet, sagt zuerst seinen Namen, zum Beispiel <b>„Kirsten: suggestion“</b>. Richtig = <b>1 Punkt</b>. Liegt jemand falsch oder sagt „weiß nicht“, darf die andere Person antworten und bekommt <b>2 Punkte</b>. Ist sich die App unsicher, entscheidet ihr per Knopf.</p>
+      <p class="du-regeln">Ihr seid <b>abwechselnd dran</b>. Die App liest die Vokabel vor, piept und sagt, wer dran ist. Diese Person antwortet einfach – ohne Namen. Richtig = <b>1 Punkt</b>. Falsch, „weiß nicht“ oder keine Antwort: Die andere Person ist dran und bekommt für die richtige Antwort <b>2 Punkte</b>.</p>
       <div class="du-namen">
         <label>Spieler 1<input type="text" id="du-name1" maxlength="16" autocomplete="off"></label>
         <label>Spieler 2<input type="text" id="du-name2" maxlength="16" autocomplete="off"></label>
@@ -1554,6 +1554,11 @@
         </label>
         <label>Antwortzeit
           <select id="du-zeit">
+            <option value="1">1 Sek.</option>
+            <option value="2">2 Sek.</option>
+            <option value="3">3 Sek.</option>
+            <option value="4">4 Sek.</option>
+            <option value="5">5 Sek.</option>
             <option value="6">6 Sek.</option>
             <option value="8">8 Sek.</option>
             <option value="10">10 Sek.</option>
@@ -1574,6 +1579,14 @@
             <option value="en">English → Deutsch</option>
           </select>
         </label>
+        <label>Deutsch vorlesen mit
+          <select id="du-destimme">
+            <option value="de">Deutscher Stimme</option>
+            <option value="en">Englischer Stimme</option>
+            <option value="aus">Gar nicht (nur anzeigen)</option>
+          </select>
+        </label>
+        <label class="zeile-check"><input type="checkbox" id="du-bsp"> Beispielsätze vorlesen</label>
         <label class="zeile-check"><input type="checkbox" id="du-manuell"> Ohne Mikrofon spielen (Punkte per Knopf)</label>
         <label class="zeile-check"><input type="checkbox" id="du-diagnose"> Diagnose zeigen (was die App gehört hat)</label>
       </div>
@@ -1632,6 +1645,12 @@
       <div class="sk-block" id="sk-stimme">
         <h3 class="sk-titel">Stimme zum Vorlesen</h3>
         <p class="note" style="margin-top:0">Gilt für „Unterwegs · Anhören“ und für das Lautsprecher-Symbol auf der Karte.</p>
+        <label for="st-destimme">Deutsch vorlesen mit</label>
+        <select id="st-destimme" style="width:100%;margin-bottom:12px">
+          <option value="de">Deutscher Stimme</option>
+          <option value="en">Englischer Stimme (klingt auf manchen Android-Handys besser)</option>
+          <option value="aus">Gar nicht – Deutsches nur anzeigen</option>
+        </select>
         <label for="uw-stimme-de">Deutsch</label>
         <div class="stimm-zeile">
           <select id="uw-stimme-de"></select>
@@ -1844,7 +1863,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-1";
+  var FASSUNG = "2026-09-27-2";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -3687,7 +3706,8 @@
       .replace(/\betw\./g, "etwas").replace(/\bjmdm\./g, "jemandem").replace(/\bjmdn\./g, "jemanden");
   }
   function sprichText(text, lang, el) {
-    if (!sprache || !text || uw) return;
+    lang = spracheFuer(lang);
+    if (!sprache || !text || uw || !lang) return;
     tonMischen(true);
     sprache.cancel();
     var u = new SpeechSynthesisUtterance(sprechbar(text));
@@ -4142,10 +4162,18 @@
   function sprich(text, lang, lauf) {
     return sprichWenn(text, lang, function () { return uw && lauf === uw.lauf; });
   }
+  /* „Deutsch vorlesen mit“: deutscher Stimme, englischer Stimme oder gar nicht (daten.deStimme) */
+  function deModus() { return daten.deStimme === "en" || daten.deStimme === "aus" ? daten.deStimme : "de"; }
+  function spracheFuer(lang) {
+    if (!/^de/i.test(lang)) return lang;
+    var m = deModus();
+    return m === "aus" ? null : m === "en" ? "en-GB" : lang;
+  }
   // wie sprich(), aber mit eigener Prüfung, ob die Runde noch läuft (auch fürs Duell)
   function sprichWenn(text, lang, laeuft) {
+    lang = spracheFuer(lang);
     return new Promise(function (fertig) {
-      if (!text || !laeuft()) { fertig(); return; }
+      if (!text || !lang || !laeuft()) { fertig(); return; }
       tonStandard();
       var u = new SpeechSynthesisUtterance(sprechbar(text));
       u.lang = lang;
@@ -4555,7 +4583,8 @@
     return {
       namen: [e.namen && e.namen[0] || "Kevin", e.namen && e.namen[1] || "Kirsten"],
       ziel: ["10", "20", "30", "alle", "p10"].indexOf(e.ziel) > -1 ? e.ziel : "10",
-      zeit: [6, 8, 10, 12].indexOf(e.zeit) > -1 ? e.zeit : 8,
+      zeit: [1, 2, 3, 4, 5, 6, 8, 10, 12].indexOf(e.zeit) > -1 ? e.zeit : 5,
+      bsp: !!e.bsp,
       auswahl: ["kasten", "faellig", "schwierig", "alle"].indexOf(e.auswahl) > -1 ? e.auswahl : (imKasten().length ? "kasten" : "alle"),
       richtung: e.richtung === "en" ? "en" : "de",
       manuell: !!e.manuell || !DU_SR,
@@ -4574,6 +4603,8 @@
     man.checked = e.manuell;
     man.disabled = !DU_SR;
     document.getElementById("du-diagnose").checked = e.diagnose;
+    document.getElementById("du-bsp").checked = e.bsp;
+    document.getElementById("du-destimme").value = deModus();
     duKartenInfo();
     duStatusZeigen();
   }
@@ -4583,7 +4614,8 @@
     daten.duell = {
       namen: [n1, n2],
       ziel: document.getElementById("du-ziel").value,
-      zeit: Number(document.getElementById("du-zeit").value) || 8,
+      zeit: Number(document.getElementById("du-zeit").value) || 5,
+      bsp: document.getElementById("du-bsp").checked,
       auswahl: document.getElementById("du-auswahl").value,
       richtung: document.getElementById("du-richtung").value,
       manuell: document.getElementById("du-manuell").checked,
@@ -4820,7 +4852,7 @@
 
   /* ---------- Ton, Sprache, Anzeige ---------- */
   var duTonCtx = null;
-  function duTon(hoch) {
+  function duTon(hoch, freq) {
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
@@ -4828,7 +4860,7 @@
       if (!duTonCtx) duTonCtx = new AC();
       if (duTonCtx.state === "suspended") duTonCtx.resume();
       var t = duTonCtx.currentTime, o = duTonCtx.createOscillator(), g = duTonCtx.createGain();
-      o.type = "sine"; o.frequency.value = hoch ? 1175 : 880;
+      o.type = "sine"; o.frequency.value = freq || (hoch ? 1175 : 880);
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(0.35 * uwEinstellungen().laut, t + 0.02);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
@@ -4847,8 +4879,8 @@
   }
   function duZeitAnzeigen(rest) {
     if (!du || du.phase !== "hoeren") return;
-    var wer = du.nurSpieler == null ? "" : " · " + du.namen[du.nurSpieler] + " für 2 Punkte";
-    duPhase("Zuhören · " + Math.max(0, Math.ceil(rest / 1000)) + wer, true);
+    var p = du.nurSpieler;
+    duPhase((p == null ? "" : du.namen[p] + (du.fuerZwei ? " · 2 Punkte" : "") + " · ") + Math.max(0, Math.ceil(rest / 1000)), true);
   }
   function duTafel(hervor, plus) {
     for (var p = 0; p < 2; p++) {
@@ -4880,7 +4912,7 @@
     var anzahl = e.ziel === "alle" || e.ziel === "p10" ? karten.length : Math.min(Number(e.ziel), karten.length);
     duLaufBasis += 10000;   // alte, noch wartende Abläufe erkennen sich nicht als „aktuell“
     du = { namen: e.namen.slice(), punkte: [0, 0], karten: karten, alleKarten: karten, anzahl: e.ziel === "p10" ? 0 : anzahl,
-           ziel: e.ziel, zeit: e.zeit * 1000, richtung: e.richtung, manuell: e.manuell, diagnose: e.diagnose,
+           ziel: e.ziel, zeit: e.zeit * 1000, richtung: e.richtung, manuell: e.manuell, diagnose: e.diagnose, bsp: e.bsp,
            i: 0, lauf: duLaufBasis, pausiert: false, auto: 0, hand: 0, rec: null, phase: "" };
     duTon(false);   // Audio im Tipp freischalten (iOS)
     document.getElementById("duell").hidden = false;
@@ -4899,6 +4931,10 @@
     return du.i >= du.anzahl;
   }
 
+  /* Ablauf einer Vokabel (bewusst wortkarg):
+     Vokabel vorlesen → Piep → Name dessen, der dran ist → zuhören.
+     Richtig: Erfolgston, 1 Punkt. Falsch, „weiß nicht“ oder nichts: Name der anderen Person → zuhören,
+     richtig = 2 Punkte. Wusste es keiner: nur die Lösung vorlesen. Dann die nächste Vokabel. */
   function duFrage() {
     if (!du) return;
     var lauf = ++du.lauf;
@@ -4910,150 +4946,123 @@
     var frage = deZuerst ? c.front : c.back, antwort = deZuerst ? c.back : c.front;
     var sFrage = deZuerst ? "de-DE" : "en-GB", sAntwort = deZuerst ? "en-GB" : "de-DE";
     du.frage = { karte: c, frage: frage, antwort: antwort, sFrage: sFrage, sAntwort: sAntwort,
-                 loesungen: duLoesungen(antwort), versuch: {}, nameWartet: null, notiz: [] };
+                 loesungen: duLoesungen(antwort), notiz: [] };
+    du.dran = du.i % 2;          // abwechselnd: Spieler 1 beginnt, dann Spieler 2, …
     du.nurSpieler = null;
+    du.fuerZwei = false;
     du.sprachBeginn = null;
     du.phase = "vorlesen";
-    duTafel(-1);
+    duTafel(du.dran);
     duEntscheidZu();
-    duPhase("Vorlesen");
+    duPhase(du.namen[du.dran] + " ist dran");
     duSetze("du-vorne", frage);
     duSetze("du-hinten", "");
     duSetze("du-gehoert", "");
     duDiag([]);
     document.getElementById("du-pause").textContent = "Pause";
     var aktiv = function () { return du && lauf === du.lauf; };
-
     duSprich(frage, sFrage, lauf)
-      .then(function () { return warteWenn(450, aktiv); })   // App-Stimme ausklingen lassen
+      .then(function () { return warteWenn(350, aktiv); })
+      .then(function () { if (aktiv()) return duDran(lauf, du.dran, 1); });
+  }
+  // Piep, Name, dann zuhören (bzw. im Knopf-Modus warten)
+  function duDran(lauf, wer, pkt) {
+    var aktiv = function () { return du && lauf === du.lauf; };
+    du.nurSpieler = wer;
+    du.fuerZwei = pkt === 2;
+    duTafel(wer);
+    duTon(pkt === 2);
+    return warteWenn(200, aktiv)
+      .then(function () { return duSprich(du.namen[wer], "en-GB", lauf); })   // Namen klingen mit jeder Stimme gleich
+      .then(function () { return warteWenn(250, aktiv); })                    // App-Stimme ausklingen lassen
       .then(function () {
         if (!aktiv()) return;
-        duTon(false);
-        return warteWenn(250, aktiv);
-      })
-      .then(function () {
-        if (!aktiv()) return;
-        if (du.manuell) return duManuellRunde(lauf);
-        return duHoerRunde(lauf, null);
+        return du.manuell ? duManuellRunde(lauf, wer, pkt) : duHoerRunde(lauf, wer, pkt);
       });
   }
 
-  /* Eine Hörrunde. nur = null: beide dürfen (1 Punkt); nur = 0/1: nur diese Person (2 Punkte) */
-  function duHoerRunde(lauf, nur) {
+  /* Zuhören für die Person, die dran ist. Die erste Antwort zählt; Namen dürfen, müssen aber nicht fallen. */
+  function duHoerRunde(lauf, wer, pkt) {
     var f = du.frage, aktiv = function () { return du && lauf === du.lauf; };
     du.phase = "hoeren";
-    du.nurSpieler = nur;
-    duTafel(nur == null ? -1 : nur);
-    var ergebnis = null, ohneName = null;
+    var ergebnis = null;
     function werte(alt, zuletzt) {
-      // alle Alternativen der Erkennung ansehen, die beste Deutung nehmen
       var besteWahl = null;
       alt.forEach(function (t) {
         var w = duWer(t, du.namen);
-        if (w.wer < 0 && f.nameWartet != null && Date.now() - f.nameWartet.zeit < 4000) w = { wer: f.nameWartet.wer, antwort: duWer(t, du.namen).antwort };
-        var pass = duIstPass(w.antwort);
-        var p = duPasst(w.antwort, f.loesungen);
-        var rang = (w.wer === 2 ? 1 : w.wer > -1 ? 3 : 0) + (p.ok ? 4 : 0) + (pass ? 1 : 0) + (w.antwort ? 1 : 0);
+        var pass = duIstPass(w.antwort), p = duPasst(w.antwort, f.loesungen);
+        var rang = (p.ok ? 4 : 0) + (pass ? 2 : 0) + (w.antwort ? 1 : 0);
         if (!besteWahl || rang > besteWahl.rang) besteWahl = { rang: rang, text: t, wer: w.wer, antwort: w.antwort, pass: pass, p: p };
       });
       var b = besteWahl;
-      f.notiz.push("gehört: „" + b.text + "“" + (alt.length > 1 ? "  (+" + (alt.length - 1) + " Alternativen)" : "") +
-        "\n  Sprecher: " + (b.wer === 2 ? "beide Namen" : b.wer > -1 ? du.namen[b.wer] : "unklar") +
-        " · Antwort: „" + b.antwort + "“ · " + (b.pass ? "passt/weiß nicht" : (b.p.ok ? "richtig" : "falsch")) +
-        " (Ähnlichkeit " + Math.round(b.p.wert * 100) + " % zu „" + b.p.ziel + "“)");
-      duSetze("du-gehoert", "Gehört: „" + b.text + "“");
+      f.notiz.push(du.namen[wer] + " (" + pkt + " P.) – gehört: „" + b.text + "“" + (alt.length > 1 ? "  (+" + (alt.length - 1) + " Alternativen)" : "") +
+        "\n  Antwort: „" + b.antwort + "“ · " + (b.pass ? "weiß nicht" : (b.p.ok ? "richtig" : "falsch")) +
+        " (Ähnlichkeit " + Math.round(b.p.wert * 100) + " % zu „" + b.p.ziel + "“)" + (b.wer === 1 - wer ? " · Name der anderen Person – ignoriert" : ""));
+      duSetze("du-gehoert", "„" + b.text + "“");
       duDiagZeigen();
-      if (b.wer === 2) { ergebnis = { art: "gleichzeitig" }; return true; }
-      if (b.wer > -1 && !b.antwort) { f.nameWartet = { wer: b.wer, zeit: Date.now() }; return false; }   // nur der Name – Antwort kommt gleich
-      if (b.wer < 0) {
-        if (b.p.ok) { ohneName = b; if (zuletzt) { ergebnis = { art: "ohneName", b: b }; return true; } }
-        return false;   // ohne Namen und falsch: vermutlich Gespräch, weiter zuhören
-      }
-      if (nur != null && b.wer !== nur) return false;          // wer schon dran war, ist jetzt nicht dran
-      if (f.versuch[b.wer]) return false;
-      f.versuch[b.wer] = true;
-      ergebnis = { art: b.p.ok && !b.pass ? "richtig" : (b.pass ? "pass" : "falsch"), wer: b.wer, b: b };
+      if (b.wer === 1 - wer) return false;     // die andere Person hat sich mit Namen eingemischt: zählt nicht
+      if (!b.antwort) return false;            // nur ein Name o. Ä. – weiter zuhören
+      ergebnis = b.p.ok && !b.pass ? "richtig" : "falsch";
       return true;
     }
     return duHoere(f.sAntwort, du.zeit, lauf, werte, function (z) {
-      if (aktiv()) duSetze("du-gehoert", "Hört: „" + z + "“");
+      if (aktiv()) duSetze("du-gehoert", "„" + z + "“");
     }).then(function (r) {
       if (!aktiv()) return;
       du.phase = "pruefen";
       if (r.grund === "fehler") {
         f.notiz.push("Spracherkennung: Fehler „" + (r.fehler || "?") + "“");
         duDiagZeigen();
-        if (r.fehler === "not-allowed" || r.fehler === "service-not-allowed" || r.fehler === "audio-capture") {
-          du.manuell = true;
-          return duSprich("Das Mikrofon ist nicht freigegeben. Wir spielen mit Knöpfen weiter.", "de-DE", lauf)
-            .then(function () { return duManuellEntscheid(lauf, "Mikrofon nicht verfügbar – wer hatte recht?", nur); });
-        }
-        return duManuellEntscheid(lauf, r.fehler === "network" ? "Keine Verbindung für die Spracherkennung – wer hatte recht?" : "Spracherkennung gestört – wer hatte recht?", nur);
+        if (r.fehler === "not-allowed" || r.fehler === "service-not-allowed" || r.fehler === "audio-capture") du.manuell = true;
+        return duManuellEntscheid(lauf, r.fehler === "network" ? "Keine Verbindung für die Spracherkennung" :
+          (du.manuell ? "Mikrofon nicht verfügbar" : "Spracherkennung gestört"), wer, pkt);
       }
-      if (!ergebnis && ohneName) ergebnis = { art: "ohneName", b: ohneName };
-      if (!ergebnis) return duKeineAntwort(lauf, nur);
-      if (ergebnis.art === "gleichzeitig") {
-        return duSprich("Gleichzeitig!", "de-DE", lauf).then(function () {
-          return duManuellEntscheid(lauf, "Gleichzeitig gesprochen – wer bekommt den Punkt?", nur);
-        });
-      }
-      if (ergebnis.art === "ohneName") {
-        return duSprich("Richtig, aber wer war das?", "de-DE", lauf).then(function () {
-          return duManuellEntscheid(lauf, "Richtig – aber ohne Namen. Wer war es?", nur);
-        });
-      }
-      var wer = ergebnis.wer, name = du.namen[wer];
-      if (ergebnis.art === "richtig") {
-        var pkt = nur == null ? 1 : 2;
-        du.auto++;
-        return duPunkt(lauf, wer, pkt, true);
-      }
-      // falsch oder „weiß nicht“: die andere Person darf – für 2 Punkte
-      var andere = 1 - wer;
-      if (nur == null && !f.versuch[andere]) {
-        var ansage = (ergebnis.art === "pass" ? name + " passt. " : "Leider falsch. ") + du.namen[andere] + ", für zwei Punkte!";
-        duPhase(ergebnis.art === "pass" ? name + " passt" : "Falsch · " + name);
-        return duSprich(ansage, "de-DE", lauf)
-          .then(function () { return warteWenn(250, aktiv); })
-          .then(function () { if (!aktiv()) return; duTon(true); return warteWenn(250, aktiv); })
-          .then(function () { if (aktiv()) return duHoerRunde(lauf, andere); });
+      if (ergebnis === "richtig") { du.auto++; return duPunkt(lauf, wer, pkt); }
+      if (pkt === 1) {
+        duPhase(ergebnis ? "Falsch" : "Keine Antwort");
+        return duDran(lauf, 1 - wer, 2);       // die andere Person ist dran, für 2 Punkte
       }
       du.auto++;
-      return duLoesung(lauf, ergebnis.art === "pass" ? "Keiner wusste es." : "Leider falsch.");
+      return duLoesung(lauf);
     });
   }
 
-  function duKeineAntwort(lauf, nur) {
-    du.auto++;
-    return duLoesung(lauf, nur == null ? "Keine Antwort." : "Leider nicht.");
-  }
-  // Ansage + Lösung, dann die nächste Frage
-  function duLoesung(lauf, ansage, punktText) {
+  // Wusste es keiner: nur die Lösung vorlesen, dann weiter
+  function duLoesung(lauf) {
     var f = du.frage, aktiv = function () { return du && lauf === du.lauf; };
     du.phase = "ergebnis";
-    duPhase(punktText || ansage);
+    duTafel(-1);
+    duPhase("Lösung");
     duSetze("du-hinten", f.antwort);
-    return duSprich(ansage, "de-DE", lauf)
-      .then(function () { return duSprich("Die Lösung:", "de-DE", lauf); })
-      .then(function () { return duSprich(f.antwort, f.sAntwort, lauf); })
-      .then(function () { return warteWenn(1400, aktiv); })
+    return duSprich(f.antwort, f.sAntwort, lauf)
+      .then(function () { return duBeispiel(lauf); })
+      .then(function () { return warteWenn(900, aktiv); })
       .then(function () { if (aktiv()) { du.i++; duFrage(); } });
   }
-  function duPunkt(lauf, wer, pkt, auto) {
+  // Punkt vergeben: Erfolgston und Tafel, ohne Ansage
+  function duPunkt(lauf, wer, pkt) {
     var aktiv = function () { return du && lauf === du.lauf; };
     if (wer === "beide") { du.punkte[0] += pkt; du.punkte[1] += pkt; }
     else du.punkte[wer] += pkt;
     duTafel(-1, wer === "beide" ? -1 : wer);
-    duTon(true);
-    var name = wer === "beide" ? "beide" : du.namen[wer];
-    var satz = "Richtig. " + (pkt === 2 ? "Zwei Punkte für " : "Punkt für ") + name + ".";
+    duErfolg();
     du.phase = "ergebnis";
-    duPhase((pkt === 2 ? "+2 " : "+1 ") + name);
+    duPhase("+" + pkt + " " + (wer === "beide" ? "beide" : du.namen[wer]));
     duSetze("du-hinten", du.frage.antwort);
-    return duSprich(satz, "de-DE", lauf)
-      .then(function () { return duSprich(du.frage.antwort, du.frage.sAntwort, lauf); })
-      .then(function () { return warteWenn(1300, aktiv); })
+    return warteWenn(700, aktiv)
+      .then(function () { return duBeispiel(lauf); })
+      .then(function () { return warteWenn(500, aktiv); })
       .then(function () { if (aktiv()) { du.i++; duFrage(); } });
+  }
+  function duBeispiel(lauf) {
+    var c = du.frage.karte;
+    if (!du.bsp || !c.bsp) return Promise.resolve();
+    return duSprich(c.bsp, "en-GB", lauf);
+  }
+  // kurzer, heller Zweiklang für „richtig“
+  function duErfolg() {
+    duTon(true);
+    setTimeout(function () { if (du) duTon(true, 1568); }, 130);
   }
   function duDiagZeigen() {
     if (!du || !du.frage) return;
@@ -5062,59 +5071,44 @@
            .concat(du.frage.notiz));
   }
 
-  /* ---------- Manuell: große Knöpfe, ohne Mikrofon oder wenn die App unsicher ist ---------- */
-  function duManuellRunde(lauf) {
+  /* ---------- Knopf-Modus (ohne Mikrofon) und Notfall bei Erkennungsfehlern ---------- */
+  function duManuellRunde(lauf, wer, pkt) {
     var aktiv = function () { return du && lauf === du.lauf; };
     du.phase = "hoeren";
-    return warteWenn(du.zeit, aktiv, function (rest) { if (aktiv()) duPhase("Antworten · " + Math.max(0, Math.ceil(rest / 1000)), true); })
-      .then(function () {
-        if (!aktiv()) return;
-        duSetze("du-hinten", du.frage.antwort);
-        return duSprich(du.frage.antwort, du.frage.sAntwort, lauf)
-          .then(function () { return duManuellEntscheid(lauf, "Wer hatte recht?", null, true); });
-      });
+    return warteWenn(du.zeit, aktiv, function (rest) { if (aktiv()) duPhase(du.namen[wer] + " · " + Math.max(0, Math.ceil(rest / 1000)), true); })
+      .then(function () { if (aktiv()) return duManuellEntscheid(lauf, du.namen[wer] + (pkt === 2 ? " – für 2 Punkte" : ""), wer, pkt); });
   }
   function duEntscheidZu() {
     document.getElementById("du-entscheid").hidden = true;
     document.getElementById("du-knoepfe").textContent = "";
     document.getElementById("du-steuer").hidden = false;
   }
-  function duManuellEntscheid(lauf, frage, nur, loesungSchonGesagt) {
+  // Richtig → Punkte; Falsch → beim ersten Versuch ist die andere Person dran, sonst Lösung
+  function duManuellEntscheid(lauf, frage, wer, pkt) {
     var aktiv = function () { return du && lauf === du.lauf; };
     if (!aktiv()) return;
     du.phase = "entscheiden";
-    duPhase("Bitte entscheiden");
+    duPhase(frage);
     duSetze("du-hinten", du.frage.antwort);
-    var n = du.namen, wahl = [];
-    if (nur == null) {
-      wahl.push([n[0] + " +1", 0, 1, "plus"], [n[1] + " +1", 1, 1, "plus"],
-                [n[0] + " +2", 0, 2, "plus2"], [n[1] + " +2", 1, 2, "plus2"], ["Beide +1", "beide", 1, ""]);
-    } else {
-      wahl.push([n[nur] + " +2", nur, 2, "plus2 voll"]);
-    }
-    wahl.push(["Niemand", null, 0, nur == null ? "" : "voll"]);
-    document.getElementById("du-frage-wer").textContent = frage;
+    document.getElementById("du-frage-wer").textContent = "Hatte " + du.namen[wer] + " recht?";
     var box = document.getElementById("du-knoepfe");
     box.textContent = "";
     document.getElementById("du-entscheid").hidden = false;
     document.getElementById("du-steuer").hidden = true;
     return new Promise(function (fertig) {
-      wahl.forEach(function (w) {
+      [["Richtig +" + pkt, true, pkt === 2 ? "plus2" : "plus"], ["Falsch / nichts", false, ""]].forEach(function (w) {
         var b = document.createElement("button");
-        b.type = "button"; b.className = w[3]; b.textContent = w[0];
+        b.type = "button"; b.className = w[2]; b.textContent = w[0];
         b.addEventListener("click", function () {
           if (!aktiv()) return;
           duEntscheidZu();
           du.hand++;
-          if (w[1] === null) {
-            fertig(loesungSchonGesagt
-              ? warteWenn(600, aktiv).then(function () { if (aktiv()) { du.i++; duFrage(); } })
-              : duLoesung(lauf, "Kein Punkt."));
-          } else fertig(duPunkt(lauf, w[1], w[2], false));
+          if (w[1]) fertig(duPunkt(lauf, wer, pkt));
+          else if (pkt === 1) fertig(duDran(lauf, 1 - wer, 2));
+          else fertig(duLoesung(lauf));
         });
         box.appendChild(b);
       });
-      duSprich("Bitte per Knopf entscheiden.", "de-DE", lauf);
     });
   }
 
@@ -5131,14 +5125,13 @@
       el.querySelector(".du-punkte").textContent = String(p[i]);
       el.classList.toggle("plus", p[i] > p[1 - i]);
     }
-    var satz = p[0] === p[1] ? "Unentschieden, " + p[0] + " zu " + p[1] + "."
-      : n[p[0] > p[1] ? 0 : 1] + " gewinnt mit " + Math.max(p[0], p[1]) + " zu " + Math.min(p[0], p[1]) + "!";
+    var satz = p[0] === p[1] ? p[0] + " : " + p[1] : n[p[0] > p[1] ? 0 : 1] + ", " + Math.max(p[0], p[1]) + " : " + Math.min(p[0], p[1]);
     duSetze("du-sieger", p[0] === p[1] ? "Unentschieden" : n[p[0] > p[1] ? 0 : 1] + " gewinnt!");
     duSetze("du-bilanz", du.i + (du.i === 1 ? " Frage" : " Fragen") + " · " + du.auto + " automatisch entschieden · " +
       du.hand + " per Knopf entschieden");
     uwSchlafen();
-    duTon(true);
-    duSprich("Spielende. " + satz, "de-DE", lauf);
+    duErfolg();
+    duSprich(satz, "en-GB", lauf);
   }
   function duSchliessen() {
     if (!du) { document.getElementById("duell").hidden = true; waechterAbgleichen(); return; }
@@ -5162,7 +5155,7 @@
     duEinstellungenMerken();
     var e = duEinstellungen(), lang = e.richtung === "de" ? "en-GB" : "de-DE";
     var bsp = e.richtung === "de" ? "suggestion" : "Vorschlag";
-    out.textContent = "Sag jetzt deutlich: „" + e.namen[0] + ": " + bsp + "“ …";
+    out.textContent = "Sag jetzt deutlich: „" + bsp + "“ …";
     duTestLaeuft = true;
     var rec;
     try { rec = new DU_SR(); } catch (x) { out.textContent = "Die Spracherkennung ließ sich nicht starten."; duTestLaeuft = false; return; }
@@ -5189,17 +5182,25 @@
       if (!gehoert) { out.textContent = "Nichts gehört. Mikrofon erlaubt? Nochmal versuchen und etwas lauter sprechen."; return; }
       var w = duWer(gehoert, e.namen), p = duPasst(w.antwort, duLoesungen(bsp));
       out.textContent = "Gehört: „" + gehoert + "“\n" +
-        (w.wer === 0 || w.wer === 1 ? "✓ Name erkannt: " + e.namen[w.wer] : "✗ Kein Name erkannt – Namen am Anfang deutlich sagen.") + "\n" +
         (p.ok ? "✓ Antwort „" + bsp + "“ erkannt – so klappt es im Spiel." : "✗ Antwort nicht erkannt (" + Math.round(p.wert * 100) + " % ähnlich).");
     };
     try { rec.start(); } catch (x) { out.textContent = "Die Spracherkennung ließ sich nicht starten."; duTestLaeuft = false; }
   }
 
   ["du-name1", "du-name2"].forEach(function (id) { document.getElementById(id).addEventListener("change", duEinstellungenMerken); });
-  ["du-ziel", "du-zeit", "du-auswahl", "du-richtung", "du-manuell", "du-diagnose"].forEach(function (id) {
+  ["du-ziel", "du-zeit", "du-auswahl", "du-richtung", "du-manuell", "du-diagnose", "du-bsp"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () { duEinstellungenMerken(); if (id === "du-richtung") duStatusZeigen(); });
   });
   document.getElementById("du-test").addEventListener("click", duMikroTest);
+  ["du-destimme", "st-destimme"].forEach(function (id) {
+    var sel = document.getElementById(id);
+    sel.value = deModus();
+    sel.addEventListener("change", function () {
+      daten.deStimme = sel.value; sichern();
+      document.getElementById("du-destimme").value = sel.value;
+      document.getElementById("st-destimme").value = sel.value;
+    });
+  });
   document.getElementById("du-start").addEventListener("click", function () { duStarten(false); });
   document.getElementById("du-nochmal").addEventListener("click", function () { duStarten(true); });
   document.getElementById("du-neu").addEventListener("click", function () { duSchliessen(); duEinstellungenZeigen(); });
