@@ -450,10 +450,10 @@
   nav { display: flex; border-top: 1px solid var(--rule); background: var(--card); }
   nav button {
     flex: 1; background: none; border: none; border-radius: 0;
-    color: var(--ink-soft); padding: 13px 2px 16px; font-size: 13px;
-    white-space: nowrap;
+    color: var(--ink-soft); padding: 13px 2px 16px; font-size: 12.5px;
+    white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis;
   }
-  @media (max-width: 360px) { nav button { font-size: 12px; } }
+  @media (max-width: 380px) { nav button { font-size: 11px; letter-spacing: -.01em; } }
   nav button[aria-current="page"] { color: var(--ink); box-shadow: inset 0 2px 0 var(--indigo); }
 
   .hilfe {
@@ -1127,6 +1127,65 @@
     .uw-knoepfe button { min-height: 54px; }
     .uw-ende { grid-column: 2; grid-row: 4; min-height: 46px; }
   }
+
+  /* ---------- Quiz / Vokabel-Duell ---------- */
+  .du-titel { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .du-titel h2 { margin: 0; }
+  .du-exp { font-size: 11px; letter-spacing: .03em; text-transform: uppercase; color: var(--mark); border: 1px solid var(--mark); border-radius: 3px; padding: 2px 6px; white-space: nowrap; }
+  .du-warn { margin: 0 0 12px; padding: 12px 14px; border-radius: 6px; font-size: 14.5px; line-height: 1.45;
+    background: var(--merk-bg); border: 1px solid var(--merk-rule); }
+  .du-regeln { margin: 0 0 14px; font-size: 15px; line-height: 1.5; }
+  .du-namen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .du-namen label { display: flex; flex-direction: column; gap: 4px; margin: 0; font-size: 13px; color: var(--ink-soft); }
+  .du-namen input { margin: 0; font-size: 17px; font-weight: 600; }
+  .du-optionen { margin-top: 0; }
+  .du-optionen label:not(.zeile-check) { flex: 1 1 140px; }
+  .du-optionen select { width: 100%; }
+  #view-quiz .hoer-info { margin: 14px 0 10px; }
+  .du-status { font-size: 14px; line-height: 1.45; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--rule); margin: 0 0 10px; }
+  .du-status b { display: block; margin-bottom: 2px; }
+  .du-status.gut b { color: var(--moss); }
+  .du-status.warn b { color: var(--mark); }
+  .du-test { width: 100%; min-height: 48px; font-size: 15px; }
+  .du-testergebnis { margin: 10px 0 0; padding: 10px 12px; border-radius: 6px; background: var(--tab); font-size: 14.5px; line-height: 1.45; white-space: pre-line; }
+
+  #duell {
+    position: fixed; inset: 0; z-index: 55;
+    display: flex; flex-direction: column; overflow-y: auto;
+    background-color: var(--paper); background-image: var(--tex, none);
+    padding: calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  }
+  #duell[hidden] { display: none; }
+  #du-spiel, #du-schluss { display: flex; flex-direction: column; flex: 1; }
+  #du-spiel[hidden], #du-schluss[hidden] { display: none; }
+  .du-tafel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .du-spieler { display: flex; flex-direction: column; align-items: center; padding: 10px 6px 8px; border-radius: 8px;
+    border: 2px solid var(--rule); background: var(--card); transition: border-color .2s, background .2s; }
+  .du-pname { font-size: 17px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .du-punkte { font-size: 46px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .du-spieler.dran { border-color: var(--indigo); background: var(--merk-bg); }
+  .du-spieler.plus { border-color: var(--moss); }
+  .du-kopf { margin-top: 10px; font-size: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .du-karte { min-height: 200px; padding: 12px 4px; }
+  .du-karte .uw-phase.hoert { color: var(--moss); font-weight: 700; }
+  .du-gehoert { font-size: 17px; color: var(--ink-soft); margin-top: 14px !important; min-height: 1.3em; line-height: 1.4; }
+  .du-diag { margin: 12px 0 0; padding: 8px 10px; max-width: 100%; text-align: left; font-size: 12px; line-height: 1.4;
+    white-space: pre-wrap; word-break: break-word; background: var(--tab); border-radius: 4px; color: var(--ink-soft); }
+  .du-entscheid { margin: 0 0 12px; }
+  .du-frage-wer { text-align: center; font-size: 16px; font-weight: 600; margin: 0 0 10px; }
+  .du-knoepfe { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .du-knoepfe button { min-height: 64px; font-size: 18px; font-weight: 700; padding: 6px; }
+  .du-knoepfe button.voll { grid-column: 1 / -1; }
+  .du-knoepfe button.plus { background: var(--moss); border-color: var(--moss); color: #fff; }
+  .du-knoepfe button.plus2 { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+  .du-tafel-gross { margin-top: 24px; }
+  .du-tafel-gross .du-punkte { font-size: 64px; }
+  .du-sieger { text-align: center; font-size: 26px; font-weight: 700; margin: 24px 0 8px; }
+  .du-bilanz { text-align: center; margin-bottom: 18px !important; }
+  html[data-vintage] #duell { padding-left: calc(env(safe-area-inset-left) + var(--stripe-left) + var(--stripes-w) + 12px); }
+  html[data-vintage] .du-punkte { font-family: var(--f-brand); }
+  html[data-vintage] .du-pname, html[data-vintage] .du-knoepfe button { font-family: var(--f-mono); letter-spacing: .03em; }
+  html[data-vintage] .du-spieler, html[data-vintage] .du-knoepfe button { border-radius: 6px; }
 </style>
 </head>
 <body>
@@ -1364,6 +1423,60 @@
     <ol class="list" id="liste"></ol>
   </section>
 
+  <!-- Quiz: Vokabel-Duell für zwei, antworten mit dem Namen davor („Kirsten: suggestion“) -->
+  <section id="view-quiz" class="view">
+    <div class="du-titel"><h2>Vokabel-Duell</h2><span class="du-exp">experimentell</span></div>
+    <p class="du-warn"><b>Im Auto: Nur die mitfahrende Person bedient das Handy.</b> Wer fährt, spielt nur mit der Stimme mit und fasst das Handy nicht an.</p>
+    <div class="hoer-panel du-panel">
+      <p class="du-regeln">Die App liest eine Vokabel vor, dann kommt ein Signalton. Wer antwortet, sagt zuerst seinen Namen, zum Beispiel <b>„Kirsten: suggestion“</b>. Richtig = <b>1 Punkt</b>. Liegt jemand falsch oder sagt „weiß nicht“, darf die andere Person antworten und bekommt <b>2 Punkte</b>. Ist sich die App unsicher, entscheidet ihr per Knopf.</p>
+      <div class="du-namen">
+        <label>Spieler 1<input type="text" id="du-name1" maxlength="16" autocomplete="off"></label>
+        <label>Spieler 2<input type="text" id="du-name2" maxlength="16" autocomplete="off"></label>
+      </div>
+      <div class="uw-optionen du-optionen">
+        <label>Spiellänge
+          <select id="du-ziel">
+            <option value="10">10 Fragen</option>
+            <option value="20">20 Fragen</option>
+            <option value="30">30 Fragen</option>
+            <option value="alle">Alle gewählten Karten</option>
+            <option value="p10">Wer zuerst 10 Punkte hat</option>
+          </select>
+        </label>
+        <label>Antwortzeit
+          <select id="du-zeit">
+            <option value="6">6 Sek.</option>
+            <option value="8">8 Sek.</option>
+            <option value="10">10 Sek.</option>
+            <option value="12">12 Sek.</option>
+          </select>
+        </label>
+        <label>Welche Karten
+          <select id="du-auswahl">
+            <option value="kasten">Alle im Kasten</option>
+            <option value="faellig">Nur fällige</option>
+            <option value="schwierig">Nur schwierige (&#9733;)</option>
+            <option value="alle">Alle Vokabeln</option>
+          </select>
+        </label>
+        <label>Richtung
+          <select id="du-richtung">
+            <option value="de">Deutsch → English</option>
+            <option value="en">English → Deutsch</option>
+          </select>
+        </label>
+        <label class="zeile-check"><input type="checkbox" id="du-manuell"> Ohne Mikrofon spielen (Punkte per Knopf)</label>
+        <label class="zeile-check"><input type="checkbox" id="du-diagnose"> Diagnose zeigen (was die App gehört hat)</label>
+      </div>
+      <p class="hoer-info" id="du-karten-info"></p>
+      <div class="du-status" id="du-status"></div>
+      <button id="du-test" type="button" class="ghost du-test">&#127908; Mikrofon testen</button>
+      <p class="du-testergebnis" id="du-testergebnis" hidden></p>
+      <button id="du-start" type="button" class="hoer-start">Duell starten</button>
+      <p class="note">Das Duell ändert keine Fächer und Termine. Die Kategorie-Auswahl beim Üben gilt auch hier.</p>
+    </div>
+  </section>
+
   <section id="view-sichern" class="view">
     <div class="schnell">
       <div class="sk-block">
@@ -1528,6 +1641,7 @@
   <button type="button" data-view="ueben" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/></svg>Üben</button>
   <button type="button" data-view="liste"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>Liste</button>
   <button type="button" data-view="neu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>Neu</button>
+  <button type="button" data-view="quiz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5.5h2.5v1.5a3 3 0 0 1-3 3M7 5.5H4.5v1.5a3 3 0 0 0 3 3M12 14v4M8.5 20.5h7"/></svg>Quiz</button>
   <button type="button" data-view="sichern"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Einstellungen</button>
 </nav>
 
@@ -1567,6 +1681,45 @@
   <button id="uw-ende" type="button" class="ghost uw-ende">Beenden</button>
 </section>
 
+<!-- Quiz / Vokabel-Duell: laufendes Spiel und Ergebnis im Vollbild -->
+<section id="duell" hidden aria-label="Vokabel-Duell">
+  <div id="du-spiel">
+    <div class="du-tafel">
+      <div class="du-spieler" id="du-p0"><span class="du-pname"></span><span class="du-punkte">0</span></div>
+      <div class="du-spieler" id="du-p1"><span class="du-pname"></span><span class="du-punkte">0</span></div>
+    </div>
+    <div class="uw-kopf du-kopf"><span id="du-frage-nr"></span><span id="du-rest"></span></div>
+    <div class="uw-karte du-karte" aria-live="polite">
+      <p class="uw-phase" id="du-phase"></p>
+      <p class="uw-vorne" id="du-vorne"></p>
+      <p class="uw-hinten" id="du-hinten"></p>
+      <p class="du-gehoert" id="du-gehoert"></p>
+      <pre class="du-diag" id="du-diag" hidden></pre>
+    </div>
+    <div class="du-entscheid" id="du-entscheid" hidden>
+      <p class="du-frage-wer" id="du-frage-wer"></p>
+      <div class="du-knoepfe" id="du-knoepfe"></div>
+    </div>
+    <div class="uw-knoepfe" id="du-steuer">
+      <button id="du-pause" type="button" class="ghost">Pause</button>
+      <button id="du-weiter" type="button" class="ghost">Überspringen &rarr;</button>
+    </div>
+    <button id="du-ende" type="button" class="ghost uw-ende">Spiel beenden</button>
+  </div>
+  <div id="du-schluss" hidden>
+    <div class="uw-kopf"><h2>Spielende</h2></div>
+    <div class="du-tafel du-tafel-gross">
+      <div class="du-spieler" id="du-e0"><span class="du-pname"></span><span class="du-punkte"></span></div>
+      <div class="du-spieler" id="du-e1"><span class="du-pname"></span><span class="du-punkte"></span></div>
+    </div>
+    <p class="du-sieger" id="du-sieger"></p>
+    <p class="note du-bilanz" id="du-bilanz"></p>
+    <button id="du-nochmal" type="button" class="hoer-start">Nochmal</button>
+    <button id="du-neu" type="button" class="ghost uw-ende">Neue Runde einrichten</button>
+    <button id="du-schliessen" type="button" class="ghost uw-ende">Beenden</button>
+  </div>
+</section>
+
 <script>
 (function () {
   "use strict";
@@ -1582,7 +1735,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-26-1";
+  var FASSUNG = "2026-09-26-2";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -2984,7 +3137,7 @@
   var ansicht = "ueben";
   function wechsle(name) {
     ansicht = name;
-    ["ueben", "liste", "neu", "sichern", "statistik"].forEach(function (v) {
+    ["ueben", "liste", "neu", "quiz", "sichern", "statistik"].forEach(function (v) {
       document.getElementById("view-" + v).classList.toggle("active", v === name);
     });
     var navName = name === "statistik" ? "ueben" : name;   // die Statistik gehört zum Üben
@@ -3002,6 +3155,7 @@
       else zeichneUeben();
     }
     if (name === "sichern") { zeichneStats(); uwEinstellungenZeigen(); stimmTipp(); }
+    if (name === "quiz") duEinstellungenZeigen();
     document.querySelector("main").scrollTop = 0;
   }
 
@@ -3335,7 +3489,7 @@
      Oberste bzw. geht zum Üben; erst auf dem Üben-Bildschirm verlässt sie die App. */
   var waechter = false, waechterUeberspringen = 0;
   function obenauf() {
-    return !document.getElementById("blatt").hidden || !document.getElementById("unterwegs").hidden ||
+    return !document.getElementById("blatt").hidden || !document.getElementById("unterwegs").hidden || !document.getElementById("duell").hidden ||
       document.getElementById("auswahl").open || ansicht !== "ueben";
   }
   function waechterAbgleichen() {
@@ -3348,6 +3502,7 @@
     waechter = false;
     if (!document.getElementById("blatt").hidden) document.getElementById("blatt").hidden = true;
     else if (!document.getElementById("unterwegs").hidden) uwBeenden();
+    else if (!document.getElementById("duell").hidden) duSchliessen();
     else if (document.getElementById("auswahl").open) document.getElementById("auswahl").open = false;
     else if (ansicht !== "ueben") wechsle("ueben");
     waechterAbgleichen();
@@ -3827,8 +3982,12 @@
 
   // Spricht einen Text; das Versprechen erfüllt sich am Ende oder wenn die Runde abgebrochen wurde
   function sprich(text, lang, lauf) {
+    return sprichWenn(text, lang, function () { return uw && lauf === uw.lauf; });
+  }
+  // wie sprich(), aber mit eigener Prüfung, ob die Runde noch läuft (auch fürs Duell)
+  function sprichWenn(text, lang, laeuft) {
     return new Promise(function (fertig) {
-      if (!text || !uw || lauf !== uw.lauf) { fertig(); return; }
+      if (!text || !laeuft()) { fertig(); return; }
       var u = new SpeechSynthesisUtterance(sprechbar(text));
       u.lang = lang;
       var st = stimmeFuer(lang);
@@ -3841,7 +4000,7 @@
       u.onerror = ende;
       // Kurze Anlaufzeit: direkt nach cancel() schneiden manche Browser den Anfang ab
       setTimeout(function () {
-        if (!uw || lauf !== uw.lauf) { ende(); return; }
+        if (!laeuft()) { ende(); return; }
         // Manche Browser melden das Ende nicht zuverlässig - dann geht es nach einer Schätzung weiter
         notbremse = setTimeout(ende, 3000 + text.length * 120);
         sprache.speak(u);
@@ -3882,10 +4041,13 @@
   }
 
   function warte(ms, lauf, tick) {
+    return warteWenn(ms, function () { return uw && lauf === uw.lauf; }, tick);
+  }
+  function warteWenn(ms, laeuft, tick) {
     return new Promise(function (fertig) {
       var start = Date.now();
       (function schritt() {
-        if (!uw || lauf !== uw.lauf) { fertig(); return; }
+        if (!laeuft()) { fertig(); return; }
         var rest = ms - (Date.now() - start);
         if (tick) tick(rest);
         if (rest <= 0) { fertig(); return; }
@@ -4208,6 +4370,692 @@
     else sprache.onvoiceschanged = stimmenFuellen;
     [500, 1500, 3000].forEach(function (ms) { setTimeout(stimmenFuellen, ms); });
   }
+
+
+  /* =====================================================================
+     Quiz / Vokabel-Duell (experimentell)
+     Zwei Spieler, die App liest vor. Wer antwortet, sagt seinen Namen davor
+     („Kirsten: suggestion“). Richtig = 1 Punkt; falsch oder „weiß nicht“ →
+     die andere Person darf antworten und bekommt 2 Punkte. Unsichere Fälle
+     entscheidet die mitfahrende Person per Knopf. Fächer und Termine bleiben
+     unberührt.
+     Aufbau: Text-Normalisierung und Antwortvergleich (duNorm, duPasst),
+     Namen im Text (duWer), Spracherkennung (duHoere), Spielablauf (duFrage).
+     ===================================================================== */
+  var DU_SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  var du = null;   // laufendes Spiel
+  var duLaufBasis = 0;
+
+  function duEinstellungen() {
+    var e = daten.duell || {};
+    return {
+      namen: [e.namen && e.namen[0] || "Kevin", e.namen && e.namen[1] || "Kirsten"],
+      ziel: ["10", "20", "30", "alle", "p10"].indexOf(e.ziel) > -1 ? e.ziel : "10",
+      zeit: [6, 8, 10, 12].indexOf(e.zeit) > -1 ? e.zeit : 8,
+      auswahl: ["kasten", "faellig", "schwierig", "alle"].indexOf(e.auswahl) > -1 ? e.auswahl : (imKasten().length ? "kasten" : "alle"),
+      richtung: e.richtung === "en" ? "en" : "de",
+      manuell: !!e.manuell || !DU_SR,
+      diagnose: !!e.diagnose
+    };
+  }
+  function duEinstellungenZeigen() {
+    var e = duEinstellungen();
+    document.getElementById("du-name1").value = e.namen[0];
+    document.getElementById("du-name2").value = e.namen[1];
+    document.getElementById("du-ziel").value = e.ziel;
+    document.getElementById("du-zeit").value = String(e.zeit);
+    document.getElementById("du-auswahl").value = e.auswahl;
+    document.getElementById("du-richtung").value = e.richtung;
+    var man = document.getElementById("du-manuell");
+    man.checked = e.manuell;
+    man.disabled = !DU_SR;
+    document.getElementById("du-diagnose").checked = e.diagnose;
+    duKartenInfo();
+    duStatusZeigen();
+  }
+  function duEinstellungenMerken() {
+    var n1 = document.getElementById("du-name1").value.trim() || "Kevin";
+    var n2 = document.getElementById("du-name2").value.trim() || "Kirsten";
+    daten.duell = {
+      namen: [n1, n2],
+      ziel: document.getElementById("du-ziel").value,
+      zeit: Number(document.getElementById("du-zeit").value) || 8,
+      auswahl: document.getElementById("du-auswahl").value,
+      richtung: document.getElementById("du-richtung").value,
+      manuell: document.getElementById("du-manuell").checked,
+      diagnose: document.getElementById("du-diagnose").checked
+    };
+    sichern();
+    duKartenInfo();
+  }
+  function duKarten(auswahl) {
+    var t = heute();
+    return daten.cards.filter(function (c) {
+      if (!imKat(c)) return false;
+      if (auswahl === "alle") return true;
+      if (auswahl === "schwierig") return !!c.merk;
+      if (!c.aktiv) return false;
+      return auswahl === "kasten" || c.due <= t;
+    });
+  }
+  function duKartenInfo() {
+    var e = duEinstellungen(), n = duKarten(e.auswahl).length;
+    var el = document.getElementById("du-karten-info");
+    el.textContent = "";
+    var b = document.createElement("b");
+    b.textContent = String(n);
+    el.appendChild(b);
+    el.appendChild(document.createTextNode(n === 1 ? " Karte zur Auswahl" : " Karten zur Auswahl"));
+    document.getElementById("du-start").disabled = !n;
+  }
+
+  /* ---------- Was kann dieser Browser? (ehrlich, ohne Garantien) ---------- */
+  function duStatusZeigen() {
+    var el = document.getElementById("du-status");
+    function zeige(art, titel, text) {
+      el.className = "du-status " + art;
+      el.textContent = "";
+      var b = document.createElement("b"); b.textContent = titel; el.appendChild(b);
+      el.appendChild(document.createTextNode(text));
+    }
+    if (!DU_SR) {
+      zeige("warn", "Spracherkennung nicht verfügbar",
+        "Dieser Browser kann gesprochene Antworten nicht erkennen. Das Duell läuft trotzdem: Die App liest vor, und die mitfahrende Person vergibt die Punkte per Knopf. Auf Android klappt die Erkennung in Chrome, auf dem iPhone in Safari.");
+      return;
+    }
+    var offline = navigator.onLine === false ? " Gerade besteht keine Internetverbindung – die Erkennung wird dann vermutlich nicht funktionieren." : "";
+    zeige("", "Spracherkennung verfügbar",
+      "Sie läuft je nach Gerät meist über einen Onlinedienst (Google bzw. Apple) und braucht dann Internet." + offline +
+      " Die Namenserkennung ist experimentell: Fahrgeräusche, Musik oder gleichzeitiges Sprechen können sie stören – dann fragt die App nach.");
+    // Neuere Chrome-Versionen können melden, ob die Erkennung auf dem Gerät möglich ist
+    var e = duEinstellungen(), lang = e.richtung === "de" ? "en-GB" : "de-DE";
+    try {
+      if (typeof DU_SR.available === "function") {
+        Promise.resolve(DU_SR.available({ langs: [lang], processLocally: true })).then(function (st) {
+          du_lokal = st === "available";
+          if (du_lokal) zeige("gut", "Lokale Spracherkennung verfügbar",
+            "Die Erkennung läuft auf diesem Gerät, ohne Onlinedienst." +
+            " Die Namenserkennung bleibt experimentell: Fahrgeräusche, Musik oder gleichzeitiges Sprechen können sie stören – dann fragt die App nach.");
+        }).catch(function () {});
+      }
+    } catch (x) {}
+  }
+  var du_lokal = false;
+
+  /* ---------- Text vergleichen ---------- */
+  // klein, ohne Satzzeichen, Umlaute ausgeschrieben, Akzente weg
+  function duNorm(s) {
+    return String(s || "").toLowerCase()
+      .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[’'`´]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+  }
+  function duLev(a, b) {
+    if (a === b) return 0;
+    var v = [], i, j;
+    for (j = 0; j <= b.length; j++) v[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      var prev = v[0]; v[0] = i;
+      for (j = 1; j <= b.length; j++) {
+        var tmp = v[j];
+        v[j] = Math.min(v[j] + 1, v[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+        prev = tmp;
+      }
+    }
+    return v[b.length];
+  }
+  var DU_WEG_EN = /^(to|the|a|an) /, DU_WEG_DE = /^(sich|der|die|das|den|dem|ein|eine|einen|zu) /;
+  // alle Formen, die als richtig gelten: jede Variante („proposal / suggestion“), mit und ohne „to“, Klammern usw.
+  function duLoesungen(text) {
+    var out = [];
+    String(text || "").split(/\s*[\/;]\s*|\s+oder\s+|\s+or\s+/).forEach(function (v) {
+      var roh = v.replace(/\b(sth|sb|etw|jmdm|jmdn|jmds)\./g, " ").replace(/…|\.\.\./g, " ");
+      [roh.replace(/\([^)]*\)/g, " "), roh.replace(/[()]/g, " ")].forEach(function (x) {
+        var n = duNorm(x);
+        if (!n) return;
+        out.push(n);
+        var kurz = n.replace(DU_WEG_EN, "").replace(DU_WEG_DE, "");
+        if (kurz && kurz !== n) out.push(kurz);
+      });
+    });
+    return out.filter(function (x, i) { return out.indexOf(x) === i; });
+  }
+  // kurze Wörter streng, lange Ausdrücke mit etwas Spielraum
+  function duErlaubt(len) { return len <= 4 ? 0 : len <= 7 ? 1 : len <= 12 ? 2 : Math.floor(len * 0.18); }
+  function duPasst(gesagt, loesungen) {
+    var g = duNorm(gesagt), best = { ok: false, wert: 0, ziel: loesungen[0] || "" };
+    if (!g) return best;
+    var gk = g.replace(DU_WEG_EN, "").replace(DU_WEG_DE, "");
+    loesungen.forEach(function (l) {
+      [g, gk].forEach(function (x) {
+        var d = duLev(x, l), wert = 1 - d / Math.max(x.length, l.length, 1);
+        var ok = d <= duErlaubt(l.length) ||
+                 (" " + x + " ").indexOf(" " + l + " ") > -1 && l.length >= 4;   // „the proposal“, „I think proposal“
+        if (ok) wert = Math.max(wert, 0.9);
+        if (ok > best.ok || (ok === best.ok && wert > best.wert)) best = { ok: ok, wert: wert, ziel: l };
+      });
+    });
+    return best;
+  }
+  var DU_PASS = ["weiss nicht", "weiss ich nicht", "keine ahnung", "passe", "pass", "ich passe", "i dont know", "dont know",
+                 "no idea", "i pass", "skip", "keine idee", "weiter"];
+  function duIstPass(t) {
+    t = duNorm(t);
+    return DU_PASS.some(function (p) { return t === p || (t.indexOf(p) === 0 && t.length <= p.length + 6); });
+  }
+
+  /* ---------- Wer hat geantwortet? Name am Anfang (oder am Ende) des Satzes ---------- */
+  function duNamensKey(s) {
+    return duNorm(s).replace(/[^a-z]/g, "").replace(/ph/g, "f").replace(/th/g, "t").replace(/c/g, "k")
+      .replace(/y/g, "i").replace(/ie/g, "i").replace(/h/g, "").replace(/(.)\1+/g, "$1");
+  }
+  function duIstName(wort, name) {
+    var a = duNamensKey(wort), b = duNamensKey(name);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    return duLev(a, b) <= (b.length >= 6 ? 2 : 1) && Math.abs(a.length - b.length) <= 2;
+  }
+  var DU_FUELL = /^(sagt|says|meint|ist|is|antwort|answer|ich|i|also|aehm|aeh|um|uh|aeh|hm|aaeh)$/;
+  // Ergebnis: { wer: 0|1|-1 (unbekannt)|2 (beide genannt), antwort: Rest ohne Namen }
+  function duWer(text, namen) {
+    var w = duNorm(text).split(" ").filter(Boolean);
+    function treffer(i, len) {
+      var stueck = w.slice(i, i + len).join("");
+      for (var p = 0; p < 2; p++) if (duIstName(stueck, namen[p])) return p;
+      return -1;
+    }
+    var genannt = {}, wer = -1, von = 0, bis = w.length;
+    // am Anfang: ein Wort oder zwei zusammengezogene („kir sten“)
+    for (var len = 1; len <= 2 && wer < 0; len++) {
+      var p = treffer(0, len);
+      if (p > -1) { wer = p; von = len; }
+    }
+    // sonst am Ende („proposal, Kevin“)
+    if (wer < 0 && w.length > 1) {
+      var q = treffer(w.length - 1, 1);
+      if (q > -1) { wer = q; bis = w.length - 1; }
+    }
+    if (wer > -1) genannt[wer] = true;
+    // der andere Name auch noch drin? Dann haben vermutlich beide gesprochen
+    w.forEach(function (x, i) {
+      if (i < von || i >= bis) return;
+      for (var p2 = 0; p2 < 2; p2++) if (p2 !== wer && duIstName(x, namen[p2])) genannt[p2] = true;
+    });
+    var rest = w.slice(von, bis);
+    while (rest.length && DU_FUELL.test(rest[0])) rest.shift();
+    return { wer: Object.keys(genannt).length > 1 ? 2 : wer, antwort: rest.join(" ") };
+  }
+
+  /* ---------- Zuhören: Spracherkennung für ein Antwortfenster ----------
+     fertig({ grund, fehler }) - grund: "entschieden" | "zeit" | "fehler" | "abbruch".
+     jeder(alternativen) wird bei jedem fertigen Satz aufgerufen; gibt er true zurück,
+     ist die Frage entschieden und das Zuhören endet sofort. */
+  function duHoere(lang, ms, lauf, jeder, zwischen) {
+    return new Promise(function (fertig) {
+      var aktiv = function () { return du && lauf === du.lauf; };
+      if (!aktiv()) { fertig({ grund: "abbruch" }); return; }
+      var rec;
+      try { rec = new DU_SR(); } catch (x) { fertig({ grund: "fehler", fehler: "start" }); return; }
+      rec.lang = lang;
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.maxAlternatives = 5;
+      try { if (du_lokal) rec.processLocally = true; } catch (x) {}
+      var ende = false, start = Date.now(), frist = start + ms, zwischenText = "", fehler = null, timer = null;
+      du.rec = rec;
+      function schluss(grund) {
+        if (ende) return;
+        ende = true;
+        clearInterval(timer);
+        rec.onresult = rec.onend = rec.onerror = null;
+        try { rec.abort(); } catch (x) {}
+        if (du) du.rec = null;
+        // Zeit um, aber ein Satz war noch unfertig: den letzten Stand trotzdem werten
+        if (grund === "zeit" && zwischenText) { var t = zwischenText; zwischenText = ""; if (jeder([t], true)) grund = "entschieden"; }
+        fertig({ grund: grund, fehler: fehler, sprachBeginn: du ? du.sprachBeginn : null });
+      }
+      rec.onresult = function (ev) {
+        if (!aktiv()) { schluss("abbruch"); return; }
+        for (var i = ev.resultIndex; i < ev.results.length; i++) {
+          var r = ev.results[i];
+          if (du.sprachBeginn == null) du.sprachBeginn = Date.now() - start;
+          if (r.isFinal) {
+            var alt = [];
+            for (var j = 0; j < r.length; j++) if (r[j].transcript) alt.push(r[j].transcript);
+            zwischenText = "";
+            if (alt.length && jeder(alt, false)) { schluss("entschieden"); return; }
+          } else {
+            zwischenText = r[0].transcript;
+            if (zwischen) zwischen(zwischenText);
+          }
+        }
+      };
+      rec.onerror = function (ev) {
+        if (ev.error === "no-speech" || ev.error === "aborted") return;
+        fehler = ev.error;
+        if (["not-allowed", "service-not-allowed", "network", "language-not-supported", "audio-capture"].indexOf(ev.error) > -1) schluss("fehler");
+      };
+      // Manche Browser beenden die Erkennung nach einer Pause von selbst - dann neu starten
+      rec.onend = function () {
+        if (ende) return;
+        if (Date.now() < frist) { try { rec.start(); return; } catch (x) {} }
+        schluss("zeit");
+      };
+      timer = setInterval(function () {
+        if (!aktiv()) { schluss("abbruch"); return; }
+        var rest = frist - Date.now();
+        duZeitAnzeigen(rest);
+        // nach Ablauf noch bis zu 2,5 s warten, wenn gerade jemand mitten im Satz ist
+        if (rest <= 0 && (!zwischenText || rest < -2500)) schluss("zeit");
+      }, 200);
+      try { rec.start(); } catch (x) { fehler = "start"; schluss("fehler"); }
+    });
+  }
+
+  /* ---------- Ton, Sprache, Anzeige ---------- */
+  var duTonCtx = null;
+  function duTon(hoch) {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!duTonCtx) duTonCtx = new AC();
+      if (duTonCtx.state === "suspended") duTonCtx.resume();
+      var t = duTonCtx.currentTime, o = duTonCtx.createOscillator(), g = duTonCtx.createGain();
+      o.type = "sine"; o.frequency.value = hoch ? 1175 : 880;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.35 * uwEinstellungen().laut, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      o.connect(g); g.connect(duTonCtx.destination);
+      o.start(t); o.stop(t + 0.25);
+    } catch (x) {}
+  }
+  function duSprich(text, lang, lauf) {
+    return sprichWenn(text, lang, function () { return du && lauf === du.lauf; });
+  }
+  function duSetze(id, text) { document.getElementById(id).textContent = text || ""; }
+  function duPhase(text, hoert) {
+    var el = document.getElementById("du-phase");
+    el.textContent = text;
+    el.classList.toggle("hoert", !!hoert);
+  }
+  function duZeitAnzeigen(rest) {
+    if (!du || du.phase !== "hoeren") return;
+    var wer = du.nurSpieler == null ? "" : " · " + du.namen[du.nurSpieler] + " für 2 Punkte";
+    duPhase("Zuhören · " + Math.max(0, Math.ceil(rest / 1000)) + wer, true);
+  }
+  function duTafel(hervor, plus) {
+    for (var p = 0; p < 2; p++) {
+      var el = document.getElementById("du-p" + p);
+      el.querySelector(".du-pname").textContent = du.namen[p];
+      el.querySelector(".du-punkte").textContent = String(du.punkte[p]);
+      el.classList.toggle("dran", hervor === p);
+      el.classList.toggle("plus", plus === p);
+    }
+    var n = du.i + 1;
+    duSetze("du-frage-nr", "Frage " + n + (du.anzahl ? " von " + du.anzahl : ""));
+    duSetze("du-rest", du.ziel === "p10" ? "bis 10 Punkte" : (du.anzahl - n) + " übrig");
+  }
+  function duDiag(zeilen) {
+    var el = document.getElementById("du-diag");
+    if (!du.diagnose) { el.hidden = true; return; }
+    el.hidden = false;
+    el.textContent = zeilen.join("\n");
+  }
+
+  /* ---------- Spielablauf ---------- */
+  function duStarten(nochmal) {
+    if (!sprache) { alert("Dieser Browser kann leider nicht vorlesen."); return; }
+    duEinstellungenMerken();
+    var e = duEinstellungen();
+    var karten = nochmal && du ? du.alleKarten : duKarten(e.auswahl);
+    if (!karten.length) { duKartenInfo(); return; }
+    karten = mische(karten.slice());
+    var anzahl = e.ziel === "alle" || e.ziel === "p10" ? karten.length : Math.min(Number(e.ziel), karten.length);
+    duLaufBasis += 10000;   // alte, noch wartende Abläufe erkennen sich nicht als „aktuell“
+    du = { namen: e.namen.slice(), punkte: [0, 0], karten: karten, alleKarten: karten, anzahl: e.ziel === "p10" ? 0 : anzahl,
+           ziel: e.ziel, zeit: e.zeit * 1000, richtung: e.richtung, manuell: e.manuell, diagnose: e.diagnose,
+           i: 0, lauf: duLaufBasis, pausiert: false, auto: 0, hand: 0, rec: null, phase: "" };
+    duTon(false);   // Audio im Tipp freischalten (iOS)
+    document.getElementById("duell").hidden = false;
+    document.getElementById("du-spiel").hidden = false;
+    document.getElementById("du-schluss").hidden = true;
+    stilleAn();
+    uwWach();
+    waechterAbgleichen();
+    duFrage();
+  }
+  function duStopHoeren() {
+    if (du && du.rec) { try { du.rec.onend = null; du.rec.abort(); } catch (x) {} du.rec = null; }
+  }
+  function duSpielVorbei() {
+    if (du.ziel === "p10") return du.punkte[0] >= 10 || du.punkte[1] >= 10 || du.i >= du.karten.length;
+    return du.i >= du.anzahl;
+  }
+
+  function duFrage() {
+    if (!du) return;
+    var lauf = ++du.lauf;
+    duStopHoeren();
+    sprache.cancel();
+    if (duSpielVorbei()) { duEnde(); return; }
+    var c = du.karten[du.i];
+    var deZuerst = du.richtung === "de";
+    var frage = deZuerst ? c.front : c.back, antwort = deZuerst ? c.back : c.front;
+    var sFrage = deZuerst ? "de-DE" : "en-GB", sAntwort = deZuerst ? "en-GB" : "de-DE";
+    du.frage = { karte: c, frage: frage, antwort: antwort, sFrage: sFrage, sAntwort: sAntwort,
+                 loesungen: duLoesungen(antwort), versuch: {}, nameWartet: null, notiz: [] };
+    du.nurSpieler = null;
+    du.sprachBeginn = null;
+    du.phase = "vorlesen";
+    duTafel(-1);
+    duEntscheidZu();
+    duPhase("Vorlesen");
+    duSetze("du-vorne", frage);
+    duSetze("du-hinten", "");
+    duSetze("du-gehoert", "");
+    duDiag([]);
+    document.getElementById("du-pause").textContent = "Pause";
+    var aktiv = function () { return du && lauf === du.lauf; };
+
+    duSprich(frage, sFrage, lauf)
+      .then(function () { return warteWenn(450, aktiv); })   // App-Stimme ausklingen lassen
+      .then(function () {
+        if (!aktiv()) return;
+        duTon(false);
+        return warteWenn(250, aktiv);
+      })
+      .then(function () {
+        if (!aktiv()) return;
+        if (du.manuell) return duManuellRunde(lauf);
+        return duHoerRunde(lauf, null);
+      });
+  }
+
+  /* Eine Hörrunde. nur = null: beide dürfen (1 Punkt); nur = 0/1: nur diese Person (2 Punkte) */
+  function duHoerRunde(lauf, nur) {
+    var f = du.frage, aktiv = function () { return du && lauf === du.lauf; };
+    du.phase = "hoeren";
+    du.nurSpieler = nur;
+    duTafel(nur == null ? -1 : nur);
+    var ergebnis = null, ohneName = null;
+    function werte(alt, zuletzt) {
+      // alle Alternativen der Erkennung ansehen, die beste Deutung nehmen
+      var besteWahl = null;
+      alt.forEach(function (t) {
+        var w = duWer(t, du.namen);
+        if (w.wer < 0 && f.nameWartet != null && Date.now() - f.nameWartet.zeit < 4000) w = { wer: f.nameWartet.wer, antwort: duWer(t, du.namen).antwort };
+        var pass = duIstPass(w.antwort);
+        var p = duPasst(w.antwort, f.loesungen);
+        var rang = (w.wer === 2 ? 1 : w.wer > -1 ? 3 : 0) + (p.ok ? 4 : 0) + (pass ? 1 : 0) + (w.antwort ? 1 : 0);
+        if (!besteWahl || rang > besteWahl.rang) besteWahl = { rang: rang, text: t, wer: w.wer, antwort: w.antwort, pass: pass, p: p };
+      });
+      var b = besteWahl;
+      f.notiz.push("gehört: „" + b.text + "“" + (alt.length > 1 ? "  (+" + (alt.length - 1) + " Alternativen)" : "") +
+        "\n  Sprecher: " + (b.wer === 2 ? "beide Namen" : b.wer > -1 ? du.namen[b.wer] : "unklar") +
+        " · Antwort: „" + b.antwort + "“ · " + (b.pass ? "passt/weiß nicht" : (b.p.ok ? "richtig" : "falsch")) +
+        " (Ähnlichkeit " + Math.round(b.p.wert * 100) + " % zu „" + b.p.ziel + "“)");
+      duSetze("du-gehoert", "Gehört: „" + b.text + "“");
+      duDiagZeigen();
+      if (b.wer === 2) { ergebnis = { art: "gleichzeitig" }; return true; }
+      if (b.wer > -1 && !b.antwort) { f.nameWartet = { wer: b.wer, zeit: Date.now() }; return false; }   // nur der Name – Antwort kommt gleich
+      if (b.wer < 0) {
+        if (b.p.ok) { ohneName = b; if (zuletzt) { ergebnis = { art: "ohneName", b: b }; return true; } }
+        return false;   // ohne Namen und falsch: vermutlich Gespräch, weiter zuhören
+      }
+      if (nur != null && b.wer !== nur) return false;          // wer schon dran war, ist jetzt nicht dran
+      if (f.versuch[b.wer]) return false;
+      f.versuch[b.wer] = true;
+      ergebnis = { art: b.p.ok && !b.pass ? "richtig" : (b.pass ? "pass" : "falsch"), wer: b.wer, b: b };
+      return true;
+    }
+    return duHoere(f.sAntwort, du.zeit, lauf, werte, function (z) {
+      if (aktiv()) duSetze("du-gehoert", "Hört: „" + z + "“");
+    }).then(function (r) {
+      if (!aktiv()) return;
+      du.phase = "pruefen";
+      if (r.grund === "fehler") {
+        f.notiz.push("Spracherkennung: Fehler „" + (r.fehler || "?") + "“");
+        duDiagZeigen();
+        if (r.fehler === "not-allowed" || r.fehler === "service-not-allowed" || r.fehler === "audio-capture") {
+          du.manuell = true;
+          return duSprich("Das Mikrofon ist nicht freigegeben. Wir spielen mit Knöpfen weiter.", "de-DE", lauf)
+            .then(function () { return duManuellEntscheid(lauf, "Mikrofon nicht verfügbar – wer hatte recht?", nur); });
+        }
+        return duManuellEntscheid(lauf, r.fehler === "network" ? "Keine Verbindung für die Spracherkennung – wer hatte recht?" : "Spracherkennung gestört – wer hatte recht?", nur);
+      }
+      if (!ergebnis && ohneName) ergebnis = { art: "ohneName", b: ohneName };
+      if (!ergebnis) return duKeineAntwort(lauf, nur);
+      if (ergebnis.art === "gleichzeitig") {
+        return duSprich("Gleichzeitig!", "de-DE", lauf).then(function () {
+          return duManuellEntscheid(lauf, "Gleichzeitig gesprochen – wer bekommt den Punkt?", nur);
+        });
+      }
+      if (ergebnis.art === "ohneName") {
+        return duSprich("Richtig, aber wer war das?", "de-DE", lauf).then(function () {
+          return duManuellEntscheid(lauf, "Richtig – aber ohne Namen. Wer war es?", nur);
+        });
+      }
+      var wer = ergebnis.wer, name = du.namen[wer];
+      if (ergebnis.art === "richtig") {
+        var pkt = nur == null ? 1 : 2;
+        du.auto++;
+        return duPunkt(lauf, wer, pkt, true);
+      }
+      // falsch oder „weiß nicht“: die andere Person darf – für 2 Punkte
+      var andere = 1 - wer;
+      if (nur == null && !f.versuch[andere]) {
+        var ansage = (ergebnis.art === "pass" ? name + " passt. " : "Leider falsch. ") + du.namen[andere] + ", für zwei Punkte!";
+        duPhase(ergebnis.art === "pass" ? name + " passt" : "Falsch · " + name);
+        return duSprich(ansage, "de-DE", lauf)
+          .then(function () { return warteWenn(250, aktiv); })
+          .then(function () { if (!aktiv()) return; duTon(true); return warteWenn(250, aktiv); })
+          .then(function () { if (aktiv()) return duHoerRunde(lauf, andere); });
+      }
+      du.auto++;
+      return duLoesung(lauf, ergebnis.art === "pass" ? "Keiner wusste es." : "Leider falsch.");
+    });
+  }
+
+  function duKeineAntwort(lauf, nur) {
+    du.auto++;
+    return duLoesung(lauf, nur == null ? "Keine Antwort." : "Leider nicht.");
+  }
+  // Ansage + Lösung, dann die nächste Frage
+  function duLoesung(lauf, ansage, punktText) {
+    var f = du.frage, aktiv = function () { return du && lauf === du.lauf; };
+    du.phase = "ergebnis";
+    duPhase(punktText || ansage);
+    duSetze("du-hinten", f.antwort);
+    return duSprich(ansage, "de-DE", lauf)
+      .then(function () { return duSprich("Die Lösung:", "de-DE", lauf); })
+      .then(function () { return duSprich(f.antwort, f.sAntwort, lauf); })
+      .then(function () { return warteWenn(1400, aktiv); })
+      .then(function () { if (aktiv()) { du.i++; duFrage(); } });
+  }
+  function duPunkt(lauf, wer, pkt, auto) {
+    var aktiv = function () { return du && lauf === du.lauf; };
+    if (wer === "beide") { du.punkte[0] += pkt; du.punkte[1] += pkt; }
+    else du.punkte[wer] += pkt;
+    duTafel(-1, wer === "beide" ? -1 : wer);
+    duTon(true);
+    var name = wer === "beide" ? "beide" : du.namen[wer];
+    var satz = "Richtig. " + (pkt === 2 ? "Zwei Punkte für " : "Punkt für ") + name + ".";
+    du.phase = "ergebnis";
+    duPhase((pkt === 2 ? "+2 " : "+1 ") + name);
+    duSetze("du-hinten", du.frage.antwort);
+    return duSprich(satz, "de-DE", lauf)
+      .then(function () { return duSprich(du.frage.antwort, du.frage.sAntwort, lauf); })
+      .then(function () { return warteWenn(1300, aktiv); })
+      .then(function () { if (aktiv()) { du.i++; duFrage(); } });
+  }
+  function duDiagZeigen() {
+    if (!du || !du.frage) return;
+    duDiag(["erwartet: " + du.frage.loesungen.join(" | "),
+            "Sprache: " + du.frage.sAntwort + (du.sprachBeginn != null ? " · erster Laut nach " + (du.sprachBeginn / 1000).toFixed(1) + " s" : "")]
+           .concat(du.frage.notiz));
+  }
+
+  /* ---------- Manuell: große Knöpfe, ohne Mikrofon oder wenn die App unsicher ist ---------- */
+  function duManuellRunde(lauf) {
+    var aktiv = function () { return du && lauf === du.lauf; };
+    du.phase = "hoeren";
+    return warteWenn(du.zeit, aktiv, function (rest) { if (aktiv()) duPhase("Antworten · " + Math.max(0, Math.ceil(rest / 1000)), true); })
+      .then(function () {
+        if (!aktiv()) return;
+        duSetze("du-hinten", du.frage.antwort);
+        return duSprich(du.frage.antwort, du.frage.sAntwort, lauf)
+          .then(function () { return duManuellEntscheid(lauf, "Wer hatte recht?", null, true); });
+      });
+  }
+  function duEntscheidZu() {
+    document.getElementById("du-entscheid").hidden = true;
+    document.getElementById("du-knoepfe").textContent = "";
+    document.getElementById("du-steuer").hidden = false;
+  }
+  function duManuellEntscheid(lauf, frage, nur, loesungSchonGesagt) {
+    var aktiv = function () { return du && lauf === du.lauf; };
+    if (!aktiv()) return;
+    du.phase = "entscheiden";
+    duPhase("Bitte entscheiden");
+    duSetze("du-hinten", du.frage.antwort);
+    var n = du.namen, wahl = [];
+    if (nur == null) {
+      wahl.push([n[0] + " +1", 0, 1, "plus"], [n[1] + " +1", 1, 1, "plus"],
+                [n[0] + " +2", 0, 2, "plus2"], [n[1] + " +2", 1, 2, "plus2"], ["Beide +1", "beide", 1, ""]);
+    } else {
+      wahl.push([n[nur] + " +2", nur, 2, "plus2 voll"]);
+    }
+    wahl.push(["Niemand", null, 0, nur == null ? "" : "voll"]);
+    document.getElementById("du-frage-wer").textContent = frage;
+    var box = document.getElementById("du-knoepfe");
+    box.textContent = "";
+    document.getElementById("du-entscheid").hidden = false;
+    document.getElementById("du-steuer").hidden = true;
+    return new Promise(function (fertig) {
+      wahl.forEach(function (w) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = w[3]; b.textContent = w[0];
+        b.addEventListener("click", function () {
+          if (!aktiv()) return;
+          duEntscheidZu();
+          du.hand++;
+          if (w[1] === null) {
+            fertig(loesungSchonGesagt
+              ? warteWenn(600, aktiv).then(function () { if (aktiv()) { du.i++; duFrage(); } })
+              : duLoesung(lauf, "Kein Punkt."));
+          } else fertig(duPunkt(lauf, w[1], w[2], false));
+        });
+        box.appendChild(b);
+      });
+      duSprich("Bitte per Knopf entscheiden.", "de-DE", lauf);
+    });
+  }
+
+  function duEnde() {
+    if (!du) return;
+    var lauf = ++du.lauf;
+    duStopHoeren();
+    document.getElementById("du-spiel").hidden = true;
+    document.getElementById("du-schluss").hidden = false;
+    var p = du.punkte, n = du.namen;
+    for (var i = 0; i < 2; i++) {
+      var el = document.getElementById("du-e" + i);
+      el.querySelector(".du-pname").textContent = n[i];
+      el.querySelector(".du-punkte").textContent = String(p[i]);
+      el.classList.toggle("plus", p[i] > p[1 - i]);
+    }
+    var satz = p[0] === p[1] ? "Unentschieden, " + p[0] + " zu " + p[1] + "."
+      : n[p[0] > p[1] ? 0 : 1] + " gewinnt mit " + Math.max(p[0], p[1]) + " zu " + Math.min(p[0], p[1]) + "!";
+    duSetze("du-sieger", p[0] === p[1] ? "Unentschieden" : n[p[0] > p[1] ? 0 : 1] + " gewinnt!");
+    duSetze("du-bilanz", du.i + (du.i === 1 ? " Frage" : " Fragen") + " · " + du.auto + " automatisch entschieden · " +
+      du.hand + " per Knopf entschieden");
+    uwSchlafen();
+    duTon(true);
+    duSprich("Spielende. " + satz, "de-DE", lauf);
+  }
+  function duSchliessen() {
+    if (!du) { document.getElementById("duell").hidden = true; waechterAbgleichen(); return; }
+    du.lauf++;
+    duStopHoeren();
+    sprache.cancel();
+    du = null;
+    uwSchlafen();
+    stilleAus();
+    document.getElementById("duell").hidden = true;
+    waechterAbgleichen();
+  }
+
+  /* ---------- Mikrofon-Test in der Einrichtung ---------- */
+  var duTestLaeuft = false;
+  function duMikroTest() {
+    var out = document.getElementById("du-testergebnis");
+    out.hidden = false;
+    if (!DU_SR) { out.textContent = "Dieser Browser hat keine Spracherkennung – ihr spielt mit Knöpfen."; return; }
+    if (duTestLaeuft || du) return;
+    duEinstellungenMerken();
+    var e = duEinstellungen(), lang = e.richtung === "de" ? "en-GB" : "de-DE";
+    var bsp = e.richtung === "de" ? "suggestion" : "Vorschlag";
+    out.textContent = "Sag jetzt deutlich: „" + e.namen[0] + ": " + bsp + "“ …";
+    duTestLaeuft = true;
+    var rec;
+    try { rec = new DU_SR(); } catch (x) { out.textContent = "Die Spracherkennung ließ sich nicht starten."; duTestLaeuft = false; return; }
+    rec.lang = lang; rec.interimResults = true; rec.maxAlternatives = 3; rec.continuous = false;
+    try { if (du_lokal) rec.processLocally = true; } catch (x) {}
+    var gehoert = "", ende = setTimeout(function () { try { rec.stop(); } catch (x) {} }, 7000);
+    rec.onresult = function (ev) {
+      for (var i = ev.resultIndex; i < ev.results.length; i++) gehoert = ev.results[i][0].transcript;
+      out.textContent = "Gehört: „" + gehoert + "“";
+    };
+    rec.onerror = function (ev) {
+      if (ev.error === "no-speech") return;
+      var was = { "not-allowed": "Das Mikrofon ist nicht freigegeben. Bitte in den Browser-Einstellungen erlauben.",
+                  "service-not-allowed": "Die Spracherkennung ist auf diesem Gerät gesperrt.",
+                  "network": "Die Spracherkennung braucht hier eine Internetverbindung.",
+                  "audio-capture": "Kein Mikrofon gefunden." }[ev.error];
+      out.textContent = was || ("Fehler der Spracherkennung: " + ev.error);
+      gehoert = null;
+    };
+    rec.onend = function () {
+      clearTimeout(ende);
+      duTestLaeuft = false;
+      if (gehoert === null) return;
+      if (!gehoert) { out.textContent = "Nichts gehört. Mikrofon erlaubt? Nochmal versuchen und etwas lauter sprechen."; return; }
+      var w = duWer(gehoert, e.namen), p = duPasst(w.antwort, duLoesungen(bsp));
+      out.textContent = "Gehört: „" + gehoert + "“\n" +
+        (w.wer === 0 || w.wer === 1 ? "✓ Name erkannt: " + e.namen[w.wer] : "✗ Kein Name erkannt – Namen am Anfang deutlich sagen.") + "\n" +
+        (p.ok ? "✓ Antwort „" + bsp + "“ erkannt – so klappt es im Spiel." : "✗ Antwort nicht erkannt (" + Math.round(p.wert * 100) + " % ähnlich).");
+    };
+    try { rec.start(); } catch (x) { out.textContent = "Die Spracherkennung ließ sich nicht starten."; duTestLaeuft = false; }
+  }
+
+  ["du-name1", "du-name2"].forEach(function (id) { document.getElementById(id).addEventListener("change", duEinstellungenMerken); });
+  ["du-ziel", "du-zeit", "du-auswahl", "du-richtung", "du-manuell", "du-diagnose"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () { duEinstellungenMerken(); if (id === "du-richtung") duStatusZeigen(); });
+  });
+  document.getElementById("du-test").addEventListener("click", duMikroTest);
+  document.getElementById("du-start").addEventListener("click", function () { duStarten(false); });
+  document.getElementById("du-nochmal").addEventListener("click", function () { duStarten(true); });
+  document.getElementById("du-neu").addEventListener("click", function () { duSchliessen(); duEinstellungenZeigen(); });
+  document.getElementById("du-schliessen").addEventListener("click", duSchliessen);
+  document.getElementById("du-ende").addEventListener("click", function () { if (du) duEnde(); });
+  document.getElementById("du-weiter").addEventListener("click", function () {
+    if (!du || du.phase === "entscheiden") return;
+    du.pausiert = false;
+    du.i++;
+    duFrage();
+  });
+  document.getElementById("du-pause").addEventListener("click", function () {
+    if (!du) return;
+    if (du.pausiert) { du.pausiert = false; duFrage(); return; }   // die Frage beginnt von vorn
+    du.pausiert = true;
+    du.lauf++;
+    duStopHoeren();
+    sprache.cancel();
+    duPhase("Pausiert");
+    this.textContent = "Weiter";
+  });
+  window.addEventListener("online", function () { if (ansicht === "quiz") duStatusZeigen(); });
+  window.addEventListener("offline", function () { if (ansicht === "quiz") duStatusZeigen(); });
 
   /* ---------- App teilen ---------- */
   // Als Datei geöffnet (file://) gibt es keine teilbare Adresse - dann die veröffentlichte App
