@@ -1197,22 +1197,61 @@
   }
   .kopf-zurueck[hidden] { display: none; }
   .kopf-zurueck svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-  .kacheln { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
-  .kachel {
-    display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 2px;
-    min-height: 138px; padding: 14px 14px 13px; text-align: left; border-radius: 10px;
-    background: var(--card); color: var(--ink); border: 1px solid var(--rule); box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  /* Startseite: klare Rangordnung - groß das Lernen heute, dann die Lernarten, unten Verwalten */
+  #view-start { padding-bottom: 12px; }
+  .kachel { font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .12s ease, box-shadow .12s ease; }
+  .kachel:active { transform: scale(.985); }
+  .st-gruss { margin: 2px 2px 12px; font-size: 15px; color: var(--ink-soft); }
+  .st-gruss b { color: var(--ink); font-weight: 600; }
+  .st-ico { width: 44px; height: 44px; border-radius: 13px; flex: none; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--ton, var(--ink-soft)) 14%, transparent); color: var(--ton, var(--ink-soft)); }
+  .st-ico svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .st-ico-hell { background: rgba(255,255,255,.2); color: #fff; }
+  .st-ico-klein { width: 38px; height: 38px; border-radius: 11px; }
+  .st-ico-klein svg { width: 21px; height: 21px; }
+  /* große Karte */
+  .st-hero {
+    width: 100%; display: flex; flex-direction: column; gap: 14px; padding: 18px 18px 16px; border: none; border-radius: 22px;
+    color: #fff; background: linear-gradient(145deg, #f59331 0%, #ef7b17 45%, #e0620c 100%);
+    box-shadow: 0 10px 26px rgba(224, 98, 12, .28), 0 2px 6px rgba(224, 98, 12, .18);
   }
-  .kachel svg { width: 30px; height: 30px; margin-bottom: auto; fill: none; stroke: var(--indigo); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .kachel b { font-size: 17px; font-weight: 600; margin-top: 14px; }
-  .kachel small { font-size: 13px; line-height: 1.35; color: var(--ink-soft); }
-  .kachel.haupt { background: #ef7b17; border-color: #ef7b17; color: #fff; }
-  .kachel.haupt svg { stroke: #fff; }
-  .kachel.haupt small { color: rgba(255,255,255,.9); }
-  .kachel:active { transform: scale(.98); }
-  html[data-vintage] .kachel { border-radius: 7px; background: var(--raised, var(--card)); }
-  html[data-vintage] .kachel b { font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .04em; font-size: 15px; }
-  html[data-vintage] .kachel.haupt { background: #ef7b17; }
+  .st-hero-kopf { display: flex; align-items: center; gap: 12px; }
+  .st-hero-titel { display: flex; flex-direction: column; min-width: 0; }
+  .st-hero-titel b { font-size: 19px; font-weight: 700; letter-spacing: .01em; }
+  .st-hero-titel small { font-size: 13.5px; opacity: .88; }
+  .st-hero-zahl { display: flex; align-items: baseline; gap: 10px; }
+  .st-hero-zahl strong { font-size: 56px; line-height: .95; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .st-hero-zahl span { font-size: 16px; font-weight: 600; opacity: .92; line-height: 1.25; }
+  .st-ziel { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
+  .st-ziel-balken { flex: 1; height: 8px; border-radius: 8px; background: rgba(255,255,255,.28); overflow: hidden; }
+  .st-ziel-balken i { display: block; height: 100%; width: 0; border-radius: 8px; background: #fff; transition: width .4s ease; }
+  .st-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px 11px 18px; border-radius: 999px;
+    background: #fff; color: #d4580a; font-size: 15.5px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  .st-cta svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  /* zwei Lernarten */
+  .st-paar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .st-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 142px; padding: 16px;
+    border-radius: 18px; background: var(--card); color: var(--ink); border: 1px solid var(--rule); box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 18px rgba(0,0,0,.05); }
+  .st-kachel .st-ico { margin-bottom: auto; }
+  .st-kachel b { font-size: 17px; font-weight: 650; margin-top: 16px; }
+  .st-kachel small { font-size: 13px; line-height: 1.35; color: var(--ink-soft); }
+  /* Verwalten */
+  .st-abschnitt { margin: 22px 4px 8px; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+  .st-liste { border-radius: 18px; background: var(--card); border: 1px solid var(--rule); overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .st-zeile { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 64px;
+    background: none; border: none; border-radius: 0; color: var(--ink); }
+  .st-zeile + .st-zeile { border-top: 1px solid var(--rule); }
+  .st-zeile:active { transform: none; background: var(--tab); }
+  .st-z-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .st-z-txt b { font-size: 16px; font-weight: 600; }
+  .st-z-txt small { font-size: 13px; color: var(--ink-soft); }
+  .st-chev { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--ink-soft); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: .7; }
+  html[data-vintage] .st-hero, html[data-vintage] .st-kachel, html[data-vintage] .st-liste { border-radius: 10px; }
+  html[data-vintage] .st-hero-titel b, html[data-vintage] .st-kachel b, html[data-vintage] .st-z-txt b, html[data-vintage] .st-cta {
+    font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .04em; }
+  html[data-vintage] .st-hero-zahl strong { font-family: var(--f-brand); }
+  html[data-vintage] .st-kachel, html[data-vintage] .st-liste { background: var(--raised, var(--card)); }
+  @media (prefers-reduced-motion: reduce) { .kachel, .st-ziel-balken i { transition: none; } }
   #view-ueben #modus { display: none; }   /* Karten oder Hören wählt man jetzt über die Kacheln */
   /* Ziffern in den Retro-Designs gleich breit, damit Zähler und Nummern nicht springen */
   html[data-vintage] body { font-variant-numeric: tabular-nums; }
@@ -1233,32 +1272,41 @@
 </div>
 
 <main>
-  <!-- Startseite: große Kacheln statt Leiste unten -->
+  <!-- Startseite: oben das Wichtigste (heute lernen), darunter die zwei Lernarten, unten Verwalten -->
   <section id="view-start" class="view active">
-    <div class="kacheln">
-      <button type="button" class="kachel haupt" data-ziel="karten">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/></svg>
-        <b>Vokabelkasten</b><small id="k-karten"></small>
-      </button>
-      <button type="button" class="kachel" data-ziel="hoeren">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.5"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.5"/></svg>
+    <p class="st-gruss" id="st-gruss"></p>
+    <button type="button" class="kachel st-hero" data-ziel="karten">
+      <span class="st-hero-kopf">
+        <span class="st-ico st-ico-hell"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/></svg></span>
+        <span class="st-hero-titel"><b>Vokabelkasten</b><small id="st-hero-sub"></small></span>
+      </span>
+      <span class="st-hero-zahl"><strong id="st-faellig">0</strong><span id="st-faellig-txt"></span></span>
+      <span class="st-ziel" aria-hidden="true"><span class="st-ziel-balken"><i id="st-ziel-fuell"></i></span><span id="st-ziel-txt"></span></span>
+      <span class="st-cta"><span id="st-cta-txt">Jetzt üben</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+    </button>
+    <div class="st-paar">
+      <button type="button" class="kachel st-kachel" data-ziel="hoeren" style="--ton:var(--indigo)">
+        <span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.5"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.5"/></svg></span>
         <b>Hörtraining</b><small id="k-hoeren"></small>
       </button>
-      <button type="button" class="kachel" data-ziel="quiz">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5.5h2.5v1.5a3 3 0 0 1-3 3M7 5.5H4.5v1.5a3 3 0 0 0 3 3M12 14v4M8.5 20.5h7"/></svg>
-        <b>Quiz-Duell</b><small>Zu zweit mit Punkten</small>
+      <button type="button" class="kachel st-kachel" data-ziel="quiz" style="--ton:var(--moss)">
+        <span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5.5h2.5v1.5a3 3 0 0 1-3 3M7 5.5H4.5v1.5a3 3 0 0 0 3 3M12 14v4M8.5 20.5h7"/></svg></span>
+        <b>Quiz-Duell</b><small>Zu zweit, mit Punkten</small>
       </button>
-      <button type="button" class="kachel" data-ziel="liste">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
-        <b>Liste</b><small id="k-liste"></small>
+    </div>
+    <p class="st-abschnitt">Verwalten</p>
+    <div class="st-liste">
+      <button type="button" class="kachel st-zeile" data-ziel="liste">
+        <span class="st-ico st-ico-klein"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span>
+        <span class="st-z-txt"><b>Liste</b><small id="k-liste"></small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
       </button>
-      <button type="button" class="kachel" data-ziel="neu">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>
-        <b>Neu</b><small>Vokabeln hinzufügen</small>
+      <button type="button" class="kachel st-zeile" data-ziel="neu">
+        <span class="st-ico st-ico-klein"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg></span>
+        <span class="st-z-txt"><b>Neu</b><small>Vokabeln hinzufügen oder einfügen</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
       </button>
-      <button type="button" class="kachel" data-ziel="sichern">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-        <b>Einstellungen</b><small>Darstellung, Stimmen, Sichern</small>
+      <button type="button" class="kachel st-zeile" data-ziel="sichern">
+        <span class="st-ico st-ico-klein"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>
+        <span class="st-z-txt"><b>Einstellungen</b><small>Darstellung, Stimmen, Sichern</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
       </button>
     </div>
   </section>
@@ -1796,7 +1844,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-26-4";
+  var FASSUNG = "2026-09-27-1";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -3227,12 +3275,30 @@
                   neu: "Neu", quiz: "Quiz-Duell", sichern: "Einstellungen", statistik: "Statistik" }[ansicht] || "Vokabelkasten";
     document.getElementById("kopf-titel").textContent = titel;
     document.getElementById("btn-start").hidden = ansicht === "start";
+    document.getElementById("status").hidden = ansicht === "start";   // steht auf der Startseite schon in der großen Karte
   }
   function zeichneKacheln() {
     var f = daten.cards.filter(function (c) { return c.aktiv && c.due <= heute(); }).length, k = imKasten().length;
-    document.getElementById("k-karten").textContent = k ? f + " heute fällig · " + k + " im Kasten" : "Karten üben";
-    document.getElementById("k-hoeren").textContent = "Vorlesen lassen, freihändig";
-    document.getElementById("k-liste").textContent = daten.cards.length + " Vokabeln";
+    var ziel = tagesZiel(), h = geuebtAm(Date.now()), serie = lernSerie(), std = new Date().getHours();
+    // Begrüßung mit Lernserie
+    var gruss = document.getElementById("st-gruss");
+    gruss.textContent = std < 11 ? "Guten Morgen" : std < 18 ? "Hallo" : "Guten Abend";
+    if (serie) {
+      var b = document.createElement("b");
+      b.textContent = " · " + serie + (serie === 1 ? " Tag" : " Tage") + " in Folge";
+      gruss.appendChild(b);
+    }
+    // große Karte: was heute ansteht
+    document.getElementById("st-hero-sub").textContent = k ? k + " Karten im Kasten" : "Dein Kasten ist noch leer";
+    document.getElementById("st-faellig").textContent = String(k ? f : daten.cards.length);
+    document.getElementById("st-faellig-txt").textContent = k ? (f === 1 ? "Karte heute fällig" : "Karten heute fällig") : "Vokabeln warten auf dich";
+    document.getElementById("st-ziel-fuell").style.width = Math.min(100, Math.round(h / ziel * 100)) + "%";
+    document.getElementById("st-ziel-txt").textContent = "Heute " + h + " / " + ziel + (h >= ziel ? " ✓" : "");
+    document.getElementById("st-cta-txt").textContent = !k ? "Loslegen" : f ? "Jetzt üben" : "Alles erledigt · trotzdem üben";
+    // Lernarten und Verwalten
+    var n = uwKartenAuswahl(uwEinstellungen().auswahl).length;
+    document.getElementById("k-hoeren").textContent = n ? n + (n === 1 ? " Karte" : " Karten") + " · freihändig" : "Vorlesen lassen, freihändig";
+    document.getElementById("k-liste").textContent = daten.cards.length + " Vokabeln · " + k + " im Kasten";
   }
   Array.prototype.forEach.call(document.querySelectorAll(".kachel"), function (b) {
     b.addEventListener("click", function () {
