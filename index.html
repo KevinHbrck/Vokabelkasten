@@ -614,6 +614,7 @@
   #stimm-tipp { margin: 10px 0 0; }
   .stimm-zeile { display: flex; gap: 8px; margin-bottom: 12px; }
   .stimm-zeile select { flex: 1; min-width: 0; }
+  .stimm-zeile select.tempo { flex: none; width: 78px; padding-left: 8px; padding-right: 4px; font-variant-numeric: tabular-nums; }
   .stimm-zeile .probe { flex: none; padding: 8px 12px; font-size: 14px; white-space: nowrap; }
   #uw-laut-wert { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
   #uw-laut { width: 100%; margin: 4px 0 0; accent-color: var(--accent, var(--indigo)); height: 28px; }
@@ -1579,13 +1580,6 @@
             <option value="en">English → Deutsch</option>
           </select>
         </label>
-        <label>Deutsch vorlesen mit
-          <select id="du-destimme">
-            <option value="de">Deutscher Stimme</option>
-            <option value="en">Englischer Stimme</option>
-            <option value="aus">Gar nicht (nur anzeigen)</option>
-          </select>
-        </label>
         <label class="zeile-check"><input type="checkbox" id="du-bsp"> Beispielsätze vorlesen</label>
         <label class="zeile-check"><input type="checkbox" id="du-manuell"> Ohne Mikrofon spielen (Punkte per Knopf)</label>
         <label class="zeile-check"><input type="checkbox" id="du-diagnose"> Diagnose zeigen (was die App gehört hat)</label>
@@ -1595,7 +1589,7 @@
       <button id="du-test" type="button" class="ghost du-test">&#127908; Mikrofon testen</button>
       <p class="du-testergebnis" id="du-testergebnis" hidden></p>
       <button id="du-start" type="button" class="hoer-start">Duell starten</button>
-      <p class="note">Das Duell ändert keine Fächer und Termine. Die Kategorie-Auswahl beim Üben gilt auch hier.</p>
+      <p class="note">Das Duell ändert keine Fächer und Termine. Die Kategorie-Auswahl beim Üben gilt auch hier. Stimme und Tempo: in den Einstellungen.</p>
     </div>
   </section>
 
@@ -1644,37 +1638,25 @@
 
       <div class="sk-block" id="sk-stimme">
         <h3 class="sk-titel">Stimme zum Vorlesen</h3>
-        <p class="note" style="margin-top:0">Gilt für „Unterwegs · Anhören“ und für das Lautsprecher-Symbol auf der Karte.</p>
+        <p class="note" style="margin-top:0">Stimme und Tempo gelten als Standard überall: Hörtraining, Quiz-Duell und Lautsprecher-Symbol auf der Karte.</p>
         <label for="st-destimme">Deutsch vorlesen mit</label>
         <select id="st-destimme" style="width:100%;margin-bottom:12px">
           <option value="de">Deutscher Stimme</option>
           <option value="en">Englischer Stimme (klingt auf manchen Android-Handys besser)</option>
           <option value="aus">Gar nicht – Deutsches nur anzeigen</option>
         </select>
-        <label for="uw-stimme-de">Deutsch</label>
+        <label for="uw-stimme-de">Deutsch · Stimme und Tempo</label>
         <div class="stimm-zeile">
-          <select id="uw-stimme-de"></select>
+          <select id="uw-stimme-de" aria-label="Deutsche Stimme"></select>
+          <select id="st-detempo" class="tempo" aria-label="Tempo der deutschen Stimme"><option value="1">1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="2">2×</option></select>
           <button type="button" class="ghost probe" data-probe="de" aria-label="Deutsche Stimme probehören">&#9654; Probe</button>
         </div>
-        <label for="st-detempo">Tempo der deutschen Stimme</label>
-        <select id="st-detempo" style="width:100%;margin-bottom:12px">
-          <option value="1">Normal (1×)</option>
-          <option value="1.25">Etwas schneller (1,25×)</option>
-          <option value="1.5">Schneller (1,5×)</option>
-          <option value="2">Doppelt so schnell (2×)</option>
-        </select>
-        <label for="uw-stimme-en">Englisch</label>
+        <label for="uw-stimme-en">Englisch · Stimme und Tempo</label>
         <div class="stimm-zeile">
-          <select id="uw-stimme-en"></select>
+          <select id="uw-stimme-en" aria-label="Englische Stimme"></select>
+          <select id="st-entempo" class="tempo" aria-label="Tempo der englischen Stimme"><option value="1">1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="2">2×</option></select>
           <button type="button" class="ghost probe" data-probe="en" aria-label="Englische Stimme probehören">&#9654; Probe</button>
         </div>
-        <label for="st-entempo">Tempo der englischen Stimme</label>
-        <select id="st-entempo" style="width:100%;margin-bottom:12px">
-          <option value="1">Normal (1×)</option>
-          <option value="1.25">Etwas schneller (1,25×)</option>
-          <option value="1.5">Schneller (1,5×)</option>
-          <option value="2">Doppelt so schnell (2×)</option>
-        </select>
         <label for="uw-laut">Lautstärke <span id="uw-laut-wert"></span></label>
         <input type="range" id="uw-laut" min="10" max="100" step="5">
         <p class="note" style="margin:6px 0 0">Deine Musik läuft beim Vorlesen weiter. iPhone: Steht es auf lautlos, bleibt die Stimme stumm – dann auf laut stellen.</p>
@@ -1877,7 +1859,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-4";
+  var FASSUNG = "2026-09-27-5";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -4622,7 +4604,6 @@
     man.disabled = !DU_SR;
     document.getElementById("du-diagnose").checked = e.diagnose;
     document.getElementById("du-bsp").checked = e.bsp;
-    document.getElementById("du-destimme").value = deModus();
     duKartenInfo();
     duStatusZeigen();
   }
@@ -5221,15 +5202,12 @@
       });
     });
   })();
-  ["du-destimme", "st-destimme"].forEach(function (id) {
-    var sel = document.getElementById(id);
+  // Stimme und Tempo stellt man nur in den Einstellungen ein - das gilt dann überall
+  (function () {
+    var sel = document.getElementById("st-destimme");
     sel.value = deModus();
-    sel.addEventListener("change", function () {
-      daten.deStimme = sel.value; sichern();
-      document.getElementById("du-destimme").value = sel.value;
-      document.getElementById("st-destimme").value = sel.value;
-    });
-  });
+    sel.addEventListener("change", function () { daten.deStimme = sel.value; sichern(); });
+  })();
   document.getElementById("du-start").addEventListener("click", function () { duStarten(false); });
   document.getElementById("du-nochmal").addEventListener("click", function () { duStarten(true); });
   document.getElementById("du-neu").addEventListener("click", function () { duSchliessen(); duEinstellungenZeigen(); });
