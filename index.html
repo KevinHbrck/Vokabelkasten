@@ -402,6 +402,15 @@
   .anzeige select, .anzeige button { padding: 8px 10px; font-size: 14px; }
   .anzeige select { flex: 1 1 0; min-width: 0; max-width: 190px; }
   .anzeige button { white-space: nowrap; }
+  /* Listenkopf: alle Felder im gleichen Raster, gleich hoch und gleich breit */
+  .listraster { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 6px; }
+  .listraster > select, .listraster > button {
+    width: 100%; min-width: 0; height: 42px; margin: 0; padding: 0 10px;
+    font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .listraster > select { padding-right: 4px; }
+  .listraster > .voll { grid-column: 1 / -1; }
+  .listraster > [hidden] { display: none; }
 
   h2 { font-size: 15px; font-weight: 600; margin: 0 0 14px; }
 
@@ -1322,11 +1331,16 @@
   <section id="view-liste" class="view">
     <div class="listkopf">
       <input type="search" id="suche" placeholder="Suchen" autocomplete="off" aria-label="Vokabeln durchsuchen">
-      <button class="filt" id="btn-nurmerk" type="button" aria-pressed="false" title="Nur Gemerkte zeigen">&#9733;</button>
+      <button class="filt" id="btn-nurmerk" type="button" aria-pressed="false" title="Nur schwierige zeigen" aria-label="Nur schwierige zeigen">&#9733;</button>
       <button class="filt" id="btn-nurkasten" type="button" aria-pressed="false" title="Nur Karten im Kasten zeigen">&#10003;</button>
     </div>
-    <p class="note" id="listinfo"></p>
-    <div class="anzeige">
+    <div class="listraster">
+      <select id="sel-listkat" aria-label="Nach Kategorie filtern"></select>
+      <select id="sel-sort" aria-label="Sortieren">
+        <option value="nr">Reihenfolge (Nr.)</option>
+        <option value="de">Deutsch A–Z</option>
+        <option value="en">English A–Z</option>
+      </select>
       <select id="sel-abdeck" aria-label="Spalte abdecken">
         <option value="aus">Beides zeigen</option>
         <option value="en">English abdecken</option>
@@ -1334,19 +1348,18 @@
       </select>
       <button class="ghost" id="btn-saetze" type="button">Sätze aus</button>
       <button class="ghost" id="btn-liste-hoeren" type="button" title="Die angezeigte Liste der Reihe nach vorlesen">&#9654; Anhören</button>
-    </div>
-    <div class="bulk">
-      <button class="ghost" id="btn-next10" type="button">Nächste 30 aufnehmen</button>
       <select id="sel-paket" aria-label="Wie viele auf einmal aufnehmen">
-        <option value="5">5</option>
-        <option value="10">10</option>
-        <option value="15" selected>15</option>
-        <option value="20">20</option>
-        <option value="30">30</option>
+        <option value="5">5 auf einmal</option>
+        <option value="10">10 auf einmal</option>
+        <option value="15" selected>15 auf einmal</option>
+        <option value="20">20 auf einmal</option>
+        <option value="30">30 auf einmal</option>
       </select>
+      <button class="ghost voll" id="btn-next10" type="button">Nächste 30 aufnehmen</button>
       <button class="ghost" id="btn-treffer" type="button" hidden></button>
       <button class="ghost" id="btn-leeren" type="button" hidden>Kasten leeren</button>
     </div>
+    <p class="note" id="listinfo"></p>
     <p class="meldung liste-meldung" id="listmeldung" hidden></p>
     <ol class="list" id="liste"></ol>
   </section>
@@ -1543,7 +1556,7 @@
   </div>
   <div class="uw-extra" id="uw-extra">
     <button id="uw-wdh" type="button" class="ghost">&#8634; Nochmal</button>
-    <button id="uw-merk" type="button" class="ghost">&#9734; Merken</button>
+    <button id="uw-merk" type="button" class="ghost">&#9734; Schwierig</button>
     <button id="uw-kasten" type="button" class="ghost">+ Kasten</button>
   </div>
   <div class="uw-knoepfe">
@@ -1558,9 +1571,18 @@
 (function () {
   "use strict";
 
-  var SEED = {"kats":["Verbindungswörter","Verben","Nomen","Adjektive & Adverbien","Wendungen","Ganze Sätze","Sonstiges"],"rows":[["dennoch","nevertheless","It was raining; nevertheless, we went for a walk.",0],["sicherlich","certainly","I will certainly call you tomorrow.",3],["auch so","even so","He is very busy, but even so he helped me.",0],["sich beschweren","complain","Please don't complain about the food.",1],["damit / um","in order to","I left early in order to catch the train.",0],["zuversichtlich","confident","She is confident about the test.",3],["zumindest","at least","It will take at least two hours.",0],["vorschlagen","suggest","I suggest we start at nine.",1],["irgendwie","somehow","Somehow we managed to finish in time.",3],["Vorschlag / Angebot","proposal","We sent the proposal to the client.",2],["daher / deshalb","therefore","The train was late; therefore, I missed the meeting.",0],["Verhandlung","negotiations","The negotiations took three days.",2],["ansonsten","otherwise","Write it down, otherwise you will forget it.",0],["bezüglich","regarding","I have a question regarding your email.",0],["gemäß","according to","According to the plan, we start on Monday.",0],["abgeleitet","derived","The word is derived from Latin.",3],["entsprechend","according to","We work according to the new rules.",0],["wahrgenommen","perceived","The risk is perceived as very high.",1],["des Weiteren","furthermore","Furthermore, the costs are too high.",0],["Erleichterung","relief","It was a big relief to hear that.",2],["wegen / aufgrund","due to","Due to the rain, the game was cancelled.",0],["vernachlässigen","neglect","Don't neglect your homework.",1],["eher","rather","I would rather stay at home tonight.",3],["unterscheiden","distinguish","I can't distinguish these two sounds.",1],["offenbar","apparently","Apparently, nobody told him about the change.",3],["Anlass","occasion","We met on a special occasion.",2],["ganz im Gegenteil","on the contrary","It is not boring; on the contrary, it is very exciting.",0],["angemessen","reasonable","The price is reasonable.",3],["obwohl","although","Although it was late, she kept working.",0],["übernehmen","adopt","The team will adopt a new method.",1],["während","whereas","He likes tea, whereas I prefer coffee.",0],["vorhersehen","predict","Nobody can predict the weather exactly.",1],["sofern nicht","unless","We cannot start unless everybody is here.",0],["vorhersehen / absehen","foresee","I foresee some problems with this plan.",1],["kürzlich","recently","I recently moved to a new flat.",3],["Schlussfolgerung","conclusion","In the end we came to a clear conclusion.",2],["in der Regel","usually","Usually I take the bus to work.",3],["Prognose","forecast","The forecast says it will rain.",2],["darüber hinaus","moreover","Moreover, the design looks much better.",0],["anwenden","to apply","You can apply this rule to every case.",1],["wenngleich","even though / albeit","Even though he was tired, he finished the report.",0],["unehrlich","dishonest","It is dishonest to lie to your boss.",3],["eigentlich","actually","Actually, I have never been to London.",3],["Ansatz","approach","We need a new approach to this problem.",2],["derzeitig","currently","We are currently testing the new version.",3],["Annäherung","approximation","The model is only an approximation of reality.",2],["außerdem /Zusätzlich","in addition","In addition, we need two more chairs.",0],["Behauptung","allegation","He denied the allegation.",2],["auf den ersten Blick","at first glance","At first glance the offer looks great.",4],["verschieben","postpone","Let's postpone the meeting to Friday.",1],["trotz","despite","Despite the noise, I could concentrate.",0],["bewundern","admire","I admire her patience.",1],["übersteigen / überschreiten","exceed","The costs must not exceed the budget.",1],["drängen","urge","I urge you to read the contract.",1],["zum Beispiel","for instance","Many fruits, for instance apples, are cheap now.",0],["entweder..oder…","either…or…","You can either call me or send an email.",0],["vermuten","assume","I assume you already know the result.",1],["Vorfall","incident","There was a small incident in the factory.",2],["zu beachten","consider","Please consider the costs.",1],["erhalten","obtain","You can obtain the form online.",1],["entscheidend","crucial","Time is crucial in this project.",3],["zugehörig","related","These two topics are related.",3],["verbunden","associated / connected","We also checked all associated costs.",3],["etw. einräumen","to concede sth.","I concede that you are right.",1],["Anspruch / Forderung","claim","He made a claim for damages.",2],["erinnern","remind","Please remind me to call him.",1],["überarbeiten","revise","I have to revise my report.",1],["erhalten","receive","Did you receive my letter?",1],["bedauern","regret","I regret my decision.",1],["abgelaufen","expired","My passport has expired.",3],["wurde gewährt","has been granted","The permission has been granted.",4],["stören","disturb","Please don't disturb me now.",1],["ablenken","distract","Noise can distract me from work.",1],["überzeugt","convinced","I am convinced that this works.",1],["gegenüber","towards","He walked towards the door.",0],["erwägen","consider","We should consider all options.",1],["ohne Rücksicht auf","disregarding","Disregarding the rules is dangerous.",0],["ungeachtet","despite","Despite the rain, we went out.",0],["Gab es irgendwelche…","Have there been","Have there been any changes?",4],["Beitrag","contribution","Thank you for your contribution.",2],["(ab)schicken","submit","Please submit the form by Friday.",1],["anbieten","provide","We provide free coffee.",1],["außerdem","in addition","In addition, we need more time.",0],["zusätzlich","additionally","Additionally, we need a second test.",0],["Berücksichtigung / Überlegung","consideration","Your idea needs more consideration.",2],["Erlaubnis","permission","I need permission to leave early.",2],["verhindern","prevent","This will prevent bigger problems.",1],["zu verbergen","to conceal","He tried to conceal the mistake.",1],["zuverlässig","reliable","She is a reliable colleague.",3],["versichern","insure","We insure the car every year.",1],["betonen","emphasize","I want to emphasize this point.",1],["Kurzer Rückblick","brief review / recap","Let's start with a brief recap of last week.",2],["unter Berücksichtigung von","taking into account","Taking into account the costs, we say no.",4],["Anfangspreis","initial price","The initial price was too high.",2],["ganzheitlich","holistic","We need a holistic view of the problem.",3],["vertraut","familiar","This song sounds familiar.",3],["vermuten","suppose","I suppose he is right.",1],["Entsorgung / Beseitigung","disposal","The disposal of old parts costs money.",2],["erlangen","attain","She attained her goal last year.",1],["zweideutig","ambiguous","His answer was ambiguous.",3],["eindeutig / unmissverständlich","unambiguous","The rule is unambiguous and easy to follow.",3],["Umfrage","survey","We did a survey among our customers.",2],["ohne Rücksicht auf","regardless","We will start regardless of the weather.",0],["erscheint / wirkt","appear","The problem appears every morning.",1],["durchführen / machen","conduct","We will conduct a test next week.",1],["Verfolgung / streben nach","pursuit (of)","She is in pursuit of a better job.",2],["Gerüchte","rumors","There are rumors about a new boss.",2],["keineswegs / gar nicht","not at all","I am not tired at all.",4],["normalerweise / in der Regel","usually","I usually start work at eight.",3],["erfreut","delighted","I am delighted to meet you.",3],["in Richtung","towards","We are moving towards a solution.",0],["zustimmen","agree / approve of","I agree with your plan.",1],["zielstrebig","determined","He is very determined to win.",3],["schlagfertig","quick-witted","She is quick-witted and funny.",3],["betonen, hervorheben","emphasize","Let me emphasize how important this is.",1],["die sonst nur","that are otherwise","It shows details that are otherwise hard to see.",4],["Empörung","outrage","The news caused public outrage.",2],["überreden","persuade","I could not persuade him to come.",1],["prüfend","examining","The doctor is examining the patient.",1],["angenommen","suppose (assume)","Let's suppose the price goes up.",1],["es ertragen","to bear it","The noise is loud, but I can bear it.",1],["ehrgeizig","ambitious","He is an ambitious young man.",3],["widerstrebend","reluctant","She was reluctant to say yes.",3],["kaum / gar nicht","hardly at all / not at all","I slept hardly at all last night.",3],["eine Vereinbarung zu treffen","to make a deal","We want to make a deal with them.",4],["solch / so ein","such","I have never seen such a big dog.",6],["regelmäßig","regular","He is a regular customer here.",3],["ablenkend","distracting","The music is very distracting.",3],["zu fordern","to demand","The workers demand higher pay.",1],["zu leiden","to suffer","Many people suffer from stress.",1],["aufgetreten","occurred","The error occurred twice today.",1],["beitragen zu","contribute to","Small steps contribute to big changes.",1],["Beharrlichkeit","persistence","Her persistence helped her to win.",2],["Zeitplan","schedule","The schedule is very tight this week.",2],["bestimmen","determine","We must determine the real cause.",1],["Materialeigenschaften","material properties","We tested the material properties of the new part.",2],["reichlich","abundant","Water is abundant in this region.",3],["versöhnen","reconcile","It is hard to reconcile the two reports.",1],["Abschreibung","depreciation","The depreciation of the machine is high.",2],["neu überdenken","reconsider","Please reconsider your offer.",1],["Überwachung","monitoring","The monitoring of the system runs all night.",2],["unverhältnismäßig","disproportionately","The costs grew disproportionately fast.",3],["Durchführung der Umfrage","conduct the survey","We conduct the survey every spring.",4],["Übereinstimmungen","congruence","There is a good congruence between the two results.",2],["unzureichend wahrgenommen","insufficiently perceived","The risk is insufficiently perceived by the team.",4],["kontinuierlich","continuous","We need continuous improvement.",3],["abschließen / beenden","wrap up","Let's wrap up the meeting.",1],["Kopf hoch","heads up","Thanks for the heads up.",4],["Zuweisung","allocation","The allocation of the budget is not fair.",2],["zu definieren","to define","First we have to define the goal.",1],["zuordnen","to assign","I will assign this task to Peter.",1],["liefert Hinweise darauf, dass","provides evidence that","The study provides evidence that the method works.",4],["verbleibend","remaining","The remaining work will take two days.",3],["abgesehen davon","apart from that","Apart from that, everything is fine.",0],["nicht unbedingt","not necessarily","That is not necessarily true.",3],["unbedingt","necessarily","More money does not necessarily help.",3],["es ist eines meiner Lieblingsstücke","it is among my favorites","This old watch is among my favorites.",5],["erscheinen","appear","New problems appear every week.",1],["auftauchen","emerge","New ideas emerge from good teamwork.",1],["vereinbaren","stipulate","The contract stipulates a two-week notice.",1],["anfordern","request","I request a short break.",1],["erreichen","accomplish","We accomplished a lot this year.",1],["erreichen","achieve","She wants to achieve more.",1],["Beweise","evidence","There is no evidence for that.",2],["ablehnen","decline","I had to decline the invitation.",1],["etw. klären","settle sth.","Let's settle this question today.",1],["Sammeln","gathering","The gathering of data takes time.",2],["hinreichend","sufficient","One example is sufficient.",3],["sowieso","anyway","It is late, but I will do it anyway.",3],["sonst kümmere ich mich","otherwise I will take care","Just send me the draft, otherwise I will take care of it.",5],["einheitliche Einsparungen","unitary savings","The unitary savings are small but real.",2],["ich muss es noch einmal überprüfen","I have to double-check it","Before I sign the contract, I have to double-check it.",5],["Mein Verständnis war, dass","My understanding was that","My understanding was that we meet on Monday.",5],["schulden","owe","I owe you ten euros.",1],["solide Erklärung","solid explanation","He gave a solid explanation for the delay.",2],["Fülle / Überfluss","abundance","There is an abundance of information online.",2],["anspruchsvoll","sophisticated","This is a sophisticated solution.",3],["anspruchsvoll","demanding","The job is very demanding.",3],["bin ich daran gewöhnt","I am used to it","The early start is hard, but I am used to it.",5],["Verwirrung","confusion","There was some confusion about the date.",2],["bereitstellen","provide","Can you provide more details?",1],["alles auf einmal","all of a sudden","All of a sudden the lights went out.",4],["Umsetzung","implementation","The implementation starts in May.",2],["beharren","persevere","We must persevere until it works.",1],["wahrnehmen","perceive","People perceive the change as positive.",1],["angemessen","appropriate","This is not an appropriate answer.",3],["Nachdenken über","reflect on","Let's reflect on the last project.",1],["vor allem","in particular","I like fruit, in particular apples.",0],["es von Anfang an richtig zu machen, anstatt es einfach zu tun","do it right from the start rather than just do it","Let's do it right from the start rather than just do it.",5],["Kreuzung","intersection","Turn left at the next intersection.",2],["weiterhin mit","to continue with","We continue with the next point.",1],["aufgeregt sein","to be thrilled","I am thrilled about the news.",4],["es wird nicht funktionieren,wenn wir an der falschen Stelle sparen","it won't work if we cut corners","The budget is tight, but it won't work if we cut corners.",5],["wir müssen zurück ans Reißbrett","We have to go back to the drawing board","The test failed, so we have to go back to the drawing board.",5],["Wir bringen es auf den Punkt","let's cut to the chase","We only have ten minutes, so let's cut to the chase.",5],["aber scheinbar","but apparently","But apparently nobody told him.",0],["nur für das Protokoll","just for the record","Just for the record, I was against it.",4],["ich habe nicht erwartet zu lachen","I didn't expect to laugh","The meeting was serious, so I didn't expect to laugh.",5],["Eigentlich habe ich eine","Actually I do have a","Actually I do have a question.",5],["den Worten Taten folgen lassen","walk the talk","A good leader has to walk the talk.",4],["Was soll das bedeuten?","What is this supposed to mean?","You only wrote \"maybe\" – what is this supposed to mean?",5],["aus heiterem Himmel","out of the blue","He called me out of the blue.",4],["dargestellt durch den vertikalen Doppelpfeil in der Abbildung","illustrated by the vertical double arrow in the figure","The gap is illustrated by the vertical double arrow in the figure.",5],["Unterschied zwischen XX ist groß geworden","difference between XX has grown large","Since last year, the difference between the two groups has grown large.",5],["Betrachten wir Abb. 5","let's consider figure 5","Before we continue, let's consider figure 5.",5],["den extremen Fall beiseite legen","setting aside the extreme case","Setting aside the extreme case, the results are similar.",4],["zu etablieren","to establish","We want to establish a new rule.",1],["bewusste Wahrnehmung von","conscious sense of","He has a conscious sense of his own limits.",4],["bewusst","conscious","She was conscious of the risk.",3],["betrachten","consider","Consider this option before you decide.",1],["ist einfach nicht sonderlich genau","is simply not particularly accurate","The old method is simply not particularly accurate.",5],["verlockend","tantalizing","The smell from the kitchen was tantalizing.",3],["verbessern","enhancing","We are enhancing the design.",1],["nicht ganz wahr","not entirely true","That is not entirely true.",4],["mit kühler Gelassenheit","with cool-headed composure","She answered with cool-headed composure.",4],["aus dieser Forschung hervorgeht","emerging from this research","The main idea emerging from this research is simple.",4],["fast","almost","I am almost ready.",3],["um die Dinge zu verfeinern","to fine-tune things","We still have to fine-tune things.",4],["sich räuspern","to clear the throat","He cleared his throat before speaking.",4],["Geld abheben","withdraw money","I need to withdraw money from the bank.",4],["sich verzetteln","gets caught up","He always gets caught up in small details.",4],["ungewollt","unintended","The change had an unintended effect.",3],["trotz der Umstände","despite the circumstances","Despite the circumstances, she stayed calm.",4],["überwältigt","overwhelmed","I feel overwhelmed by all these emails.",3],["Wie entwickelt sich etwas?","how does … progress","How does the project progress?",5],["ganz selbstverständlich","as a matter of course","He helps us as a matter of course.",4],["um ein Treffen zu vereinbaren","to schedule a meeting","I would like to schedule a meeting for Monday.",4],["um einen Termin zu vereinbaren","to make an appointment","I want to make an appointment with the doctor.",4],["Wir müssen berücksichtigen, dass","We have to take into account","We have to take the costs into account.",5],["Sie müssen berücksichtigen, dass","You have to consider that","You have to consider that he is new in the team.",5],["Wir müssen Rücksicht auf Peter nehmen","We have to make allowances for Peter","He is still learning, so we have to make allowances for Peter.",5],["Sie müssen daran denken, dass","You have to remember that","You have to remember that he is new here.",5],["Das sollten wir nicht vergessen","let's not forget that","Let's not forget that time is short.",5],["Wir müssen Rücksicht nehmen","We need to take into consideration","We need to take his experience into consideration.",5],["Wir müssen die Zeitpläne der Menschen berücksichtigen.","We have to take people's schedules into account.","When we plan the workshop, we have to take people's schedules into account.",5],["Wir müssen die Vielfalt der Gruppe berücksichtigen.","We need to take the diversity of the group into consideration.","We need to take the diversity of the group into consideration.",5],["Ich bin bei Gardena","I am with Gardena","Hello, I am Anna and I am with Gardena.",5],["Er ist im Marketing","He is in marketing","He does not work in sales, he is in marketing.",5],["Amüsieren Sie sich?","Are you enjoying yourself?","Nice party – are you enjoying yourself?",5],["Sie kommen mir bekannt vor","You look familiar","You look familiar – did we meet at the fair?",5],["Was führt Sie hierher?","What brings you here?","Welcome! What brings you here?",5],["Ich würde gerne mehr reden, wann immer es Ihnen passt.","I'd love to talk more, at your convenience.","That sounds interesting – I'd love to talk more, at your convenience.",5],["Wir sollten wirklich nachhaken","We really should follow up","We started this topic last week, we really should follow up.",5],["Was Sie hierher führt","What brings you here","Nice to see you – what brings you here?",5],["Das ist ein weiterer wichtiger Aspekt,dem ich bisher noch keine Beachtung geschenkt habe.","This is another important aspectthat I have not yet paid attention to.","This is another important aspect that I have not yet paid attention to.",5],["persönlich treffen","meet in person","Let's meet in person next week.",4],["Würde Ihnen der 10. passen?","would the 10th suit you","Let's meet next week – would the 10th suit you?",5],["Würden Sie ein anderes Datum bevorzugen?","would you prefer a different date?","The 10th is full, would you prefer a different date?",5],["nicht verfügbar","unavailable","The file is unavailable right now.",3],["nicht im Büro zu sein","to be out of the office","I will be out of the office on Friday.",4],["sich mit jmdm. beschäftigen / einbeziehen","to engage sb.","We want to engage more people in this project.",1],["Ereignis / Vorfall / Auftreten","occurrence","This is a rare occurrence.",2],["Doppelter Standard","double standard","That is a double standard.",2],["leer","blank","Please don't leave the field blank.",3],["prahlen","bragging","He keeps bragging about his new car.",1],["leider hat es keinen Fortschritt gegeben","there has been no progress","Unfortunately there has been no progress since our last call.",5],["Rückgang","decline","We see a decline in sales.",2],["rückläufig","declining","Sales have been declining since May.",3],["Anreize","incentives","The company offers incentives for good work.",2]]};
+  var SEED = {"kats":["Verbindungswörter","Verben","Nomen","Adjektive & Adverbien","Wendungen","Ganze Sätze","Sonstiges"],"rows":[["dennoch","nevertheless / nonetheless","It was raining; nevertheless, we went for a walk.",0],["sicherlich","certainly / surely","I will certainly call you tomorrow.",3],["auch so","even so","He is very busy, but even so he helped me.",0],["sich beschweren","to complain","Please don't complain about the food.",1],["damit / um","in order to","I left early in order to catch the train.",0],["zuversichtlich","confident","She is confident about the test.",3],["zumindest","at least","It will take at least two hours.",0],["vorschlagen","to suggest / to propose","I suggest we start at nine.",1],["irgendwie","somehow","Somehow we managed to finish in time.",3],["Vorschlag / Angebot","proposal / suggestion / offer","We sent the proposal to the client.",2],["daher / deshalb","therefore / hence / thus","The train was late; therefore, I missed the meeting.",0],["Verhandlung","negotiation / negotiations","The negotiations took three days.",2],["ansonsten","otherwise","Write it down, otherwise you will forget it.",0],["bezüglich","regarding","I have a question regarding your email.",0],["gemäß / entsprechend","according to / in accordance with","According to the plan, we start on Monday.",0],["abgeleitet","derived","The word is derived from Latin.",3],null,["wahrgenommen","perceived","The risk is perceived as very high.",1],["des Weiteren","furthermore","Furthermore, the costs are too high.",0],["Erleichterung","relief","It was a big relief to hear that.",2],["wegen / aufgrund","due to / because of / owing to","Due to the rain, the game was cancelled.",0],["vernachlässigen","to neglect","Don't neglect your homework.",1],["eher","rather","I would rather stay at home tonight.",3],["unterscheiden","to distinguish / to differentiate","I can't distinguish these two sounds.",1],["offenbar","apparently / evidently","Apparently, nobody told him about the change.",3],["Anlass","occasion / cause","We met on a special occasion.",2],["ganz im Gegenteil","on the contrary","It is not boring; on the contrary, it is very exciting.",0],["angemessen","appropriate / reasonable / adequate","The price is reasonable.",3],["obwohl","although / though","Although it was late, she kept working.",0],["übernehmen","to adopt / to take over","The team will adopt a new method.",1],["während","whereas / while","He likes tea, whereas I prefer coffee.",0],null,["sofern nicht","unless","We cannot start unless everybody is here.",0],["vorhersehen / absehen","to foresee / to predict / to anticipate","I foresee some problems with this plan.",1],["kürzlich","recently / lately","I recently moved to a new flat.",3],["Schlussfolgerung","conclusion","In the end we came to a clear conclusion.",2],["normalerweise / in der Regel","usually / normally / as a rule","Usually I take the bus to work.",3],["Prognose","forecast / prediction","The forecast says it will rain.",2],["darüber hinaus","moreover","Moreover, the design looks much better.",0],["anwenden","to apply","You can apply this rule to every case.",1],["wenngleich","even though / albeit","Even though he was tired, he finished the report.",0],["unehrlich","dishonest","It is dishonest to lie to your boss.",3],["eigentlich","actually / in fact","Actually, I have never been to London.",3],["Ansatz","approach","We need a new approach to this problem.",2],["derzeit","currently / at present","We are currently testing the new version.",3],["Annäherung","approximation","The model is only an approximation of reality.",2],["außerdem / zusätzlich","in addition / besides","In addition, we need two more chairs.",0],["Behauptung","allegation / claim / assertion","He denied the allegation.",2],["auf den ersten Blick","at first glance","At first glance the offer looks great.",4],["verschieben","to postpone / to put off / to delay","Let's postpone the meeting to Friday.",1],["trotz","despite / in spite of","Despite the noise, I could concentrate.",0],["bewundern","to admire","I admire her patience.",1],["übersteigen / überschreiten","to exceed","The costs must not exceed the budget.",1],["drängen","to urge","I urge you to read the contract.",1],["zum Beispiel","for instance / for example","Many fruits, for instance apples, are cheap now.",0],["entweder … oder …","either … or …","You can either call me or send an email.",0],["vermuten","to assume / to suppose","I assume you already know the result.",1],["Vorfall","incident","There was a small incident in the factory.",2],["beachten","to consider / to note","Please consider the costs.",1],["erhalten","to receive / to obtain / to get","You can obtain the form online.",1],["entscheidend","crucial / decisive","Time is crucial in this project.",3],["zugehörig","related / associated","These two topics are related.",3],["verbunden","associated / connected","We also checked all associated costs.",3],["etw. einräumen","to concede sth. / to admit sth.","I concede that you are right.",1],["Anspruch / Forderung","claim / demand","He made a claim for damages.",2],["erinnern","to remind","Please remind me to call him.",1],["überarbeiten","to revise / to rework","I have to revise my report.",1],null,["bedauern","to regret","I regret my decision.",1],["abgelaufen","expired","My passport has expired.",3],["wurde gewährt","has been granted","The permission has been granted.",4],["stören","to disturb / to interrupt","Please don't disturb me now.",1],["ablenken","to distract","Noise can distract me from work.",1],["überzeugt","convinced","I am convinced that this works.",3],["gegenüber","towards","He walked towards the door.",0],["erwägen","to consider / to contemplate","We should consider all options.",1],["ohne Rücksicht auf","regardless of / disregarding","Disregarding the rules is dangerous.",0],["ungeachtet","notwithstanding / regardless of / despite","Despite the rain, we went out.",0],["Gab es irgendwelche…","Have there been","Have there been any changes?",4],["Beitrag","contribution","Thank you for your contribution.",2],["(ab)schicken","to submit / to send off","Please submit the form by Friday.",1],["anbieten","to offer / to provide","We provide free coffee.",1],null,["zusätzlich","additionally","Additionally, we need a second test.",0],["Berücksichtigung / Überlegung","consideration","Your idea needs more consideration.",2],["Erlaubnis","permission","I need permission to leave early.",2],["verhindern","to prevent","This will prevent bigger problems.",1],["verbergen","to conceal / to hide","He tried to conceal the mistake.",1],["zuverlässig","reliable / dependable","She is a reliable colleague.",3],["versichern","to insure / to assure","We insure the car every year.",1],["betonen / hervorheben","to emphasize / to stress / to highlight","I want to emphasize this point.",1],["Kurzer Rückblick","brief review / recap","Let's start with a brief recap of last week.",2],["unter Berücksichtigung von","taking into account","Taking into account the costs, we say no.",4],["Anfangspreis","initial price","The initial price was too high.",2],["ganzheitlich","holistic","We need a holistic view of the problem.",3],["vertraut","familiar","This song sounds familiar.",3],null,["Entsorgung / Beseitigung","disposal","The disposal of old parts costs money.",2],["erlangen","to attain / to gain","She attained her goal last year.",1],["zweideutig","ambiguous","His answer was ambiguous.",3],["eindeutig / unmissverständlich","unambiguous / clear","The rule is unambiguous and easy to follow.",3],["Umfrage","survey","We did a survey among our customers.",2],null,["wirken / scheinen","to appear / to seem","The problem appears every morning.",1],["durchführen / machen","to conduct / to carry out","We will conduct a test next week.",1],["Verfolgung / streben nach","pursuit (of)","She is in pursuit of a better job.",2],["Gerüchte","rumors / rumours","There are rumors about a new boss.",2],["keineswegs / gar nicht","not at all / by no means","I am not tired at all.",4],null,["erfreut","delighted","I am delighted to meet you.",3],["in Richtung","towards","We are moving towards a solution.",0],["zustimmen","to agree / to approve of","I agree with your plan.",1],["zielstrebig","determined / purposeful","He is very determined to win.",3],["schlagfertig","quick-witted","She is quick-witted and funny.",3],null,["die sonst nur","that are otherwise","It shows details that are otherwise hard to see.",4],["Empörung","outrage","The news caused public outrage.",2],["überreden","to persuade","I could not persuade him to come.",1],["prüfend","examining","The doctor is examining the patient.",3],["angenommen","supposing / assuming (that)","Let's suppose the price goes up.",1],["es ertragen","to bear it / to put up with it","The noise is loud, but I can bear it.",1],["ehrgeizig","ambitious","He is an ambitious young man.",3],["widerstrebend","reluctant","She was reluctant to say yes.",3],["kaum / gar nicht","hardly at all / not at all","I slept hardly at all last night.",3],["eine Vereinbarung zu treffen","to make a deal","We want to make a deal with them.",4],["solch / so ein","such","I have never seen such a big dog.",6],["regelmäßig","regular","He is a regular customer here.",3],["ablenkend","distracting","The music is very distracting.",3],["fordern","to demand","The workers demand higher pay.",1],["leiden","to suffer","Many people suffer from stress.",1],["aufgetreten","occurred / arisen","The error occurred twice today.",1],["beitragen zu","to contribute to","Small steps contribute to big changes.",1],["Beharrlichkeit","persistence","Her persistence helped her to win.",2],["Zeitplan","schedule / timetable","The schedule is very tight this week.",2],["bestimmen","to determine","We must determine the real cause.",1],["Materialeigenschaften","material properties","We tested the material properties of the new part.",2],["reichlich","abundant / plentiful","Water is abundant in this region.",3],["versöhnen","to reconcile","It is hard to reconcile the two reports.",1],["Abschreibung","depreciation","The depreciation of the machine is high.",2],["neu überdenken","to reconsider / to rethink","Please reconsider your offer.",1],["Überwachung","monitoring / surveillance","The monitoring of the system runs all night.",2],["unverhältnismäßig","disproportionate / disproportionately","The costs grew disproportionately fast.",3],["Durchführung der Umfrage","conduct the survey","We conduct the survey every spring.",4],["Übereinstimmungen","congruence / agreement","There is a good congruence between the two results.",2],["unzureichend wahrgenommen","insufficiently perceived","The risk is insufficiently perceived by the team.",4],["kontinuierlich","continuous","We need continuous improvement.",3],["abschließen / beenden","to wrap up / to finish / to complete","Let's wrap up the meeting.",1],["Kopf hoch","heads up","Thanks for the heads up.",4],["Zuweisung","allocation / assignment","The allocation of the budget is not fair.",2],["definieren","to define","First we have to define the goal.",1],["zuordnen","to assign / to allocate","I will assign this task to Peter.",1],["liefert Hinweise darauf, dass","provides evidence that","The study provides evidence that the method works.",4],["verbleibend","remaining","The remaining work will take two days.",3],["abgesehen davon","apart from that / aside from that","Apart from that, everything is fine.",0],["nicht unbedingt","not necessarily","That is not necessarily true.",3],["unbedingt","necessarily / absolutely","More money does not necessarily help.",3],["es ist eines meiner Lieblingsstücke","it is among my favorites","This old watch is among my favorites.",5],["erscheinen","to appear / to show up","New problems appear every week.",1],["auftauchen","to emerge / to turn up","New ideas emerge from good teamwork.",1],["vereinbaren","to stipulate / to agree on","The contract stipulates a two-week notice.",1],["anfordern","to request","I request a short break.",1],["erreichen","to achieve / to accomplish / to reach","We accomplished a lot this year.",1],null,["Beweise","evidence / proof","There is no evidence for that.",2],["ablehnen","to decline / to reject / to refuse","I had to decline the invitation.",1],["etw. klären","to settle sth. / to clarify sth.","Let's settle this question today.",1],["Sammeln","gathering / collecting","The gathering of data takes time.",2],["hinreichend","sufficient / adequate","One example is sufficient.",3],["sowieso","anyway / anyhow","It is late, but I will do it anyway.",3],["sonst kümmere ich mich","otherwise I will take care","Just send me the draft, otherwise I will take care of it.",5],["einheitliche Einsparungen","unitary savings","The unitary savings are small but real.",2],["ich muss es noch einmal überprüfen","I have to double-check it","Before I sign the contract, I have to double-check it.",5],["Mein Verständnis war, dass","My understanding was that","My understanding was that we meet on Monday.",5],["schulden","to owe","I owe you ten euros.",1],["solide Erklärung","solid explanation","He gave a solid explanation for the delay.",2],["Fülle / Überfluss","abundance / wealth","There is an abundance of information online.",2],["anspruchsvoll / ausgefeilt","sophisticated","This is a sophisticated solution.",3],["anspruchsvoll","demanding / challenging","The job is very demanding.",3],["bin ich daran gewöhnt","I am used to it","The early start is hard, but I am used to it.",5],["Verwirrung","confusion","There was some confusion about the date.",2],["bereitstellen","to provide / to supply","Can you provide more details?",1],["auf einmal / plötzlich","all of a sudden / suddenly","All of a sudden the lights went out.",4],["Umsetzung","implementation","The implementation starts in May.",2],["beharren","to persevere / to persist","We must persevere until it works.",1],["wahrnehmen","to perceive / to notice","People perceive the change as positive.",1],null,["nachdenken über","to reflect on / to think about","Let's reflect on the last project.",1],["vor allem","in particular / above all / especially","I like fruit, in particular apples.",0],["es von Anfang an richtig zu machen, anstatt es einfach zu tun","do it right from the start rather than just do it","Let's do it right from the start rather than just do it.",5],["Kreuzung","intersection / crossroads","Turn left at the next intersection.",2],["weitermachen mit","to continue with / to carry on with","We continue with the next point.",1],["aufgeregt sein","to be thrilled","I am thrilled about the news.",4],["es wird nicht funktionieren, wenn wir an der falschen Stelle sparen","it won't work if we cut corners","The budget is tight, but it won't work if we cut corners.",5],["wir müssen zurück ans Reißbrett","We have to go back to the drawing board","The test failed, so we have to go back to the drawing board.",5],["Wir bringen es auf den Punkt","let's cut to the chase","We only have ten minutes, so let's cut to the chase.",5],["aber scheinbar","but apparently","But apparently nobody told him.",0],["nur für das Protokoll","just for the record","Just for the record, I was against it.",4],["ich habe nicht erwartet zu lachen","I didn't expect to laugh","The meeting was serious, so I didn't expect to laugh.",5],["Eigentlich habe ich eine","Actually I do have a","Actually I do have a question.",5],["den Worten Taten folgen lassen","to walk the talk","A good leader has to walk the talk.",4],["Was soll das bedeuten?","What is this supposed to mean?","You only wrote \"maybe\" – what is this supposed to mean?",5],["aus heiterem Himmel","out of the blue","He called me out of the blue.",4],["dargestellt durch den vertikalen Doppelpfeil in der Abbildung","illustrated by the vertical double arrow in the figure","The gap is illustrated by the vertical double arrow in the figure.",5],["Unterschied zwischen XX ist groß geworden","difference between XX has grown large","Since last year, the difference between the two groups has grown large.",5],["Betrachten wir Abb. 5","let's consider figure 5","Before we continue, let's consider figure 5.",5],["den extremen Fall beiseite legen","setting aside the extreme case","Setting aside the extreme case, the results are similar.",4],["etablieren","to establish","We want to establish a new rule.",1],["bewusste Wahrnehmung von","conscious sense of","He has a conscious sense of his own limits.",4],["bewusst","conscious / aware","She was conscious of the risk.",3],["betrachten","to consider / to look at / to regard","Consider this option before you decide.",1],["ist einfach nicht sonderlich genau","is simply not particularly accurate","The old method is simply not particularly accurate.",5],["verlockend","tantalizing / tempting","The smell from the kitchen was tantalizing.",3],["verbessern","to enhance / to improve","We are enhancing the design.",1],["nicht ganz wahr","not entirely true","That is not entirely true.",4],["mit kühler Gelassenheit","with cool-headed composure","She answered with cool-headed composure.",4],["aus dieser Forschung hervorgeht","emerging from this research","The main idea emerging from this research is simple.",4],["fast","almost / nearly","I am almost ready.",3],["um die Dinge zu verfeinern","to fine-tune things","We still have to fine-tune things.",4],["sich räuspern","to clear the throat","He cleared his throat before speaking.",4],["Geld abheben","to withdraw money","I need to withdraw money from the bank.",4],["sich verzetteln","to get bogged down / to get sidetracked","He always gets caught up in small details.",4],["ungewollt","unintended / unintentional","The change had an unintended effect.",3],["trotz der Umstände","despite the circumstances","Despite the circumstances, she stayed calm.",4],["überwältigt","overwhelmed","I feel overwhelmed by all these emails.",3],["Wie entwickelt sich etwas?","how does … progress","How does the project progress?",5],["ganz selbstverständlich","as a matter of course","He helps us as a matter of course.",4],["um ein Treffen zu vereinbaren","to schedule a meeting","I would like to schedule a meeting for Monday.",4],["um einen Termin zu vereinbaren","to make an appointment","I want to make an appointment with the doctor.",4],["Wir müssen berücksichtigen, dass","We have to take into account","We have to take the costs into account.",5],["Sie müssen berücksichtigen, dass","You have to consider that","You have to consider that he is new in the team.",5],["Wir müssen Rücksicht auf Peter nehmen","We have to make allowances for Peter","He is still learning, so we have to make allowances for Peter.",5],["Sie müssen daran denken, dass","You have to remember that","You have to remember that he is new here.",5],["Das sollten wir nicht vergessen","let's not forget that","Let's not forget that time is short.",5],["Wir müssen Rücksicht nehmen","We need to take into consideration","We need to take his experience into consideration.",5],["Wir müssen die Zeitpläne der Menschen berücksichtigen.","We have to take people's schedules into account.","When we plan the workshop, we have to take people's schedules into account.",5],["Wir müssen die Vielfalt der Gruppe berücksichtigen.","We need to take the diversity of the group into consideration.","We need to take the diversity of the group into consideration.",5],["Ich bin bei Gardena","I am with Gardena","Hello, I am Anna and I am with Gardena.",5],["Er ist im Marketing","He is in marketing","He does not work in sales, he is in marketing.",5],["Amüsieren Sie sich?","Are you enjoying yourself?","Nice party – are you enjoying yourself?",5],["Sie kommen mir bekannt vor","You look familiar","You look familiar – did we meet at the fair?",5],["Was führt Sie hierher?","What brings you here?","Welcome! What brings you here?",5],["Ich würde gerne mehr reden, wann immer es Ihnen passt.","I'd love to talk more, at your convenience.","That sounds interesting – I'd love to talk more, at your convenience.",5],["Wir sollten wirklich nachhaken","We really should follow up","We started this topic last week, we really should follow up.",5],null,["Das ist ein weiterer wichtiger Aspekt, dem ich bisher noch keine Beachtung geschenkt habe.","This is another important aspect that I have not yet paid attention to.","This is another important aspect that I have not yet paid attention to.",5],["persönlich treffen","to meet in person","Let's meet in person next week.",4],["Würde Ihnen der 10. passen?","would the 10th suit you","Let's meet next week – would the 10th suit you?",5],["Würden Sie ein anderes Datum bevorzugen?","would you prefer a different date?","The 10th is full, would you prefer a different date?",5],["nicht verfügbar","unavailable / not available","The file is unavailable right now.",3],["nicht im Büro zu sein","to be out of the office","I will be out of the office on Friday.",4],["sich mit jmdm. beschäftigen / einbeziehen","to engage sb. / to involve sb.","We want to engage more people in this project.",1],["Ereignis / Vorfall / Auftreten","occurrence / event","This is a rare occurrence.",2],["Doppelter Standard","double standard","That is a double standard.",2],["leer","blank / empty","Please don't leave the field blank.",3],["prahlen","to brag / to boast","He keeps bragging about his new car.",1],["leider hat es keinen Fortschritt gegeben","there has been no progress","Unfortunately there has been no progress since our last call.",5],["Rückgang","decline / decrease","We see a decline in sales.",2],["rückläufig","declining / decreasing","Sales have been declining since May.",3],["Anreize","incentives","The company offers incentives for good work.",2],["Das ist ein berechtigter Einwand","That's a valid concern","That's a valid concern, and we should address it before moving forward.",5],["Das ist ein fairer Punkt","That's a fair point","That's a fair point, although I still see one potential risk.",5],["Lass uns einen Schritt zurückgehen","Let's take a step back","Let's take a step back and look at the original objective.",5],["Lass uns das aufschlüsseln","Let's break it down","Let's break it down into smaller and more manageable tasks.",5],["Lass uns das genauer betrachten","Let's take a closer look","Let's take a closer look at the test results.",5],["Das sollten wir vertiefen","We should explore that further","The concept looks promising, and we should explore that further.",5],["Darauf können wir aufbauen","We can build on that","The first prototype works well, so we can build on that.",5],["Das ist ein guter Ausgangspunkt","That's a good starting point","The current draft is a good starting point for the discussion.",5],["Wir sind auf dem richtigen Weg","We're on the right track","The latest results suggest that we're on the right track.",5],["Wir sollten das im Blick behalten","We should keep an eye on that","The deviation is still small, but we should keep an eye on that.",5],["Das lohnt sich näher zu untersuchen","It's worth looking into","The unexpected result is worth looking into.",5],["Das müssen wir noch klären","We still need to clarify that","We still need to clarify who owns the final decision.",5],["Das scheint sinnvoll","That seems reasonable","That seems reasonable given the limited time.",5],["Das liegt außerhalb des Umfangs","That's outside the scope","A complete redesign is outside the scope of this project.",5],["Können wir das eingrenzen?","Can we narrow that down?","Can we narrow that down to the two most likely causes?",5],["Worauf wollen wir hinaus?","What are we trying to achieve?","Before choosing a solution, what are we trying to achieve?",5],["Wie gehen wir am besten vor?","What's the best way forward?","We have several options, so what's the best way forward?",5],["Ich würde gerne darauf zurückkommen","I'd like to come back to that","I'd like to come back to the point about production costs.",5],["Nur damit wir vom Gleichen sprechen","Just to make sure we're aligned","Just to make sure we're aligned, the test starts on Monday.",5],["Könnten Sie das näher erläutern?","Could you elaborate on that?","Could you elaborate on how the mechanism is supposed to work?",5],["machbar","feasible","The concept is technically feasible, but the cost is still too high.",3],["Machbarkeit","feasibility","We need to confirm the feasibility before building a prototype.",2],["Kompromiss / Zielkonflikt","trade-off","There is a trade-off between weight and stiffness.",2],["Randbedingung / Einschränkung","constraint","Available installation space is the main design constraint.",2],["Engpass","bottleneck","Tool availability has become the main bottleneck.",2],["Umgehungslösung","workaround","We found a temporary workaround for the software issue.",2],["Fehlermodus","failure mode","Wear at the joint is the most likely failure mode.",2],["Grundursache","root cause","The team is still investigating the root cause of the crack.",2],["Belastungsfall","load case","We should simulate the worst load case before testing.",2],["Sicherheitsfaktor","safety factor","The current design has a safety factor of two.",2],["Toleranzkette","tolerance stack-up","The tolerance stack-up may explain the assembly problem.",2],["Spiel / Lockerheit","play / looseness","There is too much play in the pivot joint.",2],["Steifigkeit","stiffness","The rib increases stiffness without adding much weight.",2],["Festigkeit","strength","The material provides sufficient strength for this application.",2],["Verschleißfestigkeit","wear resistance","The coating improves the wear resistance of the blade.",2],["Dauerfestigkeit","fatigue strength","The fatigue strength must be verified under repeated loading.",2],["Wiederholbarkeit","repeatability","The measurement setup shows good repeatability.",2],["Reproduzierbarkeit","reproducibility","We need better reproducibility across different test benches.",2],["Serienreife","production readiness","The product has not yet reached production readiness.",2],["Fertigungsbedingte Abweichung","manufacturing variation","The gap may result from normal manufacturing variation.",2],["Montagefreundlichkeit","ease of assembly","The new clip improves ease of assembly.",2],["Bauraum","installation space","The available installation space is very limited.",2],["Schnittstelle","interface","The interface between the plastic and metal parts needs improvement.",2],["Auslegung","design specification","The design specification must cover the maximum expected load.",2],["Konstruktive Änderung","design change","The design change reduced stress around the screw boss.",2],["Prüfaufbau","test setup","The test setup should reflect the real application.",2],["Grenzwert","threshold","The measured force remains below the defined threshold.",2],["Streuung","variation / scatter","The test results show considerable scatter.",2],["rückverfolgbar","traceable","Every sample must remain traceable throughout the test.",3],["maßgeblich","governing","The bending load is the governing design case.",3],["aufeinander abstimmen","to align","We need to align the requirements with the available budget.",1],["bewerten / beurteilen","to assess / to evaluate","We should assess the technical risk before approval.",1],["priorisieren","to prioritize","We need to prioritize the issues that affect safety.",1],["eingrenzen","to narrow down","The additional test will help us narrow down the cause.",1],["vereinfachen / verschlanken","to streamline / to simplify","The new workflow should streamline the approval process.",1],["Risiko mindern","to mitigate / to reduce (a risk)","A second locking feature would mitigate the risk.",1],["adressieren / angehen","to address / to tackle","The next design loop must address the durability issue.",1],["Auswirkung","impact","We need to understand the impact on tooling cost.",2],["Ergebnis / Resultat","outcome","The outcome depends on the final material selection.",2],["Erkenntnis","insight","The test gave us valuable insight into the failure mechanism.",2],["Anwendungsbereich / Umfang","scope","The change is within the agreed project scope.",2],["Interessengruppe / Beteiligte","stakeholder","All key stakeholders should review the proposal.",2],["Entscheidungskriterium","decision criterion","Weight is not the only decision criterion.",2],["Voraussetzung","prerequisite","A stable CAD model is a prerequisite for tool release.",2],["Abhängigkeit","dependency","The schedule has a strong dependency on supplier feedback.",2],["Zwischenziel","milestone","The prototype review is the next major milestone.",2],["Liefergegenstand","deliverable","The test report is the final deliverable for this phase.",2],["nachverfolgen","to track / to follow up on","We should track the open points in a shared list.",1],["weiterverfolgen","to pursue further","The second concept is promising enough to pursue further.",1],["Nutzen ausschöpfen","to leverage","We can leverage the existing platform for the new product.",1],["im Großen und Ganzen","by and large","By and large, the first test series was successful.",0],["im Nachhinein","in hindsight","In hindsight, we should have tested the interface earlier.",0],["fairerweise","to be fair","To be fair, the supplier had very little time to react.",0],["letztlich / am Ende des Tages","ultimately","Ultimately, the customer experience should guide the decision.",0],["darauf läuft es hinaus","that's what it comes down to","Cost or performance: that's what it comes down to.",4],["es versteht sich von selbst","it goes without saying","It goes without saying that safety comes first.",4],["bei näherer Betrachtung","upon closer inspection","Upon closer inspection, the surface shows small cracks.",0],["bis zu einem gewissen Grad","to some extent","The two concepts overlap to some extent.",0],["in gewisser Hinsicht","in a way","In a way, the simpler solution is also the more robust one.",0],["in diesem Zusammenhang","in this context","In this context, a higher material cost may be acceptable.",0],["vor diesem Hintergrund","against this background","Against this background, the decision is understandable.",0],["unter diesen Umständen","under these circumstances","Under these circumstances, postponing the release is sensible.",0],["unterm Strich","on balance","On balance, the advantages outweigh the disadvantages.",0],["grob gesagt","roughly speaking","Roughly speaking, the new design saves ten percent in weight.",0],["genauer gesagt","more precisely","The issue occurs at high loads, more precisely above 800 newtons.",0],["nicht zuletzt","not least","The concept is attractive, not least because of its simplicity.",0],["ganz zu schweigen von","not to mention","The change reduces cost, not to mention assembly time.",0],["in erster Linie","first and foremost","First and foremost, the product must be safe to use.",0],["wohlgemerkt","mind you","The prototype worked well, mind you, only under ideal conditions.",0],["wenn überhaupt","if anything","If anything, the latest test has increased our confidence.",0],["belastbar / solide","robust","We need a robust solution that tolerates manufacturing variation.",3],["aussagekräftig","meaningful","One additional sample would not provide meaningful data.",3],["stichhaltig","compelling","There is no compelling reason to change the concept yet.",3],["schlüssig","coherent","The explanation is coherent and supported by the measurements.",3],["plausibel","plausible","Thermal expansion is a plausible explanation for the gap.",3],["vernachlässigbar","negligible","The effect on the total weight is negligible.",3],["erheblich","substantial","The redesign would require substantial tooling changes.",3],["geringfügig","marginal","The latest version offers only a marginal improvement.",3],["maßgeblich / wesentlich","instrumental","Early supplier involvement was instrumental in solving the issue.",3],["unumgänglich","unavoidable","A small increase in weight may be unavoidable.",3],["vertretbar","justifiable","The additional cost is justifiable if durability improves.",3],["aufschlussreich","insightful","The comparison between the samples was particularly insightful.",3],["entscheidungsreif","ready for decision","The proposal is not yet ready for decision.",3],["zukunftssicher","future-proof","The architecture should be flexible and future-proof.",3]]};
+  /* Stand der Startliste. 2 (2026-09): Übersetzungsvarianten, Verben mit „to“, echte Doppelungen
+     zusammengelegt (Zeile = null), Ergänzungspaket ab Zeile SEED_NEU_AB. Bestehende Lernstände
+     werden in seedAktualisieren() einmalig umgestellt - Fach, Termine, Stern und Kasten bleiben. */
+  var SEED_STAND = 2;
+  var SEED_NEU_AB = 259;
+  // [Zeile, Deutsch alt, English alt, Deutsch neu, English neu, Kategorie neu oder null]
+  var SEED_AENDERUNG = [[0,"dennoch","nevertheless","dennoch","nevertheless / nonetheless",null],[1,"sicherlich","certainly","sicherlich","certainly / surely",null],[3,"sich beschweren","complain","sich beschweren","to complain",null],[7,"vorschlagen","suggest","vorschlagen","to suggest / to propose",null],[9,"Vorschlag / Angebot","proposal","Vorschlag / Angebot","proposal / suggestion / offer",null],[10,"daher / deshalb","therefore","daher / deshalb","therefore / hence / thus",null],[11,"Verhandlung","negotiations","Verhandlung","negotiation / negotiations",null],[14,"gemäß","according to","gemäß / entsprechend","according to / in accordance with",null],[20,"wegen / aufgrund","due to","wegen / aufgrund","due to / because of / owing to",null],[21,"vernachlässigen","neglect","vernachlässigen","to neglect",null],[23,"unterscheiden","distinguish","unterscheiden","to distinguish / to differentiate",null],[24,"offenbar","apparently","offenbar","apparently / evidently",null],[25,"Anlass","occasion","Anlass","occasion / cause",null],[27,"angemessen","reasonable","angemessen","appropriate / reasonable / adequate",null],[28,"obwohl","although","obwohl","although / though",null],[29,"übernehmen","adopt","übernehmen","to adopt / to take over",null],[30,"während","whereas","während","whereas / while",null],[33,"vorhersehen / absehen","foresee","vorhersehen / absehen","to foresee / to predict / to anticipate",null],[34,"kürzlich","recently","kürzlich","recently / lately",null],[36,"in der Regel","usually","normalerweise / in der Regel","usually / normally / as a rule",null],[37,"Prognose","forecast","Prognose","forecast / prediction",null],[42,"eigentlich","actually","eigentlich","actually / in fact",null],[44,"derzeitig","currently","derzeit","currently / at present",null],[46,"außerdem /Zusätzlich","in addition","außerdem / zusätzlich","in addition / besides",null],[47,"Behauptung","allegation","Behauptung","allegation / claim / assertion",null],[49,"verschieben","postpone","verschieben","to postpone / to put off / to delay",null],[50,"trotz","despite","trotz","despite / in spite of",null],[51,"bewundern","admire","bewundern","to admire",null],[52,"übersteigen / überschreiten","exceed","übersteigen / überschreiten","to exceed",null],[53,"drängen","urge","drängen","to urge",null],[54,"zum Beispiel","for instance","zum Beispiel","for instance / for example",null],[55,"entweder..oder…","either…or…","entweder … oder …","either … or …",null],[56,"vermuten","assume","vermuten","to assume / to suppose",null],[58,"zu beachten","consider","beachten","to consider / to note",null],[59,"erhalten","obtain","erhalten","to receive / to obtain / to get",null],[60,"entscheidend","crucial","entscheidend","crucial / decisive",null],[61,"zugehörig","related","zugehörig","related / associated",null],[63,"etw. einräumen","to concede sth.","etw. einräumen","to concede sth. / to admit sth.",null],[64,"Anspruch / Forderung","claim","Anspruch / Forderung","claim / demand",null],[65,"erinnern","remind","erinnern","to remind",null],[66,"überarbeiten","revise","überarbeiten","to revise / to rework",null],[68,"bedauern","regret","bedauern","to regret",null],[71,"stören","disturb","stören","to disturb / to interrupt",null],[72,"ablenken","distract","ablenken","to distract",null],[73,"überzeugt","convinced","überzeugt","convinced",3],[75,"erwägen","consider","erwägen","to consider / to contemplate",null],[76,"ohne Rücksicht auf","disregarding","ohne Rücksicht auf","regardless of / disregarding",null],[77,"ungeachtet","despite","ungeachtet","notwithstanding / regardless of / despite",null],[80,"(ab)schicken","submit","(ab)schicken","to submit / to send off",null],[81,"anbieten","provide","anbieten","to offer / to provide",null],[86,"verhindern","prevent","verhindern","to prevent",null],[87,"zu verbergen","to conceal","verbergen","to conceal / to hide",null],[88,"zuverlässig","reliable","zuverlässig","reliable / dependable",null],[89,"versichern","insure","versichern","to insure / to assure",null],[90,"betonen","emphasize","betonen / hervorheben","to emphasize / to stress / to highlight",null],[98,"erlangen","attain","erlangen","to attain / to gain",null],[100,"eindeutig / unmissverständlich","unambiguous","eindeutig / unmissverständlich","unambiguous / clear",null],[103,"erscheint / wirkt","appear","wirken / scheinen","to appear / to seem",null],[104,"durchführen / machen","conduct","durchführen / machen","to conduct / to carry out",null],[106,"Gerüchte","rumors","Gerüchte","rumors / rumours",null],[107,"keineswegs / gar nicht","not at all","keineswegs / gar nicht","not at all / by no means",null],[111,"zustimmen","agree / approve of","zustimmen","to agree / to approve of",null],[112,"zielstrebig","determined","zielstrebig","determined / purposeful",null],[117,"überreden","persuade","überreden","to persuade",null],[118,"prüfend","examining","prüfend","examining",3],[119,"angenommen","suppose (assume)","angenommen","supposing / assuming (that)",null],[120,"es ertragen","to bear it","es ertragen","to bear it / to put up with it",null],[128,"zu fordern","to demand","fordern","to demand",null],[129,"zu leiden","to suffer","leiden","to suffer",null],[130,"aufgetreten","occurred","aufgetreten","occurred / arisen",null],[131,"beitragen zu","contribute to","beitragen zu","to contribute to",null],[133,"Zeitplan","schedule","Zeitplan","schedule / timetable",null],[134,"bestimmen","determine","bestimmen","to determine",null],[136,"reichlich","abundant","reichlich","abundant / plentiful",null],[137,"versöhnen","reconcile","versöhnen","to reconcile",null],[139,"neu überdenken","reconsider","neu überdenken","to reconsider / to rethink",null],[140,"Überwachung","monitoring","Überwachung","monitoring / surveillance",null],[141,"unverhältnismäßig","disproportionately","unverhältnismäßig","disproportionate / disproportionately",null],[143,"Übereinstimmungen","congruence","Übereinstimmungen","congruence / agreement",null],[146,"abschließen / beenden","wrap up","abschließen / beenden","to wrap up / to finish / to complete",null],[148,"Zuweisung","allocation","Zuweisung","allocation / assignment",null],[149,"zu definieren","to define","definieren","to define",null],[150,"zuordnen","to assign","zuordnen","to assign / to allocate",null],[153,"abgesehen davon","apart from that","abgesehen davon","apart from that / aside from that",null],[155,"unbedingt","necessarily","unbedingt","necessarily / absolutely",null],[157,"erscheinen","appear","erscheinen","to appear / to show up",null],[158,"auftauchen","emerge","auftauchen","to emerge / to turn up",null],[159,"vereinbaren","stipulate","vereinbaren","to stipulate / to agree on",null],[160,"anfordern","request","anfordern","to request",null],[161,"erreichen","accomplish","erreichen","to achieve / to accomplish / to reach",null],[163,"Beweise","evidence","Beweise","evidence / proof",null],[164,"ablehnen","decline","ablehnen","to decline / to reject / to refuse",null],[165,"etw. klären","settle sth.","etw. klären","to settle sth. / to clarify sth.",null],[166,"Sammeln","gathering","Sammeln","gathering / collecting",null],[167,"hinreichend","sufficient","hinreichend","sufficient / adequate",null],[168,"sowieso","anyway","sowieso","anyway / anyhow",null],[173,"schulden","owe","schulden","to owe",null],[175,"Fülle / Überfluss","abundance","Fülle / Überfluss","abundance / wealth",null],[176,"anspruchsvoll","sophisticated","anspruchsvoll / ausgefeilt","sophisticated",null],[177,"anspruchsvoll","demanding","anspruchsvoll","demanding / challenging",null],[180,"bereitstellen","provide","bereitstellen","to provide / to supply",null],[181,"alles auf einmal","all of a sudden","auf einmal / plötzlich","all of a sudden / suddenly",null],[183,"beharren","persevere","beharren","to persevere / to persist",null],[184,"wahrnehmen","perceive","wahrnehmen","to perceive / to notice",null],[186,"Nachdenken über","reflect on","nachdenken über","to reflect on / to think about",null],[187,"vor allem","in particular","vor allem","in particular / above all / especially",null],[189,"Kreuzung","intersection","Kreuzung","intersection / crossroads",null],[190,"weiterhin mit","to continue with","weitermachen mit","to continue with / to carry on with",null],[192,"es wird nicht funktionieren,wenn wir an der falschen Stelle sparen","it won't work if we cut corners","es wird nicht funktionieren, wenn wir an der falschen Stelle sparen","it won't work if we cut corners",null],[199,"den Worten Taten folgen lassen","walk the talk","den Worten Taten folgen lassen","to walk the talk",null],[206,"zu etablieren","to establish","etablieren","to establish",null],[208,"bewusst","conscious","bewusst","conscious / aware",null],[209,"betrachten","consider","betrachten","to consider / to look at / to regard",null],[211,"verlockend","tantalizing","verlockend","tantalizing / tempting",null],[212,"verbessern","enhancing","verbessern","to enhance / to improve",null],[216,"fast","almost","fast","almost / nearly",null],[219,"Geld abheben","withdraw money","Geld abheben","to withdraw money",null],[220,"sich verzetteln","gets caught up","sich verzetteln","to get bogged down / to get sidetracked",null],[221,"ungewollt","unintended","ungewollt","unintended / unintentional",null],[244,"Das ist ein weiterer wichtiger Aspekt,dem ich bisher noch keine Beachtung geschenkt habe.","This is another important aspectthat I have not yet paid attention to.","Das ist ein weiterer wichtiger Aspekt, dem ich bisher noch keine Beachtung geschenkt habe.","This is another important aspect that I have not yet paid attention to.",null],[245,"persönlich treffen","meet in person","persönlich treffen","to meet in person",null],[248,"nicht verfügbar","unavailable","nicht verfügbar","unavailable / not available",null],[250,"sich mit jmdm. beschäftigen / einbeziehen","to engage sb.","sich mit jmdm. beschäftigen / einbeziehen","to engage sb. / to involve sb.",null],[251,"Ereignis / Vorfall / Auftreten","occurrence","Ereignis / Vorfall / Auftreten","occurrence / event",null],[253,"leer","blank","leer","blank / empty",null],[254,"prahlen","bragging","prahlen","to brag / to boast",null],[256,"Rückgang","decline","Rückgang","decline / decrease",null],[257,"rückläufig","declining","rückläufig","declining / decreasing",null]];
+  // [bleibt, geht darin auf, Deutsch alt, English alt]
+  var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-25-6";
+  var FASSUNG = "2026-09-26-1";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -1634,6 +1656,8 @@
     if (typeof daten.abdeck === "string") abdeck = daten.abdeck;
     if (typeof daten.saetze === "boolean") saetze = daten.saetze;
     if (typeof daten.thema === "string") thema = daten.thema;
+    if (typeof daten.listKat === "string") listKat = daten.listKat;
+    if (["nr", "de", "en"].indexOf(daten.listSort) > -1) listSort = daten.listSort;
     if (Array.isArray(daten.abstaende) && daten.abstaende.length === 4) {
       setzeAbstaende(daten.abstaende);
     } else {
@@ -1641,6 +1665,51 @@
     }
     ordNachtragen();
     aktivNachtragen();
+    seedAktualisieren();
+  }
+
+  /* Einmalige Umstellung auf die neue Startliste. Geändert wird nur, was noch genau so dasteht
+     wie in der alten Liste - selbst bearbeitete Karten bleiben, wie sie sind. */
+  function vergleichsText(t) { return String(t || "").toLowerCase().replace(/\s+/g, " ").trim().replace(/^to /, ""); }
+  var paketHinweis = 0;
+  function seedAktualisieren() {
+    if ((daten.seedStand || 1) >= SEED_STAND) return;
+    var nachId = {};
+    daten.cards.forEach(function (c) { nachId[c.id] = c; });
+    // 1. Varianten, „to“, Tippfehler, Kategorie
+    SEED_AENDERUNG.forEach(function (a) {
+      var c = nachId["s" + a[0]];
+      if (!c || c.front !== a[1] || c.back !== a[2]) return;
+      c.front = a[3]; c.back = a[4];
+      if (a[5] !== null) c.kat = a[5];
+    });
+    // 2. wirklich gleichbedeutende Karten zusammenlegen: der bessere Lernstand bleibt
+    var weg = {};
+    SEED_ZUSAMMEN.forEach(function (z) {
+      var bleibt = nachId["s" + z[0]], geht = nachId["s" + z[1]], soll = SEED.rows[z[0]];
+      if (!bleibt || !geht || geht.front !== z[2] || geht.back !== z[3]) return;
+      if (bleibt.front !== soll[0] || bleibt.back !== soll[1]) return;
+      if (geht.box > bleibt.box || (geht.box === bleibt.box && geht.due < bleibt.due)) { bleibt.box = geht.box; bleibt.due = geht.due; }
+      bleibt.aktiv = !!(bleibt.aktiv || geht.aktiv);
+      bleibt.merk = !!(bleibt.merk || geht.merk);
+      if (!bleibt.bsp && geht.bsp) bleibt.bsp = geht.bsp;
+      weg[geht.id] = true;
+    });
+    daten.cards = daten.cards.filter(function (c) { return !weg[c.id]; });
+    // 3. Ergänzungspaket hinten anhängen (noch nicht im Kasten), außer es ist schon da
+    var da = {};
+    daten.cards.forEach(function (c) { da[vergleichsText(c.front) + "\u0000" + vergleichsText(c.back)] = true; });
+    var t = heute(), neu = 0;
+    for (var i = SEED_NEU_AB; i < SEED.rows.length; i++) {
+      var r = SEED.rows[i];
+      if (!r || nachId["s" + i] || da[vergleichsText(r[0]) + "\u0000" + vergleichsText(r[1])]) continue;
+      daten.cards.push({ id: "s" + i, front: r[0], back: r[1], bsp: r[2], kat: r[3], ord: naechsteOrd(),
+                         aktiv: false, merk: false, box: 1, due: t, created: Date.now() + i });
+      neu++;
+    }
+    daten.seedStand = SEED_STAND;
+    if (neu) paketHinweis = neu;   // einmaliger Hinweis in der Liste (nur in dieser Sitzung)
+    sichern();
   }
 
   // Karten aus einer aelteren Fassung kennen den Kasten noch nicht.
@@ -1687,7 +1756,7 @@
   // Karten aus einer aelteren Fassung kennen die Reihenfolge noch nicht.
   function ordNachtragen() {
     var pos = {};
-    SEED.rows.forEach(function (r, i) { pos[r[0] + "\u0000" + r[1]] = i; });
+    SEED.rows.forEach(function (r, i) { if (r) pos[r[0] + "\u0000" + r[1]] = i; });
     var frei = SEED.rows.length;
     var fehlt = daten.cards.filter(function (c) { return typeof c.ord !== "number"; });
     if (!fehlt.length) return;
@@ -1709,7 +1778,9 @@
 
   function saeen() {
     var t = heute();
+    daten.seedStand = SEED_STAND;
     SEED.rows.forEach(function (r, i) {
+      if (!r) return;   // in einer anderen Zeile aufgegangen
       daten.cards.push({
         id: "s" + i, front: r[0], back: r[1], bsp: r[2], kat: r[3],
         ord: i, aktiv: false, merk: false, box: 1, due: t, created: Date.now() + i
@@ -1744,6 +1815,8 @@
     daten.abdeck = abdeck;
     daten.saetze = saetze;
     daten.thema = thema;
+    daten.listKat = listKat;
+    daten.listSort = listSort;
     try { window.localStorage.setItem(KEY, JSON.stringify(daten)); }
     catch (e) { speicherOk = false; zeigeWarnung(); }
   }
@@ -1801,6 +1874,7 @@
   function rundeStarten(alle) {
     meldung = null;
     verlauf = [];
+    extraOffen = {}; extraGehabt = {};
     runde = mische(alle
       ? daten.cards.filter(function (c) { return c.aktiv && imFilter(c); })
       : faellig());
@@ -1821,7 +1895,8 @@
     daten.sitzung = {
       tag: heute(), kat: filterKat, fach: filterFach,
       aktuell: aktuell ? aktuell.id : null,
-      ids: runde.map(function (c) { return c.id; })
+      ids: runde.map(function (c) { return c.id; }),
+      extra: Object.keys(extraOffen), gehabt: Object.keys(extraGehabt)
     };
     sichern();
   }
@@ -1841,6 +1916,9 @@
     runde = rest;
     verlauf = [];
     meldung = null;
+    extraOffen = {}; extraGehabt = {};
+    (s.extra || []).forEach(function (id) { extraOffen[id] = true; });
+    (s.gehabt || []).forEach(function (id) { extraGehabt[id] = true; });
     aufgedeckt = false;
     aktuell = (karte && karte.aktiv) ? karte : runde.shift();
     zeichneUeben();
@@ -1883,7 +1961,7 @@
 
   // Merkt sich den Zustand vor einer Aktion, damit "Zurück" ihn wiederherstellen kann.
   function merkeSchritt(k, art) {
-    verlauf.push({ karte: k, box: k.box, due: k.due, art: art, zeit: Date.now() });
+    verlauf.push({ karte: k, box: k.box, due: k.due, art: art, zeit: Date.now(), zusatz: !!extraOffen[k.id] });
     if (verlauf.length > 50) verlauf.shift();
   }
 
@@ -1893,6 +1971,10 @@
     if (e.art === "bewertung") zaehleKarte(-1, e.zeit);
     e.karte.box = e.box;
     e.karte.due = e.due;
+    if (e.art === "bewertung") {
+      if (e.zusatz) extraOffen[e.karte.id] = true;
+      else { delete extraOffen[e.karte.id]; delete extraGehabt[e.karte.id]; }
+    }
     runde = runde.filter(function (x) { return x.id !== e.karte.id; });
     if (aktuell) runde.unshift(aktuell);
     aktuell = e.karte;
@@ -1934,15 +2016,30 @@
     return true;
   }
 
+  /* Schwierige Karten (Stern) kommen etwas häufiger: Nach einer richtigen Antwort kommt die Karte
+     in derselben Runde einmal wieder, ein paar Karten später. Diese Zusatzrunde verschiebt die Karte
+     nicht noch ein Fach weiter (sonst wäre sie nach einem Tag schon zwei Fächer höher); weiß man sie
+     dann nicht, geht sie wie üblich zurück in Fach 1. Ab Fach 4 gibt es keine Zusatzrunde mehr. */
+  var extraOffen = {};   // Karten-IDs, deren Zusatzwiederholung noch ansteht
+  var extraGehabt = {};  // in dieser Runde schon einmal zusätzlich gezeigt
   function bewerten(gewusst) {
     if (!aktuell) return;
     var k = aktuell;
     var vorher = k.box;
+    var zusatz = !!extraOffen[k.id];
+    delete extraOffen[k.id];
     merkeSchritt(k, "bewertung");
     zaehleKarte(1);
-    if (gewusst) {
+    if (gewusst && zusatz) {
+      // Zusatzwiederholung bestanden: Fach und Termin bleiben, wie sie sind
+    } else if (gewusst) {
       k.box = Math.min(5, k.box + 1);
       k.due = heute() + TAGE[k.box] * 86400000;
+      if (k.merk && k.box < 4 && !extraGehabt[k.id] && imFilter(k) && runde.length >= 2) {
+        extraGehabt[k.id] = true;
+        extraOffen[k.id] = true;
+        runde.splice(Math.min(3, runde.length), 0, k);
+      }
     } else {
       k.box = 1;
       k.due = heute();
@@ -2172,8 +2269,8 @@
       merkBtn.className = "karten-eck links" + (aktuell.merk ? " on" : "");
       merkBtn.textContent = aktuell.merk ? "★" : "☆";
       merkBtn.setAttribute("aria-pressed", aktuell.merk ? "true" : "false");
-      merkBtn.setAttribute("aria-label", aktuell.merk ? "Gemerkt – Stern entfernen" : "Merken");
-      merkBtn.title = aktuell.merk ? "Gemerkt" : "Merken";
+      merkBtn.setAttribute("aria-label", aktuell.merk ? "Schwierig – Stern entfernen" : "Als schwierig markieren");
+      merkBtn.title = aktuell.merk ? "Schwierig" : "Als schwierig markieren";
       document.getElementById("btn-zurueck").disabled = !verlauf.length;
       document.getElementById("btn-weiter").disabled = !runde.length;
       var sprichBtn = document.getElementById("btn-sprich");
@@ -2229,7 +2326,7 @@
       p.textContent = filterFach
         ? "Fach " + filterFach + " ist durch. Die Karten sind weitergewandert, schau in die Leiste oben."
         : (filterKat === "merk"
-            ? "In deinem Kasten liegt nichts Gemerktes."
+            ? "In deinem Kasten liegt nichts Schwieriges."
             : "Aus dieser Kategorie liegt nichts im Kasten.");
       btn.className = "ghost";
       btn.textContent = filterFach ? "Fachauswahl aufheben" : "Alle Kategorien zeigen";
@@ -2298,18 +2395,50 @@
   function schreibeInfo(sichtbar, gesamt, q) {
     var info = document.getElementById("listinfo");
     var kasten = imKasten().length;
-    var teil = (q || nurMerk || nurKasten) ? sichtbar + " von " + gesamt + " gezeigt" : gesamt + " Vokabeln";
-    info.textContent = teil + " \u00b7 " + kasten + " im Kasten \u00b7 " + anzahlMerk() + " gemerkt";
+    var teil = (q || nurMerk || nurKasten || listKat !== "alle") ? sichtbar + " von " + gesamt + " gezeigt" : gesamt + " Vokabeln";
+    info.textContent = teil + " \u00b7 " + kasten + " im Kasten \u00b7 " + anzahlMerk() + " schwierig";
+    if (paketHinweis) {
+      info.textContent += " \u00b7 " + paketHinweis + " neue Vokabeln aus dem Ergänzungspaket stehen hinten in der Liste";
+    }
   }
 
   var listeTreffer = [];   // was die Liste gerade zeigt, für „Liste anhören“
+  var listKat = "alle", listSort = "nr";
+  /* Sortierschlüssel: beim Englischen zählt das Hauptwort, nicht das „to“ davor
+     (to complain → complain); beim Deutschen entsprechend „sich“, „etw.“ und „jmdm.“ */
+  function sortSchluessel(text, en) {
+    var t = String(text || "").toLowerCase().trim();
+    t = en ? t.replace(/^to\s+/, "") : t.replace(/^(sich|etw\.|jmdm\.)\s+/, "");
+    return t.replace(/^[(\[„“"'…\s]+/, "");
+  }
+  function fuelleListKat() {
+    var sel = document.getElementById("sel-listkat");
+    var n = {};
+    daten.cards.forEach(function (c) { n[c.kat] = (n[c.kat] || 0) + 1; });
+    var html = '<option value="alle">Alle Kategorien (' + daten.cards.length + ')</option>';
+    KATS.forEach(function (k, i) { html += '<option value="' + i + '">' + k + ' (' + (n[i] || 0) + ')</option>'; });
+    sel.innerHTML = html;
+    if (listKat !== "alle" && !n[listKat]) listKat = "alle";
+    sel.value = String(listKat);
+    document.getElementById("sel-sort").value = listSort;
+  }
   function zeichneListe() {
     var q = document.getElementById("suche").value.trim().toLowerCase();
     var ol = document.getElementById("liste");
+    fuelleListKat();
 
     var alle = daten.cards.slice().sort(function (a, b) { return a.ord - b.ord; });
     var platz = {};
     alle.forEach(function (c, i) { platz[c.id] = i + 1; });
+    var gesamt = alle.length;
+    if (listKat !== "alle") alle = alle.filter(function (c) { return c.kat === Number(listKat); });
+    if (listSort !== "nr") {
+      var en = listSort === "en", sprachCode = en ? "en" : "de";
+      alle.sort(function (a, b) {
+        return sortSchluessel(en ? a.back : a.front, en).localeCompare(sortSchluessel(en ? b.back : b.front, en), sprachCode, { sensitivity: "base" }) ||
+               a.ord - b.ord;
+      });
+    }
 
     var treffer = alle.filter(function (c) {
       if (nurMerk && !c.merk) return false;
@@ -2320,7 +2449,7 @@
              (c.bsp || "").toLowerCase().indexOf(q) > -1;
     });
 
-    schreibeInfo(treffer.length, alle.length, q);
+    schreibeInfo(treffer.length, gesamt, q);
     listeTreffer = treffer;
     document.getElementById("btn-liste-hoeren").disabled = !treffer.length;
 
@@ -2344,6 +2473,9 @@
     var drin = imKasten().length;
     lb.hidden = !drin;
     lb.textContent = "Kasten leeren (" + drin + ")";
+    // steht nur einer der beiden Knöpfe da, nimmt er die ganze Breite
+    tb.classList.toggle("voll", lb.hidden);
+    lb.classList.toggle("voll", tb.hidden);
 
     var nb = document.getElementById("btn-next10");
     var offenGesamt = daten.cards.filter(function (c) { return !c.aktiv; }).length;
@@ -2419,7 +2551,8 @@
       stern.className = "star" + (c.merk ? " on" : "");
       stern.textContent = c.merk ? "\u2605" : "\u2606";
       stern.setAttribute("aria-pressed", c.merk ? "true" : "false");
-      stern.setAttribute("aria-label", (c.merk ? "Merken aufheben: " : "Merken: ") + c.front);
+      stern.setAttribute("aria-label", (c.merk ? "Nicht mehr schwierig: " : "Als schwierig markieren: ") + c.front);
+      stern.title = c.merk ? "Schwierig" : "Als schwierig markieren";
       stern.addEventListener("click", function () {
         c.merk = !c.merk;
         sichern();
@@ -2427,7 +2560,7 @@
         stern.className = "star" + (c.merk ? " on" : "");
         stern.textContent = c.merk ? "\u2605" : "\u2606";
         stern.setAttribute("aria-pressed", c.merk ? "true" : "false");
-        schreibeInfo(treffer.length, alle.length, q);
+        schreibeInfo(treffer.length, gesamt, q);
       });
 
       var haken = document.createElement("input");
@@ -2448,7 +2581,7 @@
         fach.hidden = !c.aktiv;
         fach.value = String(c.box);
         
-        schreibeInfo(treffer.length, alle.length, q);
+        schreibeInfo(treffer.length, gesamt, q);
       });
 
       // Bearbeiten statt direkt löschen: Löschen sitzt jetzt im aufgeklappten Formular, mit Rückfrage
@@ -2614,7 +2747,7 @@
     var f = daten.cards.filter(function (c) { return c.aktiv && c.due <= heute(); }).length;
     document.getElementById("stats").textContent =
       n + " Vokabeln insgesamt, " + imKasten().length + " davon im Kasten. " +
-      gelernt + " in Fach 4 oder 5, heute fällig: " + f + ", gemerkt: " + anzahlMerk() + ".";
+      gelernt + " in Fach 4 oder 5, heute fällig: " + f + ", schwierig: " + anzahlMerk() + ".";
   }
 
   /* ---------- Hinweise zum Datenverlust ---------- */
@@ -2881,7 +3014,7 @@
     o.value = "alle"; o.textContent = "Alle Kategorien";
     s.appendChild(o);
     var m = document.createElement("option");
-    m.value = "merk"; m.textContent = "\u2605 Nur Gemerkte";
+    m.value = "merk"; m.textContent = "\u2605 Nur schwierige";
     s.appendChild(m);
     KATS.forEach(function (k, i) {
       var a = document.createElement("option");
@@ -3083,7 +3216,7 @@
       if (!imFilter(k)) { naechsteKarte(); return; }
       zeichneUeben();
     } });
-    akt.push({ text: k.merk ? "★ Stern entfernen" : "☆ Merken", tun: function () {
+    akt.push({ text: k.merk ? "★ Nicht mehr schwierig" : "☆ Als schwierig markieren", tun: function () {
       k.merk = !k.merk; sichern(); zeichneUeben();
     } });
     akt.push({ text: "Aus dem Kasten nehmen", leise: true, tun: function () {
@@ -3234,11 +3367,19 @@
     sprichText(en ? aktuell.back : aktuell.front, en ? "en-GB" : "de-DE", document.getElementById("btn-sprich"));
   }
   // Liest einen Text mit der eingestellten Stimme; el leuchtet währenddessen (Klasse "spricht")
+  /* Varianten („proposal / suggestion / offer“) mit kurzer Pause statt „Schrägstrich“ vorlesen,
+     Abkürzungen ausgeschrieben */
+  function sprechbar(text) {
+    return String(text || "")
+      .replace(/\s*\/\s*/g, ", ")
+      .replace(/\bsth\./g, "something").replace(/\bsb\./g, "somebody")
+      .replace(/\betw\./g, "etwas").replace(/\bjmdm\./g, "jemandem").replace(/\bjmdn\./g, "jemanden");
+  }
   function sprichText(text, lang, el) {
     if (!sprache || !text || uw) return;
     tonMischen(true);
     sprache.cancel();
-    var u = new SpeechSynthesisUtterance(text);
+    var u = new SpeechSynthesisUtterance(sprechbar(text));
     u.lang = lang;
     var st = stimmeFuer(lang);
     if (st) { u.voice = st; u.lang = st.lang; }
@@ -3335,6 +3476,12 @@
     zeichneListe();
   });
 
+  document.getElementById("sel-listkat").addEventListener("change", function (e) {
+    listKat = e.target.value; sichern(); zeichneListe();
+  });
+  document.getElementById("sel-sort").addEventListener("change", function (e) {
+    listSort = e.target.value; sichern(); zeichneListe();
+  });
   document.getElementById("btn-nurmerk").addEventListener("click", function () {
     nurMerk = !nurMerk;
     var b = document.getElementById("btn-nurmerk");
@@ -3682,7 +3829,7 @@
   function sprich(text, lang, lauf) {
     return new Promise(function (fertig) {
       if (!text || !uw || lauf !== uw.lauf) { fertig(); return; }
-      var u = new SpeechSynthesisUtterance(text);
+      var u = new SpeechSynthesisUtterance(sprechbar(text));
       u.lang = lang;
       var st = stimmeFuer(lang);
       if (st) u.voice = st;
@@ -3883,7 +4030,7 @@
     if (!c) return;
     var m = document.getElementById("uw-merk");
     m.className = "ghost" + (c.merk ? " on" : "");
-    m.textContent = c.merk ? "\u2605 Gemerkt" : "\u2606 Merken";
+    m.textContent = c.merk ? "\u2605 Schwierig" : "\u2606 Schwierig";
     m.setAttribute("aria-pressed", c.merk ? "true" : "false");
     var k = document.getElementById("uw-kasten");
     k.className = "ghost" + (c.aktiv ? " drin" : "");
