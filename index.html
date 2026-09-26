@@ -1159,12 +1159,6 @@
   }
   #duell[hidden] { display: none; }
   #du-spiel, #du-schluss { display: flex; flex-direction: column; flex: 1; position: relative; z-index: 1; }
-  /* wer dran ist: diese Bildschirmhälfte wird orange (Spieler 1 links, Spieler 2 rechts) */
-  #duell::after { content: ""; position: fixed; top: 0; bottom: 0; width: 50%; background: #ef7b17; opacity: 0;
-    pointer-events: none; z-index: 0; transition: opacity .15s ease; left: 0; }
-  #duell[data-seite]::after { opacity: .9; }
-  #duell[data-seite="1"]::after { left: auto; right: 0; }
-  #duell[data-seite] .du-spieler.dran { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.6); }
   #du-spiel[hidden], #du-schluss[hidden] { display: none; }
   .du-tafel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .du-spieler { display: flex; flex-direction: column; align-items: center; padding: 10px 6px 8px; border-radius: 8px;
@@ -1262,6 +1256,95 @@
   #view-ueben #modus { display: none; }   /* Karten oder Hören wählt man jetzt über die Kacheln */
   /* Ziffern in den Retro-Designs gleich breit, damit Zähler und Nummern nicht springen */
   html[data-vintage] body { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Quiz-Duell: Spielbildschirm (überarbeitet) ----------
+     Zwei Spielfelder im Hintergrund, die Hälfte der Person, die dran ist, leuchtet in der
+     Akzentfarbe des Designs; darüber schwebt die Karte mit Vokabel, Fortschritt und Zeitbalken. */
+  :root { --du-farbe: #ef7b17; }
+  html[data-vintage] { --du-farbe: var(--accent); }
+  #duell { padding: 0; }
+  html[data-vintage] #duell { padding: 0; }
+  #du-spiel { position: relative; min-height: 100%; }
+  .du-feld { position: fixed; inset: 0; display: grid; grid-template-columns: 1fr 1fr; z-index: 0; }
+  .du-halb {
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    padding: calc(env(safe-area-inset-top) + 22px) 10px 0; background: var(--paper); color: var(--ink);
+    transition: background-color .25s ease, color .25s ease;
+  }
+  .du-halb + .du-halb { border-left: 1px solid var(--rule); }
+  .du-halb .du-pname { font-size: 13px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; opacity: .7; }
+  .du-halb .du-punkte { font-size: 64px; font-weight: 800; line-height: 1.05; }
+  .du-halb.dran .du-pname { opacity: 1; }
+  .du-halb.dran .du-pname::after { content: ""; display: block; width: 18px; height: 3px; border-radius: 3px; margin: 5px auto 0; background: var(--du-farbe); }
+  /* wer dran ist (während zugehört wird): Hälfte in der Akzentfarbe */
+  #duell[data-seite="0"] #du-p0, #duell[data-seite="1"] #du-p1 {
+    background: linear-gradient(180deg, var(--du-farbe), color-mix(in srgb, var(--du-farbe) 82%, #000));
+    color: #fff; border-color: transparent;
+  }
+  #duell[data-seite="0"] #du-p0 .du-pname::after, #duell[data-seite="1"] #du-p1 .du-pname::after { background: #fff; }
+  #duell[data-seite="0"] #du-p1, #duell[data-seite="1"] #du-p0 { color: var(--ink-soft); }
+  .du-plus { position: absolute; top: calc(env(safe-area-inset-top) + 118px); font-size: 34px; font-weight: 800; color: var(--moss); opacity: 0; }
+  .du-plus.pop { animation: duPop 1.1s ease-out both; }
+  @keyframes duPop { 0% { opacity: 0; transform: translateY(12px) scale(.7); } 18% { opacity: 1; transform: translateY(0) scale(1.15); } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px) scale(1); } }
+  .du-mitte { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center;
+    min-height: calc(100vh - 96px); padding: calc(env(safe-area-inset-top) + 150px) 16px 12px; }
+  .du-card {
+    background: var(--card); color: var(--ink); border-radius: 22px; padding: 16px 18px 18px; text-align: center;
+    border: 2px solid transparent; box-shadow: 0 14px 36px rgba(0,0,0,.16), 0 2px 6px rgba(0,0,0,.08);
+    transition: border-color .2s ease;
+  }
+  .du-stern { font-size: 22px; line-height: 1; font-weight: 400; }
+  #du-merk.on { color: #e0a100; }
+  #du-merk.on span { color: var(--ink); }
+  .du-card.richtig { border-color: var(--moss); animation: duOk .5s ease-out; }
+  @keyframes duOk { 0% { transform: scale(1); } 35% { transform: scale(1.03); } 100% { transform: scale(1); } }
+  .du-meta { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .du-fort { height: 4px; border-radius: 4px; background: var(--tab); margin: 8px 0 14px; overflow: hidden; }
+  .du-fort i { display: block; height: 100%; width: 0; background: var(--du-farbe); border-radius: 4px; transition: width .4s ease; }
+  .du-zustand { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 1.4em; margin: 0;
+    font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+  .du-card.hoert .du-zustand { color: var(--du-farbe); }
+  .du-card.hoert .du-zustand::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; animation: duMic 1s ease-in-out infinite; }
+  @keyframes duMic { 50% { opacity: .25; transform: scale(.7); } }
+  .du-wort { margin: 12px 0 0; font-size: clamp(26px, 8vw, 38px); line-height: 1.15; font-weight: 700; overflow-wrap: anywhere; }
+  .du-loesung { margin: 10px 0 0; min-height: 0; font-size: 22px; font-weight: 600; color: var(--moss); }
+  .du-loesung:empty { display: none; }
+  .du-uhr { height: 6px; border-radius: 6px; background: var(--tab); margin: 16px 0 0; overflow: hidden; opacity: 0; transition: opacity .2s ease; }
+  .du-card.hoert .du-uhr { opacity: 1; }
+  .du-uhr i { display: block; height: 100%; background: var(--du-farbe); border-radius: 6px; transform-origin: left center; transform: scaleX(1); }
+  .du-card .du-gehoert { margin: 10px 0 0; font-size: 15px; font-style: italic; min-height: 1.3em; }
+  .du-card .du-diag { margin-top: 10px; }
+  .du-mitte .du-entscheid { margin: 14px 0 0; }
+  .du-mitte .du-frage-wer { color: var(--ink); }
+  .du-leiste { position: relative; z-index: 1; display: flex; gap: 8px; padding: 10px 16px calc(env(safe-area-inset-bottom) + 14px); }
+  .du-steuer { display: contents; }
+  .du-steuer[hidden] { display: none; }
+  .du-lb {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 4px 8px; min-height: 58px;
+    border-radius: 14px; border: 1px solid var(--rule); background: color-mix(in srgb, var(--card) 90%, transparent); color: var(--ink);
+    font: inherit; font-size: 12.5px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  .du-lb svg { width: 22px; height: 22px; fill: currentColor; }
+  .du-lb svg.strich { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .du-lb:active { transform: scale(.96); }
+  /* Ergebnis */
+  #du-schluss { padding: calc(env(safe-area-inset-top) + 28px) 18px calc(env(safe-area-inset-bottom) + 18px); justify-content: center; }
+  .du-pokal { width: 84px; height: 84px; margin: 0 auto; border-radius: 26px; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--du-farbe) 16%, transparent); color: var(--du-farbe); }
+  .du-pokal svg { width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  #du-schluss .du-sieger { margin: 16px 0 18px; }
+  #du-schluss .du-tafel-gross { margin-top: 0; }
+  #du-schluss .du-spieler { border-radius: 18px; padding: 16px 8px 12px; }
+  #du-schluss .du-spieler.plus { border-color: var(--du-farbe); background: color-mix(in srgb, var(--du-farbe) 10%, var(--card)); }
+  #du-schluss .du-bilanz { margin: 14px 0 20px !important; }
+  .du-schluss-knoepfe { display: flex; flex-direction: column; gap: 10px; }
+  .du-schluss-knoepfe button { width: 100%; min-height: 52px; margin: 0; }
+  .du-schluss-knoepfe #du-nochmal { background: var(--du-farbe); border-color: var(--du-farbe); color: #fff; font-weight: 700; }
+  html[data-vintage] .du-card, html[data-vintage] .du-lb, html[data-vintage] #du-schluss .du-spieler { border-radius: 10px; }
+  html[data-vintage] .du-halb .du-pname, html[data-vintage] .du-zustand, html[data-vintage] .du-lb { font-family: var(--f-mono); }
+  html[data-vintage] .du-halb .du-punkte, html[data-vintage] .du-wort { font-family: var(--f-brand); }
+  @media (prefers-reduced-motion: reduce) { .du-plus.pop, .du-card.richtig, .du-card.hoert .du-zustand::before { animation: none; } }
 </style>
 </head>
 <body>
@@ -1586,6 +1669,21 @@
             <option value="en">English → Deutsch</option>
           </select>
         </label>
+        <label>Reihenfolge
+          <select id="du-reihe">
+            <option value="zufall">Zufällig gemischt</option>
+            <option value="liste">Wie in der Liste</option>
+          </select>
+        </label>
+        <label>Signalton
+          <select id="du-tonlaut">
+            <option value="0.3">Leise</option>
+            <option value="0.55">Mittel</option>
+            <option value="0.8">Laut</option>
+            <option value="1">Sehr laut</option>
+            <option value="1.5">Maximal</option>
+          </select>
+        </label>
         <label class="zeile-check"><input type="checkbox" id="du-bsp"> Beispielsätze vorlesen</label>
         <label class="zeile-check"><input type="checkbox" id="du-manuell"> Ohne Mikrofon spielen (Punkte per Knopf)</label>
         <label class="zeile-check"><input type="checkbox" id="du-diagnose"> Diagnose zeigen (was die App gehört hat)</label>
@@ -1813,40 +1911,51 @@
 
 <!-- Quiz / Vokabel-Duell: laufendes Spiel und Ergebnis im Vollbild -->
 <section id="duell" hidden aria-label="Vokabel-Duell">
+  <!-- Spiel: zwei Spielfelder (links Spieler 1, rechts Spieler 2), darüber die Karte mit der Vokabel -->
   <div id="du-spiel">
-    <div class="du-tafel">
-      <div class="du-spieler" id="du-p0"><span class="du-pname"></span><span class="du-punkte">0</span></div>
-      <div class="du-spieler" id="du-p1"><span class="du-pname"></span><span class="du-punkte">0</span></div>
+    <div class="du-feld">
+      <div class="du-halb" id="du-p0"><span class="du-pname"></span><span class="du-punkte">0</span><span class="du-plus" aria-hidden="true"></span></div>
+      <div class="du-halb" id="du-p1"><span class="du-pname"></span><span class="du-punkte">0</span><span class="du-plus" aria-hidden="true"></span></div>
     </div>
-    <div class="uw-kopf du-kopf"><span id="du-frage-nr"></span><span id="du-rest"></span></div>
-    <div class="uw-karte du-karte" aria-live="polite">
-      <p class="uw-phase" id="du-phase"></p>
-      <p class="uw-vorne" id="du-vorne"></p>
-      <p class="uw-hinten" id="du-hinten"></p>
-      <p class="du-gehoert" id="du-gehoert"></p>
-      <pre class="du-diag" id="du-diag" hidden></pre>
+    <div class="du-mitte">
+      <div class="du-card" id="du-card" aria-live="polite">
+        <div class="du-meta"><span id="du-frage-nr"></span><span id="du-rest"></span></div>
+        <div class="du-fort" aria-hidden="true"><i id="du-fort"></i></div>
+        <p class="du-zustand" id="du-phase"></p>
+        <p class="du-wort" id="du-vorne"></p>
+        <p class="du-loesung" id="du-hinten"></p>
+        <div class="du-uhr" aria-hidden="true"><i id="du-uhr"></i></div>
+        <p class="du-gehoert" id="du-gehoert"></p>
+        <pre class="du-diag" id="du-diag" hidden></pre>
+      </div>
+      <div class="du-entscheid" id="du-entscheid" hidden>
+        <p class="du-frage-wer" id="du-frage-wer"></p>
+        <div class="du-knoepfe" id="du-knoepfe"></div>
+      </div>
     </div>
-    <div class="du-entscheid" id="du-entscheid" hidden>
-      <p class="du-frage-wer" id="du-frage-wer"></p>
-      <div class="du-knoepfe" id="du-knoepfe"></div>
+    <div class="du-leiste">
+      <span class="du-steuer" id="du-steuer">
+        <button id="du-pause" type="button" class="du-lb"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg><span>Pause</span></button>
+        <button id="du-merk" type="button" class="du-lb" aria-pressed="false"><b class="du-stern" aria-hidden="true">&#9734;</b><span>Schwierig</span></button>
+        <button id="du-weiter" type="button" class="du-lb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5.5v13l9-6.5z"/><rect x="16" y="5.5" width="2.6" height="13" rx="1"/></svg><span>Überspringen</span></button>
+      </span>
+      <button id="du-ende" type="button" class="du-lb"><svg viewBox="0 0 24 24" aria-hidden="true" class="strich"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Beenden</span></button>
     </div>
-    <div class="uw-knoepfe" id="du-steuer">
-      <button id="du-pause" type="button" class="ghost">Pause</button>
-      <button id="du-weiter" type="button" class="ghost">Überspringen &rarr;</button>
-    </div>
-    <button id="du-ende" type="button" class="ghost uw-ende">Spiel beenden</button>
   </div>
+  <!-- Ergebnis -->
   <div id="du-schluss" hidden>
-    <div class="uw-kopf"><h2>Spielende</h2></div>
+    <div class="du-pokal"><svg viewBox="0 0 24 24" aria-hidden="true" class="strich"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5.5h2.5v1.5a3 3 0 0 1-3 3M7 5.5H4.5v1.5a3 3 0 0 0 3 3M12 14v4M8.5 20.5h7"/></svg></div>
+    <p class="du-sieger" id="du-sieger"></p>
     <div class="du-tafel du-tafel-gross">
       <div class="du-spieler" id="du-e0"><span class="du-pname"></span><span class="du-punkte"></span></div>
       <div class="du-spieler" id="du-e1"><span class="du-pname"></span><span class="du-punkte"></span></div>
     </div>
-    <p class="du-sieger" id="du-sieger"></p>
     <p class="note du-bilanz" id="du-bilanz"></p>
-    <button id="du-nochmal" type="button" class="hoer-start">Nochmal</button>
-    <button id="du-neu" type="button" class="ghost uw-ende">Neue Runde einrichten</button>
-    <button id="du-schliessen" type="button" class="ghost uw-ende">Beenden</button>
+    <div class="du-schluss-knoepfe">
+      <button id="du-nochmal" type="button" class="hoer-start">Nochmal</button>
+      <button id="du-neu" type="button" class="ghost">Neue Runde einrichten</button>
+      <button id="du-schliessen" type="button" class="ghost">Beenden</button>
+    </div>
   </div>
 </section>
 
@@ -1865,7 +1974,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-6";
+  var FASSUNG = "2026-09-27-8";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -4591,6 +4700,8 @@
       ziel: ["10", "20", "30", "alle", "p10"].indexOf(e.ziel) > -1 ? e.ziel : "10",
       zeit: [1, 2, 3, 4, 5, 6, 8, 10, 12].indexOf(e.zeit) > -1 ? e.zeit : 5,
       bsp: !!e.bsp,
+      tonLaut: [0.3, 0.55, 0.8, 1, 1.5].indexOf(e.tonLaut) > -1 ? e.tonLaut : 0.8,
+      reihe: e.reihe === "liste" ? "liste" : "zufall",
       auswahl: ["kasten", "faellig", "schwierig", "alle"].indexOf(e.auswahl) > -1 ? e.auswahl : (imKasten().length ? "kasten" : "alle"),
       richtung: e.richtung === "en" ? "en" : "de",
       manuell: !!e.manuell || !DU_SR,
@@ -4610,6 +4721,8 @@
     man.disabled = !DU_SR;
     document.getElementById("du-diagnose").checked = e.diagnose;
     document.getElementById("du-bsp").checked = e.bsp;
+    document.getElementById("du-tonlaut").value = String(e.tonLaut);
+    document.getElementById("du-reihe").value = e.reihe;
     duKartenInfo();
     duStatusZeigen();
   }
@@ -4621,6 +4734,8 @@
       ziel: document.getElementById("du-ziel").value,
       zeit: Number(document.getElementById("du-zeit").value) || 5,
       bsp: document.getElementById("du-bsp").checked,
+      tonLaut: Number(document.getElementById("du-tonlaut").value) || 0.8,
+      reihe: document.getElementById("du-reihe").value,
       auswahl: document.getElementById("du-auswahl").value,
       richtung: document.getElementById("du-richtung").value,
       manuell: document.getElementById("du-manuell").checked,
@@ -4857,7 +4972,7 @@
 
   /* ---------- Ton, Sprache, Anzeige ---------- */
   var duTonCtx = null;
-  function duTon(hoch, freq) {
+  function duTon(hoch, freq, kraeftig) {
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
@@ -4865,27 +4980,59 @@
       if (!duTonCtx) duTonCtx = new AC();
       if (duTonCtx.state === "suspended") duTonCtx.resume();
       var t = duTonCtx.currentTime, o = duTonCtx.createOscillator(), g = duTonCtx.createGain();
-      o.type = "sine"; o.frequency.value = freq || (hoch ? 1175 : 880);
+      var laut = duEinstellungen().tonLaut, dauer = kraeftig ? 0.34 : 0.22;
+      o.frequency.value = freq || (hoch ? 1175 : 880);
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.35 * uwEinstellungen().laut, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
-      o.connect(g); g.connect(duTonCtx.destination);
-      o.start(t); o.stop(t + 0.25);
+      g.gain.exponentialRampToValueAtTime(laut, t + 0.02);   // Signalton-Lautstärke (Quiz-Seite)
+      g.gain.setValueAtTime(laut, t + dauer - 0.12);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dauer);
+      if (kraeftig) {
+        // Rechteckwelle klingt deutlich lauter als ein Sinus; Tiefpass nimmt die Schärfe
+        o.type = "square";
+        var f = duTonCtx.createBiquadFilter();
+        f.type = "lowpass"; f.frequency.value = 3200;
+        o.connect(f); f.connect(g);
+      } else {
+        o.type = "sine";
+        o.connect(g);
+      }
+      g.connect(duTonCtx.destination);
+      o.start(t); o.stop(t + dauer + 0.03);
     } catch (x) {}
   }
   function duSprich(text, lang, lauf) {
     return sprichWenn(text, lang, function () { return du && lauf === du.lauf; });
+  }
+  // Stern = „Schwierig“ (wird sofort gespeichert, gilt auch beim normalen Üben)
+  function duMerkZeigen() {
+    var b = document.getElementById("du-merk"), c = du && du.frage && du.frage.karte, an = !!(c && c.merk);
+    b.classList.toggle("on", an);
+    b.setAttribute("aria-pressed", an ? "true" : "false");
+    b.querySelector(".du-stern").textContent = an ? "\u2605" : "\u2606";
   }
   function duSetze(id, text) { document.getElementById(id).textContent = text || ""; }
   function duPhase(text, hoert) {
     var el = document.getElementById("du-phase");
     el.textContent = text;
     el.classList.toggle("hoert", !!hoert);
+    document.getElementById("du-card").classList.toggle("hoert", !!hoert);
+  }
+  // Zeitbalken in der Karte: läuft während des Zuhörens ab
+  function duUhr(rest) {
+    document.getElementById("du-uhr").style.transform = "scaleX(" + Math.max(0, Math.min(1, rest / du.zeit)).toFixed(3) + ")";
+  }
+  function duPauseKnopf(text) {
+    var b = document.getElementById("du-pause");
+    b.querySelector("span").textContent = text;
+    b.querySelector("svg").innerHTML = text === "Pause"
+      ? '<rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/>'
+      : '<path d="M8 5.5v13l10.5-6.5z"/>';
   }
   function duZeitAnzeigen(rest) {
     if (!du || du.phase !== "hoeren") return;
     var p = du.nurSpieler;
-    duPhase((p == null ? "" : du.namen[p] + (du.fuerZwei ? " · 2 Punkte" : "") + " · ") + Math.max(0, Math.ceil(rest / 1000)), true);
+    duPhase((p == null ? "" : du.namen[p] + (du.fuerZwei ? " · für 2 Punkte" : "") + " · ") + Math.max(0, Math.ceil(rest / 1000)) + " s", true);
+    duUhr(rest);
   }
   function duTafel(hervor, plus) {
     for (var p = 0; p < 2; p++) {
@@ -4896,6 +5043,8 @@
       el.classList.toggle("plus", plus === p);
     }
     var n = du.i + 1;
+    var fort = du.ziel === "p10" ? Math.max(du.punkte[0], du.punkte[1]) / 10 : du.i / Math.max(1, du.anzahl);
+    document.getElementById("du-fort").style.width = Math.min(100, Math.round(fort * 100)) + "%";
     duSetze("du-frage-nr", "Frage " + n + (du.anzahl ? " von " + du.anzahl : ""));
     duSetze("du-rest", du.ziel === "p10" ? "bis 10 Punkte" : (du.anzahl - n) + " übrig");
   }
@@ -4913,7 +5062,7 @@
     var e = duEinstellungen();
     var karten = nochmal && du ? du.alleKarten : duKarten(e.auswahl);
     if (!karten.length) { duKartenInfo(); return; }
-    karten = mische(karten.slice());
+    karten = e.reihe === "liste" ? nachListe(karten) : mische(karten.slice());   // zufällige Vokabelwahl
     var anzahl = e.ziel === "alle" || e.ziel === "p10" ? karten.length : Math.min(Number(e.ziel), karten.length);
     duLaufBasis += 10000;   // alte, noch wartende Abläufe erkennen sich nicht als „aktuell“
     du = { namen: e.namen.slice(), punkte: [0, 0], karten: karten, alleKarten: karten, anzahl: e.ziel === "p10" ? 0 : anzahl,
@@ -4952,6 +5101,7 @@
     var sFrage = deZuerst ? "de-DE" : "en-GB", sAntwort = deZuerst ? "en-GB" : "de-DE";
     du.frage = { karte: c, frage: frage, antwort: antwort, sFrage: sFrage, sAntwort: sAntwort,
                  loesungen: duLoesungen(antwort), notiz: [] };
+    duMerkZeigen();
     du.dran = du.i % 2;          // abwechselnd: Spieler 1 beginnt, dann Spieler 2, …
     du.nurSpieler = null;
     du.fuerZwei = false;
@@ -4964,7 +5114,7 @@
     duSetze("du-hinten", "");
     duSetze("du-gehoert", "");
     duDiag([]);
-    document.getElementById("du-pause").textContent = "Pause";
+    duPauseKnopf("Pause");
     var aktiv = function () { return du && lauf === du.lauf; };
     duSeite(null);
     duSprich(frage, sFrage, lauf)
@@ -4978,7 +5128,7 @@
     du.fuerZwei = pkt === 2;
     duTafel(wer);
     duSeite(wer);                 // linke bzw. rechte Bildschirmhälfte wird orange - kein Name mehr
-    duTon(pkt === 2);             // kurzer Piep: Mikro ist an
+    duTon(pkt === 2, 0, true);    // kräftiger Piep: Mikro ist an
     return du.manuell ? duManuellRunde(lauf, wer, pkt) : duHoerRunde(lauf, wer, pkt);
   }
 
@@ -5055,6 +5205,14 @@
     duTafel(-1, wer === "beide" ? -1 : wer);
     duSeite(null);
     duErfolg();
+    (wer === "beide" ? [0, 1] : [wer]).forEach(function (p) {
+      var pl = document.querySelector("#du-p" + p + " .du-plus");
+      pl.textContent = "+" + pkt;
+      pl.classList.remove("pop"); void pl.offsetWidth; pl.classList.add("pop");
+    });
+    var karte = document.getElementById("du-card");
+    karte.classList.remove("richtig"); void karte.offsetWidth; karte.classList.add("richtig");
+    setTimeout(function () { karte.classList.remove("richtig"); }, 900);
     du.phase = "ergebnis";
     duPhase("+" + pkt + " " + (wer === "beide" ? "beide" : du.namen[wer]));
     duSetze("du-hinten", du.frage.antwort);
@@ -5072,7 +5230,7 @@
   // kurzer, heller Zweiklang für „richtig“
   function duErfolg() {
     duTon(true);
-    setTimeout(function () { if (du) duTon(true, 1568); }, 130);
+    setTimeout(function () { duTon(true, 1568); }, 130);
   }
   function duDiagZeigen() {
     if (!du || !du.frage) return;
@@ -5085,7 +5243,7 @@
   function duManuellRunde(lauf, wer, pkt) {
     var aktiv = function () { return du && lauf === du.lauf; };
     du.phase = "hoeren";
-    return warteWenn(du.zeit, aktiv, function (rest) { if (aktiv()) duPhase(du.namen[wer] + " · " + Math.max(0, Math.ceil(rest / 1000)), true); })
+    return warteWenn(du.zeit, aktiv, function (rest) { if (aktiv()) { duPhase(du.namen[wer] + " · " + Math.max(0, Math.ceil(rest / 1000)) + " s", true); duUhr(rest); } })
       .then(function () { if (aktiv()) return duManuellEntscheid(lauf, du.namen[wer] + (pkt === 2 ? " – für 2 Punkte" : ""), wer, pkt); });
   }
   function duEntscheidZu() {
@@ -5201,8 +5359,12 @@
   }
 
   ["du-name1", "du-name2"].forEach(function (id) { document.getElementById(id).addEventListener("change", duEinstellungenMerken); });
-  ["du-ziel", "du-zeit", "du-auswahl", "du-richtung", "du-manuell", "du-diagnose", "du-bsp"].forEach(function (id) {
-    document.getElementById(id).addEventListener("change", function () { duEinstellungenMerken(); if (id === "du-richtung") duStatusZeigen(); });
+  ["du-ziel", "du-zeit", "du-auswahl", "du-richtung", "du-manuell", "du-diagnose", "du-bsp", "du-tonlaut", "du-reihe"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function () {
+      duEinstellungenMerken();
+      if (id === "du-richtung") duStatusZeigen();
+      if (id === "du-tonlaut") duErfolg();   // gleich hören, wie laut es ist
+    });
   });
   document.getElementById("du-test").addEventListener("click", duMikroTest);
   (function () {
@@ -5226,6 +5388,13 @@
   document.getElementById("du-neu").addEventListener("click", function () { duSchliessen(); duEinstellungenZeigen(); });
   document.getElementById("du-schliessen").addEventListener("click", duSchliessen);
   document.getElementById("du-ende").addEventListener("click", function () { if (du) duEnde(); });
+  document.getElementById("du-merk").addEventListener("click", function () {
+    var c = du && du.frage && du.frage.karte;
+    if (!c) return;
+    c.merk = !c.merk;
+    sichern();
+    duMerkZeigen();                        // das Spiel läuft ungestört weiter
+  });
   document.getElementById("du-weiter").addEventListener("click", function () {
     if (!du || du.phase === "entscheiden") return;
     du.pausiert = false;
@@ -5240,7 +5409,7 @@
     duStopHoeren();
     sprache.cancel();
     duPhase("Pausiert");
-    this.textContent = "Weiter";
+    duPauseKnopf("Weiter");
   });
   window.addEventListener("online", function () { if (ansicht === "quiz") duStatusZeigen(); });
   window.addEventListener("offline", function () { if (ansicht === "quiz") duStatusZeigen(); });
