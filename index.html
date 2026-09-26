@@ -1287,7 +1287,7 @@
   .du-plus.pop { animation: duPop 1.1s ease-out both; }
   @keyframes duPop { 0% { opacity: 0; transform: translateY(12px) scale(.7); } 18% { opacity: 1; transform: translateY(0) scale(1.15); } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px) scale(1); } }
   .du-mitte { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center;
-    min-height: calc(100vh - 96px); padding: calc(env(safe-area-inset-top) + 150px) 16px 12px; }
+    min-height: calc(100vh - 148px); padding: calc(env(safe-area-inset-top) + 150px) 16px 12px; }
   .du-card {
     background: var(--card); color: var(--ink); border-radius: 22px; padding: 16px 18px 18px; text-align: center;
     border: 2px solid transparent; box-shadow: 0 14px 36px rgba(0,0,0,.16), 0 2px 6px rgba(0,0,0,.08);
@@ -1316,6 +1316,13 @@
   .du-card .du-diag { margin-top: 10px; }
   .du-mitte .du-entscheid { margin: 14px 0 0; }
   .du-mitte .du-frage-wer { color: var(--ink); }
+  .du-laut { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; margin: 0 16px; padding: 6px 14px;
+    border-radius: 14px; border: 1px solid var(--rule); background: color-mix(in srgb, var(--card) 90%, transparent); color: var(--ink);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  .du-laut svg { width: 22px; height: 22px; flex: none; fill: currentColor; }
+  .du-laut svg .strich { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .du-laut input, .du-laut-setup input { flex: 1; width: 100%; height: 34px; margin: 0; accent-color: var(--du-farbe); }
+  .du-laut-wert { min-width: 3.2em; text-align: right; font-size: 13px; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
   .du-leiste { position: relative; z-index: 1; display: flex; gap: 8px; padding: 10px 16px calc(env(safe-area-inset-bottom) + 14px); }
   .du-steuer { display: contents; }
   .du-steuer[hidden] { display: none; }
@@ -1675,14 +1682,15 @@
             <option value="liste">Wie in der Liste</option>
           </select>
         </label>
-        <label>Signalton
-          <select id="du-tonlaut">
-            <option value="0.3">Leise</option>
-            <option value="0.55">Mittel</option>
-            <option value="0.8">Laut</option>
-            <option value="1">Sehr laut</option>
-            <option value="1.5">Maximal</option>
+        <label>Aussprache
+          <select id="du-streng">
+            <option value="0">Genau</option>
+            <option value="1">Locker</option>
+            <option value="2">Sehr locker</option>
           </select>
+        </label>
+        <label class="du-laut-setup">Signalton <span class="du-laut-wert" id="du-tonlaut-wert"></span>
+          <input type="range" id="du-tonlaut" min="20" max="150" step="10">
         </label>
         <label class="zeile-check"><input type="checkbox" id="du-bsp"> Beispielsätze vorlesen</label>
         <label class="zeile-check"><input type="checkbox" id="du-manuell"> Ohne Mikrofon spielen (Punkte per Knopf)</label>
@@ -1933,6 +1941,11 @@
         <div class="du-knoepfe" id="du-knoepfe"></div>
       </div>
     </div>
+    <label class="du-laut">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="strich" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+      <input type="range" id="du-laut-spiel" min="20" max="150" step="10" aria-label="Lautstärke Signalton">
+      <span class="du-laut-wert" id="du-laut-spiel-wert"></span>
+    </label>
     <div class="du-leiste">
       <span class="du-steuer" id="du-steuer">
         <button id="du-pause" type="button" class="du-lb"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg><span>Pause</span></button>
@@ -1974,7 +1987,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-8";
+  var FASSUNG = "2026-09-27-9";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -4700,7 +4713,8 @@
       ziel: ["10", "20", "30", "alle", "p10"].indexOf(e.ziel) > -1 ? e.ziel : "10",
       zeit: [1, 2, 3, 4, 5, 6, 8, 10, 12].indexOf(e.zeit) > -1 ? e.zeit : 5,
       bsp: !!e.bsp,
-      tonLaut: [0.3, 0.55, 0.8, 1, 1.5].indexOf(e.tonLaut) > -1 ? e.tonLaut : 0.8,
+      tonLaut: typeof e.tonLaut === "number" && e.tonLaut >= 0.2 && e.tonLaut <= 1.5 ? e.tonLaut : 0.8,
+      streng: [0, 1, 2].indexOf(e.streng) > -1 ? e.streng : 1,
       reihe: e.reihe === "liste" ? "liste" : "zufall",
       auswahl: ["kasten", "faellig", "schwierig", "alle"].indexOf(e.auswahl) > -1 ? e.auswahl : (imKasten().length ? "kasten" : "alle"),
       richtung: e.richtung === "en" ? "en" : "de",
@@ -4721,7 +4735,8 @@
     man.disabled = !DU_SR;
     document.getElementById("du-diagnose").checked = e.diagnose;
     document.getElementById("du-bsp").checked = e.bsp;
-    document.getElementById("du-tonlaut").value = String(e.tonLaut);
+    duLautZeigen();
+    document.getElementById("du-streng").value = String(e.streng);
     document.getElementById("du-reihe").value = e.reihe;
     duKartenInfo();
     duStatusZeigen();
@@ -4734,7 +4749,8 @@
       ziel: document.getElementById("du-ziel").value,
       zeit: Number(document.getElementById("du-zeit").value) || 5,
       bsp: document.getElementById("du-bsp").checked,
-      tonLaut: Number(document.getElementById("du-tonlaut").value) || 0.8,
+      tonLaut: (Number(document.getElementById("du-tonlaut").value) || 80) / 100,
+      streng: Number(document.getElementById("du-streng").value),
       reihe: document.getElementById("du-reihe").value,
       auswahl: document.getElementById("du-auswahl").value,
       richtung: document.getElementById("du-richtung").value,
@@ -4837,19 +4853,48 @@
     });
     return out.filter(function (x, i) { return out.indexOf(x) === i; });
   }
-  // kurze Wörter streng, lange Ausdrücke mit etwas Spielraum
-  function duErlaubt(len) { return len <= 4 ? 0 : len <= 7 ? 1 : len <= 12 ? 2 : Math.floor(len * 0.18); }
-  function duPasst(gesagt, loesungen) {
+  // erlaubte Tippfehler je Länge; Stufe 0 = genau, 1 = locker, 2 = sehr locker
+  function duErlaubt(len, stufe) {
+    if (stufe === 2) return len <= 2 ? 0 : len <= 4 ? 1 : len <= 7 ? 2 : Math.ceil(len * 0.33);
+    if (stufe === 1) return len <= 3 ? 0 : len <= 5 ? 1 : len <= 9 ? 2 : Math.ceil(len * 0.25);
+    return len <= 4 ? 0 : len <= 7 ? 1 : len <= 12 ? 2 : Math.floor(len * 0.18);
+  }
+  // grober „Klang-Schlüssel“: gleich klingende Schreibweisen werden gleich (ph/f, th/t, c/k, v/w, ee/ea/i …),
+  // stummes End-e und Auslautverhärtung (d→t, b→p, g→k) fallen weg, doppelte Buchstaben zählen einfach
+  function duKlang(s) {
+    return (" " + s + " ").replace(/ph/g, "f").replace(/th/g, "t").replace(/ck/g, "k").replace(/c(?=[eiy])/g, "s")
+      .replace(/[cq]/g, "k").replace(/x/g, "ks").replace(/z/g, "s").replace(/v/g, "w").replace(/y/g, "i")
+      .replace(/ae/g, "e").replace(/oe/g, "o").replace(/ue/g, "u").replace(/ie|ee|ea/g, "i").replace(/oo|ou/g, "u")
+      .replace(/([^ ])h/g, "$1").replace(/dt|d(?= )/g, "t").replace(/b(?= )/g, "p").replace(/g(?= )/g, "k")
+      .replace(/([^ ])e(?= )/g, "$1").replace(/(.)\1+/g, "$1").trim();
+  }
+  function duPasst(gesagt, loesungen, stufe) {
+    if (stufe == null) stufe = du && du.streng != null ? du.streng : duEinstellungen().streng;
     var g = duNorm(gesagt), best = { ok: false, wert: 0, ziel: loesungen[0] || "" };
     if (!g) return best;
     var gk = g.replace(DU_WEG_EN, "").replace(DU_WEG_DE, "");
     loesungen.forEach(function (l) {
+      var lKlang = duKlang(l), n = l.split(" ").length;
       [g, gk].forEach(function (x) {
-        var d = duLev(x, l), wert = 1 - d / Math.max(x.length, l.length, 1);
-        var ok = d <= duErlaubt(l.length) ||
-                 (" " + x + " ").indexOf(" " + l + " ") > -1 && l.length >= 4;   // „the proposal“, „I think proposal“
-        if (ok) wert = Math.max(wert, 0.9);
-        if (ok > best.ok || (ok === best.ok && wert > best.wert)) best = { ok: ok, wert: wert, ziel: l };
+        // Kandidaten: die ganze Antwort; locker auch nach Klang und jedes passende Stück eines längeren Satzes
+        var teile = [x];
+        if (stufe > 0) {
+          var w = x.split(" ");
+          if (w.length > n) for (var len = Math.max(1, n - 1); len <= n + 1; len++)
+            for (var i = 0; i + len <= w.length; i++) teile.push(w.slice(i, i + len).join(" "));
+        }
+        teile.forEach(function (t) {
+          var d = duLev(t, l), wert = 1 - d / Math.max(t.length, l.length, 1);
+          var ok = d <= duErlaubt(l.length, stufe) ||
+                   (" " + x + " ").indexOf(" " + l + " ") > -1 && l.length >= 4;   // „the proposal“, „I think proposal“
+          if (!ok && stufe > 0) {
+            // nach Klang eine Stufe strenger - sonst würde „hint“ zu „hand“
+            var tk = duKlang(t), dk = duLev(tk, lKlang);
+            if (dk <= duErlaubt(lKlang.length, stufe - 1)) { ok = true; wert = Math.max(wert, 1 - dk / Math.max(tk.length, lKlang.length, 1)); }
+          }
+          if (ok) wert = Math.max(wert, 0.9);
+          if (ok > best.ok || (ok === best.ok && wert > best.wert)) best = { ok: ok, wert: wert, ziel: l };
+        });
       });
     });
     return best;
@@ -5003,6 +5048,15 @@
   function duSprich(text, lang, lauf) {
     return sprichWenn(text, lang, function () { return du && lauf === du.lauf; });
   }
+  // beide Schieberegler (Quiz-Seite und im Spiel) zeigen denselben Wert
+  function duLautZeigen() {
+    var v = Math.round(duEinstellungen().tonLaut * 100);
+    ["du-tonlaut", "du-laut-spiel"].forEach(function (id) {
+      var r = document.getElementById(id);
+      if (String(r.value) !== String(v)) r.value = v;
+      document.getElementById(id + "-wert").textContent = v + " %";
+    });
+  }
   // Stern = „Schwierig“ (wird sofort gespeichert, gilt auch beim normalen Üben)
   function duMerkZeigen() {
     var b = document.getElementById("du-merk"), c = du && du.frage && du.frage.karte, an = !!(c && c.merk);
@@ -5066,9 +5120,10 @@
     var anzahl = e.ziel === "alle" || e.ziel === "p10" ? karten.length : Math.min(Number(e.ziel), karten.length);
     duLaufBasis += 10000;   // alte, noch wartende Abläufe erkennen sich nicht als „aktuell“
     du = { namen: e.namen.slice(), punkte: [0, 0], karten: karten, alleKarten: karten, anzahl: e.ziel === "p10" ? 0 : anzahl,
-           ziel: e.ziel, zeit: e.zeit * 1000, richtung: e.richtung, manuell: e.manuell, diagnose: e.diagnose, bsp: e.bsp,
+           ziel: e.ziel, zeit: e.zeit * 1000, richtung: e.richtung, manuell: e.manuell, diagnose: e.diagnose, bsp: e.bsp, streng: e.streng,
            i: 0, lauf: duLaufBasis, pausiert: false, auto: 0, hand: 0, rec: null, phase: "" };
     duTon(false);   // Audio im Tipp freischalten (iOS)
+    duLautZeigen();
     document.getElementById("duell").hidden = false;
     document.getElementById("du-spiel").hidden = false;
     document.getElementById("du-schluss").hidden = true;
@@ -5359,13 +5414,26 @@
   }
 
   ["du-name1", "du-name2"].forEach(function (id) { document.getElementById(id).addEventListener("change", duEinstellungenMerken); });
-  ["du-ziel", "du-zeit", "du-auswahl", "du-richtung", "du-manuell", "du-diagnose", "du-bsp", "du-tonlaut", "du-reihe"].forEach(function (id) {
+  ["du-ziel", "du-zeit", "du-auswahl", "du-richtung", "du-manuell", "du-diagnose", "du-bsp", "du-tonlaut", "du-reihe", "du-streng"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", function () {
       duEinstellungenMerken();
       if (id === "du-richtung") duStatusZeigen();
-      if (id === "du-tonlaut") duErfolg();   // gleich hören, wie laut es ist
+      if (id === "du-tonlaut") { duLautZeigen(); duTon(false, 0, true); }   // gleich hören, wie laut es ist
     });
   });
+  document.getElementById("du-tonlaut").addEventListener("input", function () {
+    document.getElementById("du-tonlaut-wert").textContent = this.value + " %";
+  });
+  // Lautstärke während des Spiels: sofort wirksam, beim Loslassen gespeichert + Probe-Piep
+  (function () {
+    var r = document.getElementById("du-laut-spiel");
+    r.addEventListener("input", function () {
+      if (!daten.duell) daten.duell = {};
+      daten.duell.tonLaut = Number(r.value) / 100;
+      duLautZeigen();
+    });
+    r.addEventListener("change", function () { sichern(); duTon(false, 0, true); });
+  })();
   document.getElementById("du-test").addEventListener("click", duMikroTest);
   (function () {
     [["st-detempo", "deTempo", deTempo, 1.5, "de"], ["st-entempo", "enTempo", enTempo, 1, "en"]].forEach(function (x) {
