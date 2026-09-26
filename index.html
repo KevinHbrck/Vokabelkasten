@@ -1668,6 +1668,13 @@
           <select id="uw-stimme-en"></select>
           <button type="button" class="ghost probe" data-probe="en" aria-label="Englische Stimme probehören">&#9654; Probe</button>
         </div>
+        <label for="st-entempo">Tempo der englischen Stimme</label>
+        <select id="st-entempo" style="width:100%;margin-bottom:12px">
+          <option value="1">Normal (1×)</option>
+          <option value="1.25">Etwas schneller (1,25×)</option>
+          <option value="1.5">Schneller (1,5×)</option>
+          <option value="2">Doppelt so schnell (2×)</option>
+        </select>
         <label for="uw-laut">Lautstärke <span id="uw-laut-wert"></span></label>
         <input type="range" id="uw-laut" min="10" max="100" step="5">
         <p class="note" style="margin:6px 0 0">Deine Musik läuft beim Vorlesen weiter. iPhone: Steht es auf lautlos, bleibt die Stimme stumm – dann auf laut stellen.</p>
@@ -1870,7 +1877,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-3";
+  var FASSUNG = "2026-09-27-4";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -4172,7 +4179,8 @@
   /* „Deutsch vorlesen mit“: deutscher Stimme, englischer Stimme oder gar nicht (daten.deStimme) */
   /* Tempo der deutschen Stimme (daten.deTempo): die ist auf vielen Handys sehr träge - standardmäßig 1,5-fach */
   function deTempo() { return [1, 1.25, 1.5, 2].indexOf(daten.deTempo) > -1 ? daten.deTempo : 1.5; }
-  function tempo(lang, basis) { return /^de/i.test(lang) ? Math.min(2, basis * deTempo()) : basis; }
+  function enTempo() { return [1, 1.25, 1.5, 2].indexOf(daten.enTempo) > -1 ? daten.enTempo : 1; }
+  function tempo(lang, basis) { return Math.min(2, basis * (/^de/i.test(lang) ? deTempo() : enTempo())); }
   function deModus() { return daten.deStimme === "en" || daten.deStimme === "aus" ? daten.deStimme : "de"; }
   function spracheFuer(lang) {
     if (!/^de/i.test(lang)) return lang;
@@ -4983,7 +4991,7 @@
     duTafel(wer);
     duTon(pkt === 2);
     return warteWenn(200, aktiv)
-      .then(function () { return duSprich(du.namen[wer], "en-GB", lauf); })   // Namen klingen mit jeder Stimme gleich
+      .then(function () { if (aktiv()) return duSprich(du.namen[wer], "en-GB", lauf); })   // Namen klingen mit jeder Stimme gleich
       .then(function () { return warteWenn(250, aktiv); })                    // App-Stimme ausklingen lassen
       .then(function () {
         if (!aktiv()) return;
@@ -5065,6 +5073,7 @@
       .then(function () { if (aktiv()) { du.i++; duFrage(); } });
   }
   function duBeispiel(lauf) {
+    if (!du || lauf !== du.lauf || !du.frage) return Promise.resolve();   // Spiel inzwischen beendet
     var c = du.frage.karte;
     if (!du.bsp || !c.bsp) return Promise.resolve();
     return duSprich(c.bsp, "en-GB", lauf);
@@ -5203,11 +5212,13 @@
   });
   document.getElementById("du-test").addEventListener("click", duMikroTest);
   (function () {
-    var t = document.getElementById("st-detempo");
-    t.value = String(deTempo());
-    t.addEventListener("change", function () {
-      daten.deTempo = Number(t.value) || 1.5; sichern();
-      if (sprache && !uw && !du) stimmProbe("de");   // gleich hören, wie schnell es jetzt ist
+    [["st-detempo", "deTempo", deTempo, 1.5, "de"], ["st-entempo", "enTempo", enTempo, 1, "en"]].forEach(function (x) {
+      var t = document.getElementById(x[0]);
+      t.value = String(x[2]());
+      t.addEventListener("change", function () {
+        daten[x[1]] = Number(t.value) || x[3]; sichern();
+        if (sprache && !uw && !du) stimmProbe(x[4]);   // gleich hören, wie schnell es jetzt ist
+      });
     });
   })();
   ["du-destimme", "st-destimme"].forEach(function (id) {
