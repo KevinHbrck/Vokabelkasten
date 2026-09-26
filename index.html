@@ -84,7 +84,8 @@
   html[data-vintage] {
     --f-head: "Avenir Next Condensed", "Roboto Condensed", "sans-serif-condensed", "Bahnschrift Condensed", "Arial Narrow", sans-serif;
     --f-body: "Avenir Next Condensed", "Roboto Condensed", "sans-serif-condensed", "Bahnschrift SemiCondensed", "Arial Narrow", system-ui, sans-serif;
-    --f-mono: ui-monospace, "SF Mono", Menlo, "Roboto Mono", "Cascadia Mono", Consolas, "Courier New", monospace;
+    /* keine Schreibmaschinenschrift mehr: normale, klare Grotesk (der Name --f-mono bleibt, damit alle Stellen sie weiter nutzen) */
+    --f-mono: "Helvetica Neue", Helvetica, Roboto, "Segoe UI", Arial, sans-serif;
     --f-label: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
     --f-brand: "Helvetica Neue", "Arial Black", Roboto, Arial, sans-serif;
     /* ruhig gehalten: flache Tasten, leichte Schatten (das Tapedeck setzt unten eigene Werte) */
@@ -1213,6 +1214,8 @@
   html[data-vintage] .kachel b { font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .04em; font-size: 15px; }
   html[data-vintage] .kachel.haupt { background: #ef7b17; }
   #view-ueben #modus { display: none; }   /* Karten oder Hören wählt man jetzt über die Kacheln */
+  /* Ziffern in den Retro-Designs gleich breit, damit Zähler und Nummern nicht springen */
+  html[data-vintage] body { font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -1793,7 +1796,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-26-3";
+  var FASSUNG = "2026-09-26-4";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
