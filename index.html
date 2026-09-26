@@ -1158,7 +1158,13 @@
     padding: calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 16px);
   }
   #duell[hidden] { display: none; }
-  #du-spiel, #du-schluss { display: flex; flex-direction: column; flex: 1; }
+  #du-spiel, #du-schluss { display: flex; flex-direction: column; flex: 1; position: relative; z-index: 1; }
+  /* wer dran ist: diese Bildschirmhälfte wird orange (Spieler 1 links, Spieler 2 rechts) */
+  #duell::after { content: ""; position: fixed; top: 0; bottom: 0; width: 50%; background: #ef7b17; opacity: 0;
+    pointer-events: none; z-index: 0; transition: opacity .15s ease; left: 0; }
+  #duell[data-seite]::after { opacity: .9; }
+  #duell[data-seite="1"]::after { left: auto; right: 0; }
+  #duell[data-seite] .du-spieler.dran { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.6); }
   #du-spiel[hidden], #du-schluss[hidden] { display: none; }
   .du-tafel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .du-spieler { display: flex; flex-direction: column; align-items: center; padding: 10px 6px 8px; border-radius: 8px;
@@ -1538,7 +1544,7 @@
     <div class="du-titel"><h2>Vokabel-Duell</h2><span class="du-exp">experimentell</span></div>
     <p class="du-warn"><b>Im Auto: Nur die mitfahrende Person bedient das Handy.</b> Wer fährt, spielt nur mit der Stimme mit und fasst das Handy nicht an.</p>
     <div class="hoer-panel du-panel">
-      <p class="du-regeln">Ihr seid <b>abwechselnd dran</b>. Die App liest die Vokabel vor, piept und sagt, wer dran ist. Diese Person antwortet einfach – ohne Namen. Richtig = <b>1 Punkt</b>. Falsch, „weiß nicht“ oder keine Antwort: Die andere Person ist dran und bekommt für die richtige Antwort <b>2 Punkte</b>.</p>
+      <p class="du-regeln">Ihr seid <b>abwechselnd dran</b>. Die App liest die Vokabel vor, direkt danach ist das Mikro an – die Bildschirmhälfte der Person, die dran ist, wird orange (Spieler 1 links, Spieler 2 rechts). Einfach antworten, ohne Namen. Richtig = <b>1 Punkt</b>. Falsch, „weiß nicht“ oder keine Antwort: Die andere Person ist dran und bekommt für die richtige Antwort <b>2 Punkte</b>.</p>
       <div class="du-namen">
         <label>Spieler 1<input type="text" id="du-name1" maxlength="16" autocomplete="off"></label>
         <label>Spieler 2<input type="text" id="du-name2" maxlength="16" autocomplete="off"></label>
@@ -1859,7 +1865,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-5";
+  var FASSUNG = "2026-09-27-6";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -4960,8 +4966,9 @@
     duDiag([]);
     document.getElementById("du-pause").textContent = "Pause";
     var aktiv = function () { return du && lauf === du.lauf; };
+    duSeite(null);
     duSprich(frage, sFrage, lauf)
-      .then(function () { return warteWenn(350, aktiv); })
+      .then(function () { return warteWenn(120, aktiv); })   // nur der Nachhall der App-Stimme
       .then(function () { if (aktiv()) return duDran(lauf, du.dran, 1); });
   }
   // Piep, Name, dann zuhören (bzw. im Knopf-Modus warten)
@@ -4970,14 +4977,9 @@
     du.nurSpieler = wer;
     du.fuerZwei = pkt === 2;
     duTafel(wer);
-    duTon(pkt === 2);
-    return warteWenn(200, aktiv)
-      .then(function () { if (aktiv()) return duSprich(du.namen[wer], "en-GB", lauf); })   // Namen klingen mit jeder Stimme gleich
-      .then(function () { return warteWenn(250, aktiv); })                    // App-Stimme ausklingen lassen
-      .then(function () {
-        if (!aktiv()) return;
-        return du.manuell ? duManuellRunde(lauf, wer, pkt) : duHoerRunde(lauf, wer, pkt);
-      });
+    duSeite(wer);                 // linke bzw. rechte Bildschirmhälfte wird orange - kein Name mehr
+    duTon(pkt === 2);             // kurzer Piep: Mikro ist an
+    return du.manuell ? duManuellRunde(lauf, wer, pkt) : duHoerRunde(lauf, wer, pkt);
   }
 
   /* Zuhören für die Person, die dran ist. Die erste Antwort zählt; Namen dürfen, müssen aber nicht fallen. */
@@ -5026,10 +5028,17 @@
     });
   }
 
+  // Wer dran ist: Spieler 1 = linke, Spieler 2 = rechte Bildschirmhälfte orange (null = keine)
+  function duSeite(wer) {
+    var el = document.getElementById("duell");
+    if (wer === 0 || wer === 1) el.setAttribute("data-seite", String(wer));
+    else el.removeAttribute("data-seite");
+  }
   // Wusste es keiner: nur die Lösung vorlesen, dann weiter
   function duLoesung(lauf) {
     var f = du.frage, aktiv = function () { return du && lauf === du.lauf; };
     du.phase = "ergebnis";
+    duSeite(null);
     duTafel(-1);
     duPhase("Lösung");
     duSetze("du-hinten", f.antwort);
@@ -5044,6 +5053,7 @@
     if (wer === "beide") { du.punkte[0] += pkt; du.punkte[1] += pkt; }
     else du.punkte[wer] += pkt;
     duTafel(-1, wer === "beide" ? -1 : wer);
+    duSeite(null);
     duErfolg();
     du.phase = "ergebnis";
     duPhase("+" + pkt + " " + (wer === "beide" ? "beide" : du.namen[wer]));
@@ -5088,6 +5098,7 @@
     var aktiv = function () { return du && lauf === du.lauf; };
     if (!aktiv()) return;
     du.phase = "entscheiden";
+    duSeite(null);
     duPhase(frage);
     duSetze("du-hinten", du.frage.antwort);
     document.getElementById("du-frage-wer").textContent = "Hatte " + du.namen[wer] + " recht?";
@@ -5116,6 +5127,7 @@
     if (!du) return;
     var lauf = ++du.lauf;
     duStopHoeren();
+    duSeite(null);
     document.getElementById("du-spiel").hidden = true;
     document.getElementById("du-schluss").hidden = false;
     var p = du.punkte, n = du.namen;
@@ -5141,6 +5153,7 @@
     du = null;
     uwSchlafen();
     stilleAus();
+    duSeite(null);
     document.getElementById("duell").hidden = true;
     waechterAbgleichen();
   }
