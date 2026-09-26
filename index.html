@@ -1987,7 +1987,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-9";
+  var FASSUNG = "2026-09-27-10";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -4964,13 +4964,21 @@
       rec.maxAlternatives = 5;
       try { if (du_lokal) rec.processLocally = true; } catch (x) {}
       var ende = false, start = Date.now(), frist = start + ms, zwischenText = "", fehler = null, timer = null;
+      var versuche = 0, nachPause = false;
       du.rec = rec;
+      function starte() {
+        if (ende) return;
+        try { rec.start(); }
+        catch (x) {
+          if (++versuche <= 3 && Date.now() < frist) { setTimeout(starte, 300); return; }
+          fehler = fehler || "start"; schluss("fehler");
+        }
+      }
       function schluss(grund) {
         if (ende) return;
         ende = true;
         clearInterval(timer);
-        rec.onresult = rec.onend = rec.onerror = null;
-        try { rec.abort(); } catch (x) {}
+        duMicFreigeben(rec);
         if (du) du.rec = null;
         tonMischen(true);
         // Zeit um, aber ein Satz war noch unfertig: den letzten Stand trotzdem werten
@@ -4996,12 +5004,18 @@
       rec.onerror = function (ev) {
         if (ev.error === "no-speech" || ev.error === "aborted") return;
         fehler = ev.error;
+        if (du && du.frage) du.frage.notiz.push("Mikrofon: Fehler „" + ev.error + "“" + (versuche ? " (Versuch " + (versuche + 1) + ")" : ""));
+        // Mikro kurz belegt (z. B. noch vom letzten Zuhören): gleich noch einmal versuchen
+        if (ev.error === "audio-capture" && versuche < 3 && Date.now() < frist) { versuche++; nachPause = true; return; }
         if (["not-allowed", "service-not-allowed", "network", "language-not-supported", "audio-capture"].indexOf(ev.error) > -1) schluss("fehler");
       };
       // Manche Browser beenden die Erkennung nach einer Pause von selbst - dann neu starten
       rec.onend = function () {
         if (ende) return;
-        if (Date.now() < frist) { try { rec.start(); return; } catch (x) {} }
+        if (Date.now() < frist) {
+          if (nachPause) { nachPause = false; setTimeout(starte, 300); return; }
+          try { rec.start(); return; } catch (x) {}
+        }
         schluss("zeit");
       };
       timer = setInterval(function () {
@@ -5011,7 +5025,13 @@
         // nach Ablauf noch bis zu 2,5 s warten, wenn gerade jemand mitten im Satz ist
         if (rest <= 0 && (!zwischenText || rest < -2500)) schluss("zeit");
       }, 200);
-      try { rec.start(); } catch (x) { fehler = "start"; schluss("fehler"); }
+      // erst starten, wenn das vorige Zuhören das Mikro wirklich freigegeben hat (sonst bleibt es beim 2. Versuch aus)
+      Promise.resolve(duMicBelegt).then(function () {
+        if (ende) return;
+        if (!aktiv()) { schluss("abbruch"); return; }
+        start = Date.now(); frist = start + ms;
+        starte();
+      });
     });
   }
 
@@ -5133,7 +5153,17 @@
     duFrage();
   }
   function duStopHoeren() {
-    if (du && du.rec) { try { du.rec.onend = null; du.rec.abort(); } catch (x) {} du.rec = null; }
+    if (du && du.rec) { duMicFreigeben(du.rec); du.rec = null; }
+  }
+  // Erkennung abbrechen und merken, bis wann das Mikro noch belegt ist (höchstens 900 ms warten)
+  var duMicBelegt = null;
+  function duMicFreigeben(rec) {
+    duMicBelegt = new Promise(function (frei) {
+      var t = setTimeout(frei, 900);
+      rec.onresult = rec.onerror = null;
+      rec.onend = function () { clearTimeout(t); setTimeout(frei, 60); };
+      try { rec.abort(); } catch (x) { clearTimeout(t); frei(); }
+    });
   }
   function duSpielVorbei() {
     if (du.ziel === "p10") return du.punkte[0] >= 10 || du.punkte[1] >= 10 || du.i >= du.karten.length;
@@ -5184,7 +5214,9 @@
     duTafel(wer);
     duSeite(wer);                 // linke bzw. rechte Bildschirmhälfte wird orange - kein Name mehr
     duTon(pkt === 2, 0, true);    // kräftiger Piep: Mikro ist an
-    return du.manuell ? duManuellRunde(lauf, wer, pkt) : duHoerRunde(lauf, wer, pkt);
+    if (du.manuell) return duManuellRunde(lauf, wer, pkt);
+    // das Mikro startet erst, wenn der Piep verklungen ist - sonst kann Android das Mikro blockieren
+    return warteWenn(380, aktiv).then(function () { if (aktiv()) return duHoerRunde(lauf, wer, pkt); });
   }
 
   /* Zuhören für die Person, die dran ist. Die erste Antwort zählt; Namen dürfen, müssen aber nicht fallen. */
@@ -5219,7 +5251,7 @@
       if (r.grund === "fehler") {
         f.notiz.push("Spracherkennung: Fehler „" + (r.fehler || "?") + "“");
         duDiagZeigen();
-        if (r.fehler === "not-allowed" || r.fehler === "service-not-allowed" || r.fehler === "audio-capture") du.manuell = true;
+        if (r.fehler === "not-allowed" || r.fehler === "service-not-allowed") du.manuell = true;
         return duManuellEntscheid(lauf, r.fehler === "network" ? "Keine Verbindung für die Spracherkennung" :
           (du.manuell ? "Mikrofon nicht verfügbar" : "Spracherkennung gestört"), wer, pkt);
       }
