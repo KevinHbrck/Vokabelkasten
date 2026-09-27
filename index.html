@@ -218,9 +218,9 @@
   #sel-kat { flex: 1; min-width: 0; }
   select:focus-visible { outline: 2px solid var(--indigo); outline-offset: 1px; }
 
-  .boxes { display: flex; gap: 4px; margin-bottom: 20px; }
+  .boxes { display: flex; gap: 4px; margin-bottom: 14px; }
   .box {
-    flex: 1; text-align: center; padding: 7px 2px 6px;
+    flex: 1; text-align: center; padding: 5px 2px 4px;
     background: var(--tab); border-radius: 3px 3px 0 0;
     border-bottom: 3px solid var(--rule);
     font-size: 11px; color: var(--ink-soft);
@@ -232,12 +232,14 @@
     border-bottom-color: var(--ink); border-bottom-width: 3px;
     box-shadow: inset 0 1px 0 var(--rule), inset 1px 0 0 var(--rule), inset -1px 0 0 var(--rule);
   }
-  .box b { display: block; font-size: 17px; font-weight: 600; }
+  .box b { display: block; font-size: 16px; font-weight: 600; }
 
   .meldung {
     text-align: center; font-size: 13px; color: var(--ink-soft);
-    margin: -8px 0 14px; min-height: 1.2em;
+    margin: -4px 0 12px; min-height: 1.2em;
   }
+  .meldung-wann { white-space: nowrap; }
+  .bsp b { font-weight: 700; font-style: normal; color: var(--ink); }
   .meldung b { font-weight: 600; color: var(--ink); }
   .card {
     background: var(--card);
@@ -547,6 +549,7 @@
     background: var(--card); color: var(--ink);
     border: 1px solid var(--rule); padding: 11px 8px; font-size: 14px;
   }
+  .themawahl:not(.vintage) button { min-width: 0; padding-left: 4px; padding-right: 4px; }
   .themawahl button[aria-pressed="true"] {
     background: var(--ink); color: var(--auf-ink); border-color: var(--ink);
   }
@@ -1012,9 +1015,9 @@
   html[data-thema="tapedeck"] button:not(:disabled):active { box-shadow: inset 0 2px 5px rgba(0,0,0,.6) !important; filter: brightness(.85); }
   /* ---------- Tagesziel und Lernserie (oben auf „Üben“) ---------- */
   button.tagesziel {
-    display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 10px; padding: 9px 12px;
+    display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 8px; padding: 7px 12px;
     background: var(--card); border: 1px solid var(--rule); border-radius: 3px; color: var(--ink);
-    font-size: 13px; text-align: left; min-height: 42px;
+    font-size: 13px; text-align: left; min-height: 36px;
   }
   .tz-balken { flex: 0 0 64px; height: 6px; border-radius: 3px; background: var(--tab); overflow: hidden; }
   .tz-balken i { display: block; height: 100%; width: 0; background: var(--indigo); transition: width .4s ease; }
@@ -1025,10 +1028,10 @@
   html[data-vintage] .tz-balken i { background: var(--accent); }
 
   /* ---------- Auswahl (Kategorie, Richtung) zugeklappt ---------- */
-  .auswahl { border: 1px solid var(--rule); border-radius: 3px; background: var(--card); margin-bottom: 14px; }
+  .auswahl { border: 1px solid var(--rule); border-radius: 3px; background: var(--card); margin-bottom: 10px; }
   .auswahl summary {
     list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
-    padding: 10px 38px 10px 12px; position: relative; min-height: 42px; box-sizing: border-box;
+    padding: 7px 38px 7px 12px; position: relative; min-height: 36px; box-sizing: border-box;
   }
   .auswahl summary::-webkit-details-marker { display: none; }
   .auswahl summary::after {
@@ -1792,7 +1795,7 @@
       <div class="sk-block">
         <h3 class="sk-titel">Darstellung</h3>
         <div class="themawahl" id="themawahl">
-          <button type="button" data-thema="auto">Automatisch</button>
+          <button type="button" data-thema="auto">Auto</button>
           <button type="button" data-thema="hell">Hell</button>
           <button type="button" data-thema="dunkel">Dunkel</button>
           <button type="button" data-thema="nacht">Nacht</button>
@@ -2348,6 +2351,7 @@
 
   /* ---------- Runde ---------- */
   var runde = [], aktuell = null, aufgedeckt = false;
+  var rundeBilanz = [0, 0];   // gewusst, nochmal - nur für die Anzeige am Rundenende
 
   function mische(a) {
     for (var i = a.length - 1; i > 0; i--) {
@@ -2359,6 +2363,7 @@
 
   function rundeStarten(alle) {
     meldung = null;
+    rundeBilanz = [0, 0];
     verlauf = [];
     extraOffen = {}; extraGehabt = {};
     runde = mische(alle
@@ -2536,8 +2541,10 @@
     meldung = {
       wort: k.front,
       vorher: vorher,
-      nachher: k.box
+      nachher: k.box,
+      due: k.due          // nur für die Anzeige „wieder in … Tagen“
     };
+    rundeBilanz[gewusst ? 0 : 1]++;
     sichern();
     naechsteKarte();
   }
@@ -2565,6 +2572,14 @@
             ? " bleibt in Fach " + meldung.nachher
             : " \u2192 Fach " + meldung.nachher)
     ));
+    // der Abstand macht das Leitner-Prinzip sichtbar: je sicherer, desto später kommt die Karte wieder
+    if (typeof meldung.due === "number" && meldung.vorher !== 0) {
+      var tage = Math.round((meldung.due - heute()) / 86400000);
+      var w = document.createElement("span");
+      w.className = "meldung-wann";
+      w.textContent = tage <= 0 ? " \u00b7 heute nochmal" : tage === 1 ? " \u00b7 wieder morgen" : " \u00b7 wieder in " + tage + " Tagen";
+      el.appendChild(w);
+    }
   }
 
   /* ---------- Walzenzähler für die Fächer (Vintage-Designs) ----------
@@ -2736,6 +2751,36 @@
     if (sf.value !== String(filterFach)) sf.value = String(filterFach);
   }
 
+  // „ 20 gewusst · 5 nochmal – die kommen gleich noch einmal dran“ (nur wenn in dieser Runde gewertet wurde)
+  function bilanzText() {
+    var g = rundeBilanz[0], n = rundeBilanz[1];
+    if (!g && !n) return "";
+    return " " + g + " gewusst \u00b7 " + n + " nochmal.";
+  }
+  /* Beispielsatz: die englische Vokabel darin fett hervorheben (auch mit Endung: complain -> complained) */
+  function bspSetzen(el, satz, en) {
+    el.textContent = "";
+    if (!satz) return;
+    var varianten = String(en || "").split(/\s*[\/;]\s*/).map(function (v) {
+      return v.replace(/\([^)]*\)/g, " ").replace(/^to\s+/i, "").replace(/\b(sth|sb)\b\.?/gi, " ").replace(/\s+/g, " ").trim();
+    }).filter(function (v) { return v.length > 1; }).sort(function (a, b) { return b.length - a.length; });
+    for (var i = 0; i < varianten.length; i++) {
+      var v = varianten[i], einzeln = v.indexOf(" ") < 0;
+      var stamm = einzeln && v.length > 4 ? v.replace(/(e|y)$/i, "") : v;
+      var muster = stamm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+");
+      var m = new RegExp("\\b" + muster + (einzeln ? "\\w*" : ""), "i").exec(satz);
+      if (m) {
+        el.appendChild(document.createTextNode(satz.slice(0, m.index)));
+        var b = document.createElement("b");
+        b.textContent = m[0];
+        el.appendChild(b);
+        el.appendChild(document.createTextNode(satz.slice(m.index + m[0].length)));
+        return;
+      }
+    }
+    el.textContent = satz;
+  }
+
   function zeichneUeben() {
     if (modus === "hoeren") hoerInfo();   // z.B. nach Wechsel der Kategorie
     zeichneTagesziel();
@@ -2774,7 +2819,7 @@
       document.getElementById("karte").classList.toggle("offen", aufgedeckt);
       document.getElementById("vorne").textContent = s[0];
       document.getElementById("hinten").textContent = s[1];
-      document.getElementById("bsp").textContent = aktuell.bsp || "";
+      bspSetzen(document.getElementById("bsp"), aktuell.bsp, aktuell.back);
       document.getElementById("hinten").hidden = !aufgedeckt;
       document.getElementById("strich").hidden = !aufgedeckt;
       document.getElementById("bsp").hidden = !aufgedeckt || !aktuell.bsp;
@@ -2827,7 +2872,7 @@
       btn.textContent = "Fachauswahl aufheben";
       btn.addEventListener("click", function () { filterFach = 0; rundeStarten(false); });
     } else if (faellig().length) {
-      p.textContent = "Runde geschafft.";
+      p.textContent = "Runde geschafft." + bilanzText();
       btn.textContent = "Weiter üben";
       btn.addEventListener("click", function () { rundeStarten(false); });
     } else {
@@ -2836,7 +2881,7 @@
       var offen = daten.cards.filter(function (c) { return !c.aktiv; }).length;
       p.textContent = (d <= 0
         ? "Für heute ist alles durch."
-        : "Für heute ist alles durch. Wieder fällig in " + d + (d === 1 ? " Tag." : " Tagen.")) +
+        : "Für heute ist alles durch. Wieder fällig in " + d + (d === 1 ? " Tag." : " Tagen.")) + bilanzText() +
         " Von deinen " + kasten + " im Kasten sitzen " + sitzen() + "." +
         (offen ? " Draußen warten noch " + offen + "." : "");
       if (offen) {
