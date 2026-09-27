@@ -1314,6 +1314,22 @@
   .du-plus { position: absolute; top: calc(env(safe-area-inset-top) + 118px); font-size: 34px; font-weight: 800; color: var(--moss); opacity: 0; }
   .du-plus.pop { animation: duPop 1.1s ease-out both; }
   @keyframes duPop { 0% { opacity: 0; transform: translateY(12px) scale(.7); } 18% { opacity: 1; transform: translateY(0) scale(1.15); } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px) scale(1); } }
+  /* Per Sprache abfragen (allein): keine Punkte und keine geteilten Hälften - oben die Fächer wie beim Üben */
+  .du-faecher { display: none; }
+  #duell.solo .du-feld, #duell.solo .du-tafel-gross { display: none; }
+  #duell.solo .du-mitte { padding-top: calc(env(safe-area-inset-top) + 22px); }
+  #duell.solo .du-faecher { display: flex; gap: 8px; margin: 0 0 16px; }
+  .du-fach { flex: 1; min-width: 0; text-align: center; padding: 10px 0 8px; border-radius: 14px; background: var(--card);
+    border: 2px solid var(--rule); color: var(--ink-soft); transition: border-color .2s ease, color .2s ease; }
+  .du-fach b { display: block; font-size: 24px; font-weight: 800; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .du-fach small { display: block; font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+  .du-fach.jetzt { border-color: var(--du-farbe); color: var(--du-farbe); }
+  .du-fach.ziel { animation: duFach .7s ease-out; }
+  .du-fach.ziel.hoch { border-color: var(--moss); color: var(--moss); }
+  .du-fach.ziel.runter { border-color: var(--alarm-ink); color: var(--alarm-ink); }
+  @keyframes duFach { 0% { transform: scale(1); } 35% { transform: scale(1.14); } 100% { transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .du-fach.ziel { animation: none; } }
+  html[data-vintage] .du-fach { border-radius: 6px; }
   .du-mitte { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center;
     min-height: calc(100vh - 148px); padding: calc(env(safe-area-inset-top) + 150px) 16px 12px; }
   .du-card {
@@ -1965,6 +1981,7 @@
       <div class="du-halb" id="du-p1"><span class="du-pname"></span><span class="du-punkte">0</span><span class="du-plus" aria-hidden="true"></span></div>
     </div>
     <div class="du-mitte">
+      <div class="du-faecher" id="du-faecher" aria-hidden="true"></div>
       <div class="du-card" id="du-card" aria-live="polite">
         <div class="du-meta"><span id="du-frage-nr"></span><span id="du-rest"></span></div>
         <div class="du-fort" aria-hidden="true"><i id="du-fort"></i></div>
@@ -5327,6 +5344,7 @@
     }
     var n = du.i + 1;
     if (du.solo) {
+      if (du.phase === "vorlesen") duFaecherZeigen(aktuell ? aktuell.box : 0);
       var offen = runde.length + (aktuell ? 1 : 0);
       document.getElementById("du-fort").style.width = Math.round(du.i / Math.max(1, du.i + offen) * 100) + "%";
       duSetze("du-frage-nr", "Karte " + n);
@@ -5352,6 +5370,7 @@
     var e = duEinstellungen();
     var karten = nochmal && du ? du.alleKarten : duKarten(e.auswahl);
     if (!karten.length) { duKartenInfo(); return; }
+    document.getElementById("duell").classList.remove("solo");
     karten = e.reihe === "liste" ? nachListe(karten) : mische(karten.slice());   // zufällige Vokabelwahl
     var anzahl = e.ziel === "alle" || e.ziel === "p10" ? karten.length : Math.min(Number(e.ziel), karten.length);
     duLaufBasis += 10000;   // alte, noch wartende Abläufe erkennen sich nicht als „aktuell“
@@ -5382,6 +5401,7 @@
            i: 0, lauf: duLaufBasis, pausiert: false, auto: 0, hand: 0, rec: null, phase: "" };
     duTon(false);   // Audio im Tipp freischalten (iOS)
     duLautZeigen();
+    document.getElementById("duell").classList.add("solo");
     document.getElementById("duell").hidden = false;
     document.getElementById("du-spiel").hidden = false;
     document.getElementById("du-schluss").hidden = true;
@@ -5390,11 +5410,40 @@
     waechterAbgleichen();
     duFrage();
   }
+  /* Fächer-Leiste: Karten im Kasten je Fach (wie beim Üben, mit der gewählten Kategorie).
+     jetzt = Fach der aktuellen Karte, ziel = wohin sie gerade gewandert ist (kurz hervorgehoben) */
+  function duFaecherZeigen(jetzt, ziel, hoch) {
+    var el = document.getElementById("du-faecher");
+    el.textContent = "";
+    for (var f = 1; f <= 5; f++) {
+      var n = daten.cards.filter(function (c) { return c.aktiv && imKat(c) && c.box === f; }).length;
+      var d = document.createElement("div");
+      d.className = "du-fach" + (f === jetzt ? " jetzt" : "") + (f === ziel ? " ziel" + (hoch ? " hoch" : " runter") : "");
+      var b = document.createElement("b");
+      b.textContent = String(n);
+      var sm = document.createElement("small");
+      sm.textContent = "Fach " + f;
+      d.appendChild(b);
+      d.appendChild(sm);
+      el.appendChild(d);
+    }
+  }
+  /* sofort werten, sobald feststeht, ob die Antwort richtig war - dann sieht man gleich, wohin die Karte wandert */
+  function duSoloWerten(gewusst) {
+    if (!du || !du.solo || du.gewertet || !du.frage) return;
+    var k = du.frage.karte, vorher = k.box;
+    du.gewertet = true;
+    if (aktuell === k) bewerten(gewusst);
+    var nachher = k.box;
+    duFaecherZeigen(0, nachher, gewusst);
+    duPhase(gewusst ? (nachher > vorher ? "Gewusst · Fach " + vorher + " → " + nachher : "Gewusst · bleibt in Fach " + nachher)
+                    : (vorher > 1 ? "Zurück in Fach 1" : "Bleibt in Fach 1"));
+  }
   // wer gerade antwortet - im Allein-Modus ohne Namen
   function duWerName(p) { return du.solo ? "Deine Antwort" : du.namen[p]; }
   /* nach einer Karte weiter: im Allein-Modus erst im Kasten werten (rückt die Übungsrunde weiter) */
   function duWeiter(gewusst) {
-    if (du.solo && du.frage && aktuell === du.frage.karte) bewerten(gewusst);
+    if (du.solo) duSoloWerten(gewusst);
     du.i++;
     duFrage();
   }
@@ -5434,6 +5483,7 @@
     du.frage = { karte: c, frage: frage, antwort: antwort, sFrage: sFrage, sAntwort: sAntwort,
                  loesungen: duLoesungen(antwort), notiz: [] };
     duMerkZeigen();
+    du.gewertet = false;
     du.dran = du.solo ? 0 : du.i % 2;          // abwechselnd: Spieler 1 beginnt, dann Spieler 2, …
     du.nurSpieler = null;
     du.fuerZwei = false;
@@ -5522,10 +5572,9 @@
   function duLoesung(lauf) {
     var f = du.frage, aktiv = function () { return du && lauf === du.lauf; };
     du.phase = "ergebnis";
-    if (du.solo) du.punkte[1]++;
     duSeite(null);
-    duTafel(-1, du.solo ? 1 : undefined);
-    duPhase(du.solo ? "Lösung · zurück in Fach 1" : "Lösung");
+    if (du.solo) { du.punkte[1]++; duSoloWerten(false); }
+    else { duTafel(-1); duPhase("Lösung"); }
     duSetze("du-hinten", f.antwort);
     return duSprich(f.antwort, f.sAntwort, lauf)
       .then(function () { return duBeispiel(lauf); })
@@ -5535,6 +5584,7 @@
   // Punkt vergeben: Erfolgston und Tafel, ohne Ansage
   function duPunkt(lauf, wer, pkt) {
     var aktiv = function () { return du && lauf === du.lauf; };
+    if (du.solo) return duSoloRichtig(lauf);
     if (wer === "beide") { du.punkte[0] += pkt; du.punkte[1] += pkt; }
     else du.punkte[wer] += pkt;
     duTafel(-1, wer === "beide" ? -1 : wer);
@@ -5552,6 +5602,23 @@
     duPhase(du.solo ? "Gewusst" : "+" + pkt + " " + (wer === "beide" ? "beide" : du.namen[wer]));
     duSetze("du-hinten", du.frage.antwort);
     return warteWenn(700, aktiv)
+      .then(function () { return duBeispiel(lauf); })
+      .then(function () { return warteWenn(500, aktiv); })
+      .then(function () { if (aktiv()) duWeiter(true); });
+  }
+  // Allein: richtig -> Erfolgston, Karte wandert sofort ein Fach hoch (Anzeige oben), dann weiter
+  function duSoloRichtig(lauf) {
+    var aktiv = function () { return du && lauf === du.lauf; };
+    du.punkte[0]++;
+    duSeite(null);
+    duErfolg();
+    var karte = document.getElementById("du-card");
+    karte.classList.remove("richtig"); void karte.offsetWidth; karte.classList.add("richtig");
+    setTimeout(function () { karte.classList.remove("richtig"); }, 900);
+    du.phase = "ergebnis";
+    duSetze("du-hinten", du.frage.antwort);
+    duSoloWerten(true);
+    return warteWenn(900, aktiv)
       .then(function () { return duBeispiel(lauf); })
       .then(function () { return warteWenn(500, aktiv); })
       .then(function () { if (aktiv()) duWeiter(true); });
@@ -5634,8 +5701,10 @@
     document.getElementById("du-nochmal").hidden = !!(du.solo && !aktuell && !faellig().length);
     document.getElementById("du-neu").hidden = !!du.solo;
     if (du.solo) {
+      duFaecherZeigen(0);
       duSetze("du-sieger", aktuell ? "Pause – der Rest wartet beim Üben" : "Kasten für heute geschafft!");
-      duSetze("du-bilanz", du.i + (du.i === 1 ? " Karte" : " Karten") + " · " + p[0] + " gewusst · " + p[1] + " zurück in Fach 1");
+      var gefragt = p[0] + p[1];
+      duSetze("du-bilanz", gefragt + (gefragt === 1 ? " Karte" : " Karten") + " · " + p[0] + " gewusst · " + p[1] + " zurück in Fach 1");
       uwSchlafen();
       duErfolg();
       return;
@@ -5649,6 +5718,7 @@
     duSprich(satz, "en-GB", lauf);
   }
   function duSchliessen() {
+    document.getElementById("duell").classList.remove("solo");
     document.getElementById("du-nochmal").hidden = false;
     document.getElementById("du-neu").hidden = false;
     if (!du) { document.getElementById("duell").hidden = true; waechterAbgleichen(); return; }
