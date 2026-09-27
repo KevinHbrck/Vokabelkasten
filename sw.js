@@ -6,7 +6,7 @@
  */
 
 /* Einzige Stelle für die Fassung - die App fragt sie per postMessage ab (Einstellungen, ganz unten) */
-var FASSUNG = "2026-09-27-14";
+var FASSUNG = "2026-09-27-15";
 var SPEICHER = "vokabelkasten-" + FASSUNG;
 var GRUNDGERUEST = ["./", "./index.html", "./daten.js", "./privacy.html", "./manifest.json", "./icon.png"];
 

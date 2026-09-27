@@ -300,7 +300,7 @@
   ol.list { list-style: none; padding: 0; margin: 4px 0 0; }
   ol.list li {
     display: grid;
-    grid-template-columns: 1.7em 1fr 1fr auto;
+    grid-template-columns: 1.7em 1fr 1.15fr auto;
     column-gap: 8px; row-gap: 3px;
     align-items: baseline;
     padding: 10px 0; border-bottom: 1px solid var(--rule);
@@ -310,6 +310,7 @@
   .zelle.en {
     grid-column: 3; font-size: 15px; color: var(--ink-soft);
     border-left: 1px solid var(--rule); padding-left: 9px;
+    -webkit-hyphens: manual; hyphens: manual;   /* englische Wörter nicht nach deutschen Regeln trennen */
   }
   .steuer { grid-column: 4; grid-row: 1; display: flex; align-items: center; gap: 1px; }
   .bsp-zeile {
@@ -415,6 +416,30 @@
   .listraster > select { padding-right: 4px; }
   .listraster > .voll { grid-column: 1 / -1; }
   .listraster > [hidden] { display: none; }
+  /* Listenkopf, feiner gegliedert: Suche mit Lupe, zwei schlanke Zeilen, darunter „In den Kasten“ als eigene Karte */
+  .listkopf input[type=search] {
+    padding-left: 36px;
+    background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8f98' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5l5 5'/%3E%3C/svg%3E") no-repeat 12px 50% / 17px;
+  }
+  .lw-zeile { display: flex; gap: 8px; margin: 8px 0 0; }
+  .lw-zeile > select, .lw-zeile > button {
+    flex: 1 1 0; min-width: 0; height: 38px; margin: 0; padding: 0 10px;
+    font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lw-zeile > select { padding-right: 4px; }
+  .lw-zeile > button.lw-klein { flex: 0 0 auto; }
+  .lw-zeile > [hidden] { display: none; }
+  .lw-kasten { margin: 12px 0 2px; padding: 11px 12px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
+  .lw-kasten:not(:has(button:not([hidden]))) { display: none; }
+  .lw-kasten-titel { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft); }
+  .lw-kasten-zeile { display: flex; gap: 8px; }
+  .lw-kasten-zeile > button { flex: 1 1 auto; min-width: 0; height: 44px; margin: 0; padding: 0 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lw-kasten-zeile > select { flex: 0 0 auto; height: 44px; margin: 0; }
+  .lw-kasten-zeile > [hidden] { display: none; }
+  .lw-kasten-zeile:not(:has(> :not([hidden]))) { display: none; }
+  .lw-kasten-weitere { margin: 8px 0 0; }
+  .lw-kasten-weitere > button { height: 38px; }
+  .lw-kasten-zeile:not(:has(> :not([hidden]))) + .lw-kasten-weitere { margin-top: 0; }
 
   h2 { font-size: 15px; font-weight: 600; margin: 0 0 14px; }
 
@@ -1644,30 +1669,41 @@
       <button class="filt" id="btn-nurmerk" type="button" aria-pressed="false" title="Nur schwierige zeigen" aria-label="Nur schwierige zeigen">&#9733;</button>
       <button class="filt" id="btn-nurkasten" type="button" aria-pressed="false" title="Nur Karten im Kasten zeigen">&#10003;</button>
     </div>
-    <div class="listraster">
+    <!-- Filtern und Anzeigen: zwei schlanke Zeilen -->
+    <div class="lw-zeile">
       <select id="sel-listkat" aria-label="Nach Kategorie filtern"></select>
       <select id="sel-sort" aria-label="Sortieren">
         <option value="nr">Reihenfolge (Nr.)</option>
         <option value="de">Deutsch A–Z</option>
         <option value="en">English A–Z</option>
       </select>
+    </div>
+    <div class="lw-zeile">
       <select id="sel-abdeck" aria-label="Spalte abdecken">
         <option value="aus">Beides zeigen</option>
         <option value="en">English abdecken</option>
         <option value="de">Deutsch abdecken</option>
       </select>
-      <button class="ghost" id="btn-saetze" type="button">Sätze aus</button>
-      <button class="ghost" id="btn-liste-hoeren" type="button" title="Die angezeigte Liste der Reihe nach vorlesen">&#9654; Anhören</button>
-      <select id="sel-paket" aria-label="Wie viele auf einmal aufnehmen">
-        <option value="5">5 auf einmal</option>
-        <option value="10">10 auf einmal</option>
-        <option value="15" selected>15 auf einmal</option>
-        <option value="20">20 auf einmal</option>
-        <option value="30">30 auf einmal</option>
-      </select>
-      <button class="ghost voll" id="btn-next10" type="button">Nächste 30 aufnehmen</button>
-      <button class="ghost" id="btn-treffer" type="button" hidden></button>
-      <button class="ghost" id="btn-leeren" type="button" hidden>Kasten leeren</button>
+      <button class="ghost lw-klein" id="btn-saetze" type="button">Sätze aus</button>
+      <button class="ghost lw-klein" id="btn-liste-hoeren" type="button" title="Die angezeigte Liste der Reihe nach vorlesen">&#9654; Anhören</button>
+    </div>
+    <!-- Kasten füllen: die eine Hauptaktion der Liste, abgesetzt -->
+    <div class="lw-kasten">
+      <p class="lw-kasten-titel">In den Kasten</p>
+      <div class="lw-kasten-zeile">
+        <button id="btn-next10" type="button">Nächste 30 aufnehmen</button>
+        <select id="sel-paket" aria-label="Wie viele auf einmal aufnehmen">
+          <option value="5">je 5</option>
+          <option value="10">je 10</option>
+          <option value="15" selected>je 15</option>
+          <option value="20">je 20</option>
+          <option value="30">je 30</option>
+        </select>
+      </div>
+      <div class="listraster lw-kasten-weitere">
+        <button class="ghost" id="btn-treffer" type="button" hidden></button>
+        <button class="ghost" id="btn-leeren" type="button" hidden>Kasten leeren</button>
+      </div>
     </div>
     <p class="note" id="listinfo"></p>
     <p class="meldung liste-meldung" id="listmeldung" hidden></p>
@@ -3404,10 +3440,12 @@
 
     // Der Hinweis zum Installieren steht bewusst nur in den Einstellungen.
     // Ein Balken bei jedem Öffnen nervt mehr, als er nützt.
-    if (sicherungFaellig() && !hinweisPause) {
+    // nur auf Start und in den Einstellungen - beim Üben und in der Liste stört er nicht; rot erst nach 21 Tagen
+    if (sicherungFaellig() && !hinweisPause && (ansicht === "start" || ansicht === "sichern")) {
       hinweisArt = "sicherung";
       bar.hidden = false;
-      bar.className = "rot";
+      var tg = tageSeit(daten.letzteSicherung);
+      bar.className = (tg === null ? tageSeit(daten.start) : tg) >= 21 ? "rot" : "";
       txt.textContent = "";
       var s2 = document.createElement("strong");
       s2.textContent = sicherungsText();
@@ -3576,6 +3614,7 @@
     if (name === "quiz") duEinstellungenZeigen();
     if (name === "start") zeichneKacheln();
     kopfZeigen();
+    zeichneHinweis();
     document.querySelector("main").scrollTop = 0;
   }
 
