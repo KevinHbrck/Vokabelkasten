@@ -376,6 +376,9 @@
   }
   .merkzeile.zweite { margin-top: 9px; }
   button.pille.schmal { padding: 11px 13px; }
+  /* Kasten per Sprache abfragen (Ablauf wie im Quiz, gewertet wie beim Üben) */
+  button.sprach-ueben { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 12px; min-height: 48px; }
+  button.sprach-ueben svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
   button.pille:disabled { opacity: .4; }
   .rauszeile { text-align: center; margin-top: 18px; }
   button.leise {
@@ -1215,16 +1218,6 @@
     -webkit-tap-highlight-color: transparent;
   }
   .kopf-einst[hidden] { display: none; }
-  .uw-befehl-zeile { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; min-height: 44px; }
-  .uw-mic { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 14px; border-radius: 22px;
-    background: var(--card); border: 1px solid var(--rule); color: var(--ink-soft); font: inherit; font-size: 14px; font-weight: 600; }
-  .uw-mic svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-  .uw-mic.an { color: #fff; background: var(--moss); border-color: var(--moss); }
-  .uw-mic.hoert svg { animation: uwMic 1.2s ease-in-out infinite; }
-  @keyframes uwMic { 50% { opacity: .45; } }
-  .uw-mic[hidden] { display: none; }
-  .uw-befehl-info { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--moss); opacity: 0; transition: opacity .25s ease; }
-  .uw-befehl-info.zeigen { opacity: 1; }
   .blatt-form label { display: block; margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
   .blatt-form input, .blatt-form select { display: block; width: 100%; margin-top: 5px; font-size: 16px; }
   .blatt-speichern { width: 100%; min-height: 50px; margin: 4px 0 2px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 600; }
@@ -1507,7 +1500,6 @@
             </select>
           </label>
           <label class="zeile-check"><input type="checkbox" id="uw-bsp-an"> Beispielsatz mitlesen</label>
-          <label class="zeile-check hg-option"><input type="checkbox" id="uw-befehle"> <span>Sprachbefehle (Mikrofon)<small>Sag „Kasten“, um die Vokabel in den Kasten zu legen – außerdem „schwierig“, „weiter“, „zurück“, „nochmal“, „Pause“. Nur bei eingeschaltetem Bildschirm; das Mikrofon kann Musik anhalten.</small></span></label>
           <label class="zeile-check hg-option"><input type="checkbox" id="uw-hintergrund"> <span>Im Hintergrund weiterlaufen<small>mit Tasten auf dem Sperrbildschirm – hält dafür deine Musik (z. B. Spotify) an</small></span></label>
         </div>
         <button id="btn-uw-weiter" type="button" class="hoer-start uw-weiter" hidden></button>
@@ -1556,6 +1548,10 @@
         <button class="pille schmal" id="btn-zurueck" type="button" disabled>← Zurück</button>
         <button class="pille schmal" id="btn-weiter" type="button">Überspringen →</button>
       </div>
+      <button class="pille sprach-ueben" id="btn-sprache" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+        Per Sprache abfragen
+      </button>
       </div>
     </div>
 
@@ -1940,10 +1936,6 @@
   <div class="uw-kopf">
     <h2>Unterwegs</h2>
     <span id="uw-stand"></span>
-  </div>
-  <div class="uw-befehl-zeile">
-    <button id="uw-mic" type="button" class="uw-mic" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg><span id="uw-mic-txt">Sprachbefehle aus</span></button>
-    <span class="uw-befehl-info" id="uw-befehl-info" aria-live="polite"></span>
   </div>
   <div class="uw-karte" aria-live="polite">
     <p class="uw-phase" id="uw-phase"></p>
@@ -4343,7 +4335,6 @@
       richtung: e.richtung === "en" ? "en" : "de",
       bsp: e.bsp !== false,
       hintergrund: e.hintergrund === true,   // standardmäßig aus, damit Musik anderer Apps weiterläuft
-      befehle: e.befehle === true,           // Sprachbefehle: standardmäßig aus (Mikrofon)
       stimmeDe: e.stimmeDe || "",
       stimmeEn: e.stimmeEn || "",
       laut: e.laut >= 0.1 && e.laut <= 1 ? e.laut : 1
@@ -4356,9 +4347,6 @@
     document.getElementById("uw-richtung").value = e.richtung;
     document.getElementById("uw-bsp-an").checked = e.bsp;
     document.getElementById("uw-hintergrund").checked = e.hintergrund;
-    var bef = document.getElementById("uw-befehle");
-    bef.checked = e.befehle && !!srKlasse();
-    bef.disabled = !srKlasse();
     stimmenFuellen();
     document.getElementById("uw-laut").value = String(Math.round(e.laut * 100));
     lautAnzeigen();
@@ -4373,7 +4361,6 @@
       richtung: document.getElementById("uw-richtung").value,
       bsp: document.getElementById("uw-bsp-an").checked,
       hintergrund: document.getElementById("uw-hintergrund").checked,
-      befehle: document.getElementById("uw-befehle").checked,
       stimmeDe: document.getElementById("uw-stimme-de").value,
       stimmeEn: document.getElementById("uw-stimme-en").value,
       laut: (Number(document.getElementById("uw-laut").value) || 100) / 100
@@ -4725,120 +4712,6 @@
       });
   }
 
-  /* ---------- Sprachbefehle im Hörtraining ----------
-     Das Mikrofon hört dauerhaft mit (solange die Runde läuft und der Bildschirm an ist).
-     Kurze Befehle wie „Kasten“ wirken auf die aktuelle Karte - kommt der Befehl direkt nach dem
-     Wechsel (unter 2,5 s), ist die Karte davor gemeint. Was die App selbst vorliest, wird ignoriert. */
-  var uwRec = null, uwBefehlZeit = 0;
-  function srKlasse() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
-  function uwBefehlAn() { return !!srKlasse() && uwEinstellungen().befehle; }
-  function uwMicZeigen() {
-    var b = document.getElementById("uw-mic"), an = uwBefehlAn();
-    b.hidden = !srKlasse();
-    b.classList.toggle("an", an);
-    b.classList.toggle("hoert", an && !!uwRec);
-    b.setAttribute("aria-pressed", an ? "true" : "false");
-    document.getElementById("uw-mic-txt").textContent = an ? "Sprachbefehle an" : "Sprachbefehle aus";
-  }
-  function uwBefehlStart() {
-    uwMicZeigen();
-    if (!uw || uw.fertig || uwRec || !uwBefehlAn() || document.visibilityState === "hidden") return;
-    var rec;
-    try { rec = new (srKlasse())(); } catch (x) { return; }
-    rec.lang = "de-DE";
-    rec.continuous = true;
-    rec.interimResults = false;
-    rec.maxAlternatives = 3;
-    uwRec = rec;
-    rec.onresult = function (ev) {
-      for (var i = ev.resultIndex; i < ev.results.length; i++) {
-        var r = ev.results[i];
-        if (!r.isFinal) continue;
-        for (var j = 0; j < r.length; j++) if (uwBefehl(r[j].transcript)) break;
-      }
-    };
-    rec.onerror = function (ev) {
-      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
-        uwBefehlInfo("Kein Mikrofon erlaubt");
-        if (daten.unterwegs) { daten.unterwegs.befehle = false; sichern(); }
-        uwEinstellungenZeigen();
-      }
-    };
-    // Android beendet die Erkennung nach etwas Stille - dann einfach weiterhören
-    rec.onend = function () {
-      if (uwRec !== rec) return;
-      uwRec = null;
-      uwMicZeigen();
-      setTimeout(uwBefehlStart, 300);
-    };
-    try { rec.start(); } catch (x) { uwRec = null; }
-    uwMicZeigen();
-  }
-  function uwBefehlStop(leise) {
-    var rec = uwRec;
-    uwRec = null;
-    if (rec) { rec.onresult = rec.onerror = rec.onend = null; try { rec.abort(); } catch (x) {} }
-    if (!leise) uwMicZeigen();
-  }
-  function uwBefehlInfo(text) {
-    var el = document.getElementById("uw-befehl-info");
-    el.textContent = text;
-    el.classList.add("zeigen");
-    clearTimeout(uwBefehlInfo.t);
-    uwBefehlInfo.t = setTimeout(function () { el.classList.remove("zeigen"); }, 2600);
-  }
-  function uwBefehl(text) {
-    if (!uw || uw.fertig) return false;
-    var t = duNorm(text);
-    if (!t || t.split(" ").length > 4) return false;          // lange Sätze sind eher die App-Stimme
-    var c = uw.karten[uw.i];
-    if (c && duNorm(c.front + " " + c.back + " " + (c.bsp || "")).indexOf(t) > -1) return false;   // Echo der Vokabel
-    if (Date.now() - uwBefehlZeit < 900) return false;       // doppelt erkannt
-    function hat(re) { return re.test(" " + t + " "); }
-    // gemeint ist die Karte davor, wenn gerade erst gewechselt wurde
-    var ziel = c;
-    if (uw.vorI === uw.i - 1 && Date.now() - (uw.wechselZeit || 0) < 2500) ziel = uw.karten[uw.vorI] || c;
-    var erkannt = true;
-    if (hat(/ (kasten|kiste|rein|aufnehmen|merken|lernen) /)) {
-      if (!ziel) return false;
-      if (ziel.aktiv) uwBefehlInfo("„" + ziel.front + "“ ist schon im Kasten");
-      else {
-        aufnehmen([ziel]);
-        uw.neu[ziel.id] = true;
-        uw.geaendert = true;
-        uwBefehlInfo("✓ „" + ziel.front + "“ in den Kasten gelegt");
-      }
-      uwExtraZeigen();
-    } else if (hat(/ (schwierig|schwer|stern) /)) {
-      if (!ziel) return false;
-      ziel.merk = true;
-      uw.geaendert = true;
-      sichern();
-      uwBefehlInfo("★ „" + ziel.front + "“ als schwierig markiert");
-      uwExtraZeigen();
-    } else if (hat(/ (pause|stopp|stop|halt|warte) /)) {
-      if (!uw.pausiert) document.getElementById("uw-pause").click();
-      uwBefehlInfo("Pausiert");
-    } else if (hat(/ (weiter|naechste|naechstes|skip|ueberspringen) /)) {
-      if (uw.pausiert) document.getElementById("uw-pause").click();
-      else document.getElementById("uw-naechste").click();
-    } else if (hat(/ (zurueck|vorherige) /)) {
-      document.getElementById("uw-zurueck").click();
-    } else if (hat(/ (nochmal|noch mal|wiederholen|wiederholung) /)) {
-      document.getElementById("uw-wdh").click();
-    } else erkannt = false;
-    if (erkannt) { uwBefehlZeit = Date.now(); duTon(true, 1320); }
-    return erkannt;
-  }
-  document.getElementById("uw-mic").addEventListener("click", function () {
-    if (!srKlasse()) return;
-    var an = !uwBefehlAn();
-    daten.unterwegs = daten.unterwegs || {};
-    daten.unterwegs.befehle = an;
-    sichern();
-    uwEinstellungenZeigen();
-    if (an) uwBefehlStart(); else uwBefehlStop();
-  });
 
   function uwExtraZeigen() {
     var c = uw && !uw.fertig ? uw.karten[uw.i] : null;
@@ -4859,7 +4732,6 @@
 
   function uwFertig() {
     uw.fertig = true;
-    uwBefehlStop();
     uw.lauf++;
     uwText("uw-stand", uw.karten.length + " / " + uw.karten.length);
     uwText("uw-phase", "Runde fertig");
@@ -4900,7 +4772,6 @@
       uwWach();
       waechterAbgleichen();
       uwKarte();
-      uwBefehlStart();
       return;
     }
     if (Array.isArray(eigene)) { karten = eigene; reihe = true; }
@@ -4920,12 +4791,10 @@
     uwWach();
     waechterAbgleichen();
     uwKarte();
-    uwBefehlStart();
   }
 
   function uwBeenden() {
     if (!uw) return;
-    uwBefehlStop();
     var geaendert = uw.geaendert;
     uw.lauf++;
     uw = null;
@@ -4955,7 +4824,6 @@
       uwMedienAn();
       uwWach();
       uwKarte();
-      uwBefehlStart();
       return;
     }
     if (uw.pausiert) {                      // weiter: die aktuelle Karte beginnt von vorn
@@ -5005,7 +4873,7 @@
     uw.geaendert = true;
     uwExtraZeigen();
   });
-  ["uw-auswahl", "uw-denk", "uw-richtung", "uw-bsp-an", "uw-hintergrund", "uw-befehle", "uw-stimme-de", "uw-stimme-en", "uw-laut"].forEach(function (id) {
+  ["uw-auswahl", "uw-denk", "uw-richtung", "uw-bsp-an", "uw-hintergrund", "uw-stimme-de", "uw-stimme-en", "uw-laut"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", uwEinstellungenMerken);
   });
   document.getElementById("uw-laut").addEventListener("input", lautAnzeigen);
@@ -5016,8 +4884,7 @@
     });
   });
   document.addEventListener("visibilitychange", function () {
-    if (uw && !uw.fertig && document.visibilityState === "visible") { uwWach(); uwBefehlStart(); }
-    if (document.visibilityState === "hidden") uwBefehlStop(true);
+    if (uw && !uw.fertig && document.visibilityState === "visible") uwWach();
   });
   // Seite wird im Hintergrund beendet (v. a. iOS): Stand der Runde noch schnell sichern
   window.addEventListener("pagehide", function () { if (uw) uwMerken(); else if (aktuell || runde.length) sitzungMerken(); });
@@ -5447,7 +5314,7 @@
   function duZeitAnzeigen(rest) {
     if (!du || du.phase !== "hoeren") return;
     var p = du.nurSpieler;
-    duPhase((p == null ? "" : du.namen[p] + (du.fuerZwei ? " · für 2 Punkte" : "") + " · ") + Math.max(0, Math.ceil(rest / 1000)) + " s", true);
+    duPhase((p == null ? "" : duWerName(p) + (du.fuerZwei ? " · für 2 Punkte" : "") + " · ") + Math.max(0, Math.ceil(rest / 1000)) + " s", true);
     duUhr(rest);
   }
   function duTafel(hervor, plus) {
@@ -5459,6 +5326,13 @@
       el.classList.toggle("plus", plus === p);
     }
     var n = du.i + 1;
+    if (du.solo) {
+      var offen = runde.length + (aktuell ? 1 : 0);
+      document.getElementById("du-fort").style.width = Math.round(du.i / Math.max(1, du.i + offen) * 100) + "%";
+      duSetze("du-frage-nr", "Karte " + n);
+      duSetze("du-rest", offen + " offen");
+      return;
+    }
     var fort = du.ziel === "p10" ? Math.max(du.punkte[0], du.punkte[1]) / 10 : du.i / Math.max(1, du.anzahl);
     document.getElementById("du-fort").style.width = Math.min(100, Math.round(fort * 100)) + "%";
     duSetze("du-frage-nr", "Frage " + n + (du.anzahl ? " von " + du.anzahl : ""));
@@ -5494,6 +5368,36 @@
     waechterAbgleichen();
     duFrage();
   }
+  /* Vokabelkasten per Sprache: die laufende Übungsrunde wird mit dem Quiz-Ablauf abgefragt (vorlesen, Piep,
+     zuhören, prüfen) und mit bewerten() gewertet - Fächer, Termine und Zusatzrunde für Sternkarten wie beim Üben.
+     Antwortzeit, Aussprache, Signalton, Beispielsätze und Knopf-Modus kommen aus den Quiz-Einstellungen. */
+  function duAlleinStarten(e) {
+    if (!sprache) { alert("Dieser Browser kann leider nicht vorlesen."); return; }
+    e = e || duEinstellungen();
+    if (!aktuell) rundeStarten(false);
+    if (!aktuell) return;
+    duLaufBasis += 10000;
+    du = { solo: true, namen: ["Gewusst", "Nochmal"], punkte: [0, 0], karten: [], alleKarten: [], anzahl: 0,
+           ziel: "alle", zeit: e.zeit * 1000, richtung: e.richtung, manuell: e.manuell, diagnose: e.diagnose, bsp: e.bsp, streng: e.streng,
+           i: 0, lauf: duLaufBasis, pausiert: false, auto: 0, hand: 0, rec: null, phase: "" };
+    duTon(false);   // Audio im Tipp freischalten (iOS)
+    duLautZeigen();
+    document.getElementById("duell").hidden = false;
+    document.getElementById("du-spiel").hidden = false;
+    document.getElementById("du-schluss").hidden = true;
+    stilleAn();
+    uwWach();
+    waechterAbgleichen();
+    duFrage();
+  }
+  // wer gerade antwortet - im Allein-Modus ohne Namen
+  function duWerName(p) { return du.solo ? "Deine Antwort" : du.namen[p]; }
+  /* nach einer Karte weiter: im Allein-Modus erst im Kasten werten (rückt die Übungsrunde weiter) */
+  function duWeiter(gewusst) {
+    if (du.solo && du.frage && aktuell === du.frage.karte) bewerten(gewusst);
+    du.i++;
+    duFrage();
+  }
   function duStopHoeren() {
     if (du && du.rec) { duMicFreigeben(du.rec); du.rec = null; }
   }
@@ -5508,6 +5412,7 @@
     });
   }
   function duSpielVorbei() {
+    if (du.solo) return !aktuell;
     if (du.ziel === "p10") return du.punkte[0] >= 10 || du.punkte[1] >= 10 || du.i >= du.karten.length;
     return du.i >= du.anzahl;
   }
@@ -5522,21 +5427,21 @@
     duStopHoeren();
     sprache.cancel();
     if (duSpielVorbei()) { duEnde(); return; }
-    var c = du.karten[du.i];
-    var deZuerst = du.richtung === "de";
+    var c = du.solo ? aktuell : du.karten[du.i];
+    var deZuerst = du.solo ? (richtung === "mix" ? Math.random() < 0.5 : richtung !== "en") : du.richtung === "de";
     var frage = deZuerst ? c.front : c.back, antwort = deZuerst ? c.back : c.front;
     var sFrage = deZuerst ? "de-DE" : "en-GB", sAntwort = deZuerst ? "en-GB" : "de-DE";
     du.frage = { karte: c, frage: frage, antwort: antwort, sFrage: sFrage, sAntwort: sAntwort,
                  loesungen: duLoesungen(antwort), notiz: [] };
     duMerkZeigen();
-    du.dran = du.i % 2;          // abwechselnd: Spieler 1 beginnt, dann Spieler 2, …
+    du.dran = du.solo ? 0 : du.i % 2;          // abwechselnd: Spieler 1 beginnt, dann Spieler 2, …
     du.nurSpieler = null;
     du.fuerZwei = false;
     du.sprachBeginn = null;
     du.phase = "vorlesen";
     duTafel(du.dran);
     duEntscheidZu();
-    duPhase(du.namen[du.dran] + " ist dran");
+    duPhase(du.solo ? "Fach " + c.box : du.namen[du.dran] + " ist dran");
     duSetze("du-vorne", frage);
     duSetze("du-hinten", "");
     duSetze("du-gehoert", "");
@@ -5569,13 +5474,13 @@
     function werte(alt, zuletzt) {
       var besteWahl = null;
       alt.forEach(function (t) {
-        var w = duWer(t, du.namen);
+        var w = duWer(t, du.solo ? ["", ""] : du.namen);
         var pass = duIstPass(w.antwort), p = duPasst(w.antwort, f.loesungen);
         var rang = (p.ok ? 4 : 0) + (pass ? 2 : 0) + (w.antwort ? 1 : 0);
         if (!besteWahl || rang > besteWahl.rang) besteWahl = { rang: rang, text: t, wer: w.wer, antwort: w.antwort, pass: pass, p: p };
       });
       var b = besteWahl;
-      f.notiz.push(du.namen[wer] + " (" + pkt + " P.) – gehört: „" + b.text + "“" + (alt.length > 1 ? "  (+" + (alt.length - 1) + " Alternativen)" : "") +
+      f.notiz.push(duWerName(wer) + " (" + pkt + " P.) – gehört: „" + b.text + "“" + (alt.length > 1 ? "  (+" + (alt.length - 1) + " Alternativen)" : "") +
         "\n  Antwort: „" + b.antwort + "“ · " + (b.pass ? "weiß nicht" : (b.p.ok ? "richtig" : "falsch")) +
         " (Ähnlichkeit " + Math.round(b.p.wert * 100) + " % zu „" + b.p.ziel + "“)" + (b.wer === 1 - wer ? " · Name der anderen Person – ignoriert" : ""));
       duSetze("du-gehoert", "„" + b.text + "“");
@@ -5598,7 +5503,7 @@
           (du.manuell ? "Mikrofon nicht verfügbar" : "Spracherkennung gestört"), wer, pkt);
       }
       if (ergebnis === "richtig") { du.auto++; return duPunkt(lauf, wer, pkt); }
-      if (pkt === 1) {
+      if (pkt === 1 && !du.solo) {
         duPhase(ergebnis ? "Falsch" : "Keine Antwort");
         return duDran(lauf, 1 - wer, 2);       // die andere Person ist dran, für 2 Punkte
       }
@@ -5617,14 +5522,15 @@
   function duLoesung(lauf) {
     var f = du.frage, aktiv = function () { return du && lauf === du.lauf; };
     du.phase = "ergebnis";
+    if (du.solo) du.punkte[1]++;
     duSeite(null);
-    duTafel(-1);
-    duPhase("Lösung");
+    duTafel(-1, du.solo ? 1 : undefined);
+    duPhase(du.solo ? "Lösung · zurück in Fach 1" : "Lösung");
     duSetze("du-hinten", f.antwort);
     return duSprich(f.antwort, f.sAntwort, lauf)
       .then(function () { return duBeispiel(lauf); })
       .then(function () { return warteWenn(900, aktiv); })
-      .then(function () { if (aktiv()) { du.i++; duFrage(); } });
+      .then(function () { if (aktiv()) duWeiter(false); });
   }
   // Punkt vergeben: Erfolgston und Tafel, ohne Ansage
   function duPunkt(lauf, wer, pkt) {
@@ -5643,12 +5549,12 @@
     karte.classList.remove("richtig"); void karte.offsetWidth; karte.classList.add("richtig");
     setTimeout(function () { karte.classList.remove("richtig"); }, 900);
     du.phase = "ergebnis";
-    duPhase("+" + pkt + " " + (wer === "beide" ? "beide" : du.namen[wer]));
+    duPhase(du.solo ? "Gewusst" : "+" + pkt + " " + (wer === "beide" ? "beide" : du.namen[wer]));
     duSetze("du-hinten", du.frage.antwort);
     return warteWenn(700, aktiv)
       .then(function () { return duBeispiel(lauf); })
       .then(function () { return warteWenn(500, aktiv); })
-      .then(function () { if (aktiv()) { du.i++; duFrage(); } });
+      .then(function () { if (aktiv()) duWeiter(true); });
   }
   function duBeispiel(lauf) {
     if (!du || lauf !== du.lauf || !du.frage) return Promise.resolve();   // Spiel inzwischen beendet
@@ -5672,8 +5578,8 @@
   function duManuellRunde(lauf, wer, pkt) {
     var aktiv = function () { return du && lauf === du.lauf; };
     du.phase = "hoeren";
-    return warteWenn(du.zeit, aktiv, function (rest) { if (aktiv()) { duPhase(du.namen[wer] + " · " + Math.max(0, Math.ceil(rest / 1000)) + " s", true); duUhr(rest); } })
-      .then(function () { if (aktiv()) return duManuellEntscheid(lauf, du.namen[wer] + (pkt === 2 ? " – für 2 Punkte" : ""), wer, pkt); });
+    return warteWenn(du.zeit, aktiv, function (rest) { if (aktiv()) { duPhase(duWerName(wer) + " · " + Math.max(0, Math.ceil(rest / 1000)) + " s", true); duUhr(rest); } })
+      .then(function () { if (aktiv()) return duManuellEntscheid(lauf, duWerName(wer) + (pkt === 2 ? " – für 2 Punkte" : ""), wer, pkt); });
   }
   function duEntscheidZu() {
     document.getElementById("du-entscheid").hidden = true;
@@ -5688,13 +5594,14 @@
     duSeite(null);
     duPhase(frage);
     duSetze("du-hinten", du.frage.antwort);
-    document.getElementById("du-frage-wer").textContent = "Hatte " + du.namen[wer] + " recht?";
+    document.getElementById("du-frage-wer").textContent = du.solo ? "Gewusst?" : "Hatte " + du.namen[wer] + " recht?";
     var box = document.getElementById("du-knoepfe");
     box.textContent = "";
     document.getElementById("du-entscheid").hidden = false;
     document.getElementById("du-steuer").hidden = true;
     return new Promise(function (fertig) {
-      [["Richtig +" + pkt, true, pkt === 2 ? "plus2" : "plus"], ["Falsch / nichts", false, ""]].forEach(function (w) {
+      (du.solo ? [["Gewusst", true, "plus"], ["Nicht gewusst", false, ""]]
+               : [["Richtig +" + pkt, true, pkt === 2 ? "plus2" : "plus"], ["Falsch / nichts", false, ""]]).forEach(function (w) {
         var b = document.createElement("button");
         b.type = "button"; b.className = w[2]; b.textContent = w[0];
         b.addEventListener("click", function () {
@@ -5702,7 +5609,7 @@
           duEntscheidZu();
           du.hand++;
           if (w[1]) fertig(duPunkt(lauf, wer, pkt));
-          else if (pkt === 1) fertig(duDran(lauf, 1 - wer, 2));
+          else if (pkt === 1 && !du.solo) fertig(duDran(lauf, 1 - wer, 2));
           else fertig(duLoesung(lauf));
         });
         box.appendChild(b);
@@ -5724,6 +5631,15 @@
       el.querySelector(".du-punkte").textContent = String(p[i]);
       el.classList.toggle("plus", p[i] > p[1 - i]);
     }
+    document.getElementById("du-nochmal").hidden = !!(du.solo && !aktuell && !faellig().length);
+    document.getElementById("du-neu").hidden = !!du.solo;
+    if (du.solo) {
+      duSetze("du-sieger", aktuell ? "Pause – der Rest wartet beim Üben" : "Kasten für heute geschafft!");
+      duSetze("du-bilanz", du.i + (du.i === 1 ? " Karte" : " Karten") + " · " + p[0] + " gewusst · " + p[1] + " zurück in Fach 1");
+      uwSchlafen();
+      duErfolg();
+      return;
+    }
     var satz = p[0] === p[1] ? p[0] + " : " + p[1] : n[p[0] > p[1] ? 0 : 1] + ", " + Math.max(p[0], p[1]) + " : " + Math.min(p[0], p[1]);
     duSetze("du-sieger", p[0] === p[1] ? "Unentschieden" : n[p[0] > p[1] ? 0 : 1] + " gewinnt!");
     duSetze("du-bilanz", du.i + (du.i === 1 ? " Frage" : " Fragen") + " · " + du.auto + " automatisch entschieden · " +
@@ -5733,6 +5649,8 @@
     duSprich(satz, "en-GB", lauf);
   }
   function duSchliessen() {
+    document.getElementById("du-nochmal").hidden = false;
+    document.getElementById("du-neu").hidden = false;
     if (!du) { document.getElementById("duell").hidden = true; waechterAbgleichen(); return; }
     du.lauf++;
     duStopHoeren();
@@ -5826,8 +5744,11 @@
     sel.addEventListener("change", function () { daten.deStimme = sel.value; sichern(); });
   })();
   document.getElementById("du-start").addEventListener("click", function () { duStarten(false); });
-  document.getElementById("du-nochmal").addEventListener("click", function () { duStarten(true); });
+  document.getElementById("du-nochmal").addEventListener("click", function () {
+    if (du && du.solo) { duSchliessen(); duAlleinStarten(); } else duStarten(true);
+  });
   document.getElementById("du-neu").addEventListener("click", function () { duSchliessen(); duEinstellungenZeigen(); });
+  document.getElementById("btn-sprache").addEventListener("click", function () { duAlleinStarten(); });
   document.getElementById("du-schliessen").addEventListener("click", duSchliessen);
   document.getElementById("du-ende").addEventListener("click", function () { if (du) duEnde(); });
   document.getElementById("du-merk").addEventListener("click", function () {
@@ -5840,6 +5761,11 @@
   document.getElementById("du-weiter").addEventListener("click", function () {
     if (!du || du.phase === "entscheiden") return;
     du.pausiert = false;
+    if (du.solo && aktuell) {
+      if (runde.length) { runde.push(aktuell); naechsteKarte(); }
+      duFrage();
+      return;
+    }
     du.i++;
     duFrage();
   });
