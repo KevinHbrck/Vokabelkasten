@@ -5,9 +5,10 @@
  * und ohne Verbindung startet die zuletzt geladene aus dem Speicher.
  */
 
-var FASSUNG = "2026-09-27-11";
+/* Einzige Stelle für die Fassung - die App fragt sie per postMessage ab (Einstellungen, ganz unten) */
+var FASSUNG = "2026-09-27-12";
 var SPEICHER = "vokabelkasten-" + FASSUNG;
-var GRUNDGERUEST = ["./", "./index.html", "./manifest.json", "./icon.png"];
+var GRUNDGERUEST = ["./", "./index.html", "./daten.js", "./privacy.html", "./manifest.json", "./icon.png"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(
@@ -26,6 +27,14 @@ self.addEventListener("activate", function (e) {
       }));
     }).then(function () { return self.clients.claim(); })
   );
+});
+
+/* Anfrage der App nach der Fassung: Antwort über den mitgeschickten Kanal (sonst an den Absender) */
+self.addEventListener("message", function (e) {
+  if (!e.data || e.data.frage !== "fassung") return;
+  var antwort = { fassung: FASSUNG };
+  if (e.ports && e.ports[0]) e.ports[0].postMessage(antwort);
+  else if (e.source) e.source.postMessage(antwort);
 });
 
 self.addEventListener("fetch", function (e) {
