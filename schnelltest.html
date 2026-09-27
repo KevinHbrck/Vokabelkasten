@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vokabelkasten Schnelltest</title>
+<style>
+  :root { --bg:#f3f1ec; --text:#1f1d1a; --dim:#6b675f; --ok:#3f7d4e; --fail:#b5452f; --rule:#dcd7cc; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#161513; --text:#ece8e0; --dim:#a39d92; --rule:#34312c; } }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 Georgia, "Times New Roman", serif; }
+  .wrap { display:flex; gap:20px; padding:16px; flex-wrap:wrap; }
+  .links { flex:1 1 320px; min-width:0; }
+  h1 { font-size:21px; margin:0 0 4px; }
+  p { color:var(--dim); margin:0 0 12px; }
+  button { font:inherit; padding:10px 16px; border-radius:3px; border:1px solid var(--text); background:var(--text); color:var(--bg); cursor:pointer; }
+  button:disabled { opacity:.5; }
+  #summe { font-weight:700; margin:12px 0; }
+  #summe.ok { color:var(--ok); } #summe.fail { color:var(--fail); }
+  ol { padding-left:22px; margin:0; }
+  li { margin:4px 0; }
+  li.fail { color:var(--fail); }
+  li small { display:block; color:var(--dim); }
+  iframe { width:390px; height:780px; border:1px solid var(--rule); border-radius:10px; background:#fff; flex:0 0 auto; max-width:100%; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="links">
+    <h1>Vokabelkasten Schnelltest</h1>
+    <p>Klickt sich einmal durch die wichtigsten Wege der App. Läuft nur lokal (localhost). Dein Lernstand wird vorher
+      beiseitegelegt und danach wiederhergestellt.</p>
+    <button id="los" type="button">Test starten</button>
+    <div id="summe"></div>
+    <ol id="liste"></ol>
+  </div>
+  <iframe id="app" title="App im Test"></iframe>
+</div>
+<script>
+(function () {
+  "use strict";
+  var KEY = "vokabelkasten.v2";
+  var iframe = document.getElementById("app"), liste = document.getElementById("liste"), summe = document.getElementById("summe");
+  var W = null, D = null, fehler = [];
+  var lokal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === "file:";
+
+  function warte(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  async function bis(fn, ms, was) {
+    var t0 = Date.now();
+    while (Date.now() - t0 < (ms || 4000)) {
+      try { var v = fn(); if (v) return v; } catch (e) {}
+      await warte(50);
+    }
+    throw new Error("Zeitüberschreitung: " + (was || "Bedingung"));
+  }
+  function $(s) { return D.querySelector(s); }
+  function $$(s) { return Array.prototype.slice.call(D.querySelectorAll(s)); }
+  function id(x) { return D.getElementById(x); }
+  function klick(s) { var el = typeof s === "string" ? $(s) : s; if (!el) throw new Error("nicht gefunden: " + s); el.click(); return el; }
+  function pruefe(b, text) { if (!b) throw new Error(text); }
+  function aktiv(view) { return id("view-" + view).classList.contains("active"); }
+  function eingeben(el, wert) { el.value = wert; el.dispatchEvent(new W.Event("input", { bubbles: true })); }
+  function absenden() { id("eingabe").requestSubmit ? id("eingabe").requestSubmit() : klick("#eingabe-los"); }
+
+  function laden() {
+    return new Promise(function (ok) {
+      iframe.onload = function () {
+        W = iframe.contentWindow; D = W.document;
+        W.addEventListener("error", function (e) { fehler.push(String(e.message || e)); });
+        var alt = W.console.error;
+        W.console.error = function () { fehler.push(Array.prototype.join.call(arguments, " ")); return alt.apply(W.console, arguments); };
+        setTimeout(ok, 400);
+      };
+      iframe.src = "index.html?schnelltest=" + Date.now();
+    });
+  }
+
+  var TESTS = [
+    ["Startseite und Navigation", async function () {
+      await laden();
+      await bis(function () { return $('[data-ziel="karten"]'); }, 5000, "Startseite");
+      pruefe($$("[data-view]").length >= 5, "Navigation unten fehlt");
+    }],
+    ["Üben: erste Karten aufnehmen", async function () {
+      klick('[data-ziel="karten"]');
+      await bis(function () { return aktiv("ueben"); }, 3000, "Übungsansicht");
+      if (id("trainer").hidden) {
+        var b = await bis(function () { return $("#leer button"); }, 3000, "Knopf zum Aufnehmen");
+        klick(b);
+      }
+      await bis(function () { return !id("trainer").hidden && id("vorne").textContent; }, 3000, "Karte");
+    }],
+    ["Aufdecken und „Gewusst“: Karte wandert, Abstand wird angezeigt", async function () {
+      klick("#karte");
+      await bis(function () { return !id("bewertung").hidden; }, 2000, "Bewertung");
+      klick("#btn-gewusst");
+      var m = id("meldung").textContent;
+      pruefe(/Fach 2/.test(m) && /wieder|heute/.test(m), "Meldung passt nicht: " + m);
+    }],
+    ["Eintippen: nur wenn eingestellt, gnädig bei Tippfehlern", async function () {
+      pruefe(id("eingabe").hidden, "Eingabefeld ist sichtbar, obwohl Aufdecken eingestellt ist");
+      klick('[data-view="sichern"]');
+      klick(await bis(function () { return $('#eingabewahl [data-eingabe="tippen"]'); }, 3000, "Einstellung Antwort"));
+      klick('[data-view="ueben"]');
+      await bis(function () { return !id("eingabe").hidden; }, 3000, "Eingabefeld");
+      var loesung = id("hinten").textContent.split(/\s*[\/;]\s*/)[0].replace(/\([^)]*\)/g, "").replace(/^to /, "").trim();
+      var mitFehler = loesung.length > 5 ? loesung.slice(0, 2) + loesung.slice(3) : loesung;   // ein Buchstabe fehlt
+      eingeben(id("eingabe-feld"), mitFehler);
+      absenden();
+      await bis(function () { return !id("eingabe-ergebnis").hidden; }, 2000, "Ergebnis");
+      pruefe(id("eingabe-ergebnis").classList.contains("ok"), "„" + mitFehler + "“ für „" + loesung + "“ nicht akzeptiert: " + id("eingabe-ergebnis").textContent);
+      pruefe(id("btn-gewusst").classList.contains("vorschlag"), "Gewusst ist nicht vorgeschlagen");
+      var vorher = id("vorne").textContent;
+      absenden();   // Enter / Weiter übernimmt den Vorschlag
+      await bis(function () { return id("vorne").textContent !== vorher || id("trainer").hidden; }, 2000, "nächste Karte");
+      if (!id("trainer").hidden) {
+        eingeben(id("eingabe-feld"), "qqqq zzz");
+        absenden();
+        await bis(function () { return !id("eingabe-ergebnis").hidden; }, 2000, "Ergebnis falsch");
+        pruefe(id("eingabe-ergebnis").classList.contains("falsch"), "falsche Antwort wurde akzeptiert");
+        pruefe(id("btn-nochmal").classList.contains("vorschlag"), "Nochmal ist nicht vorgeschlagen");
+      }
+      klick('[data-view="sichern"]');
+      klick('#eingabewahl [data-eingabe="aufdecken"]');
+      klick('[data-view="ueben"]');
+      pruefe(id("eingabe").hidden, "Eingabefeld bleibt nach dem Zurückstellen sichtbar");
+    }],
+    ["Liste und Suche", async function () {
+      klick('[data-view="liste"]');
+      await bis(function () { return $$("#liste li").length > 100; }, 3000, "Vokabelliste");
+      var alle = $$("#liste li").length;
+      eingeben(id("suche"), "qqxxzz");
+      pruefe($$("#liste li").length < alle, "Suche filtert nicht");
+      eingeben(id("suche"), "");
+      pruefe($$("#liste li").length === alle, "Liste kommt nach leerer Suche nicht zurück");
+    }],
+    ["Statistik öffnen", async function () {
+      klick('[data-view="ueben"]');
+      klick("#tagesziel");
+      await bis(function () { return aktiv("statistik"); }, 3000, "Statistik");
+    }],
+    ["Sicherung: Knöpfe vorhanden", async function () {
+      klick('[data-view="sichern"]');
+      pruefe(id("btn-export") && id("btn-import"), "Herunterladen/Einlesen fehlt");
+      pruefe(id("btn-teilen"), "Teilen-Knopf fehlt");
+    }],
+    ["Keine Skriptfehler", async function () {
+      pruefe(!fehler.length, fehler.slice(0, 3).join(" | "));
+    }]
+  ];
+
+  function eintrag(name) { var li = document.createElement("li"); li.textContent = name + " …"; liste.appendChild(li); return li; }
+
+  document.getElementById("los").addEventListener("click", async function () {
+    var knopf = this;
+    if (!lokal) { summe.className = "fail"; summe.textContent = "Nur lokal ausführen (localhost) – sonst würde der Test deinen echten Lernstand anfassen."; return; }
+    knopf.disabled = true; liste.innerHTML = ""; summe.textContent = ""; fehler = [];
+    var gesichert = localStorage.getItem(KEY), ss = {};
+    for (var i = 0; i < sessionStorage.length; i++) { var k = sessionStorage.key(i); ss[k] = sessionStorage.getItem(k); }
+    localStorage.removeItem(KEY);   // frischer Stand, damit der Test immer gleich läuft
+    var ok = 0, schlecht = 0;
+    try {
+      for (var t = 0; t < TESTS.length; t++) {
+        var li = eintrag(TESTS[t][0]);
+        try { await TESTS[t][1](); li.textContent = "✓ " + TESTS[t][0]; ok++; }
+        catch (e) {
+          li.className = "fail"; li.textContent = "✗ " + TESTS[t][0];
+          var sm = document.createElement("small"); sm.textContent = e && e.message ? e.message : String(e); li.appendChild(sm);
+          schlecht++;
+        }
+      }
+    } finally {
+      iframe.src = "about:blank";
+      await warte(200);
+      if (gesichert === null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, gesichert);
+      sessionStorage.clear(); Object.keys(ss).forEach(function (k) { sessionStorage.setItem(k, ss[k]); });
+      summe.className = schlecht ? "fail" : "ok";
+      summe.textContent = schlecht ? schlecht + " von " + TESTS.length + " Prüfungen fehlgeschlagen" : "Alles in Ordnung: " + ok + " von " + TESTS.length + " Prüfungen bestanden";
+      document.title = (schlecht ? "✗ " : "✓ ") + "Vokabelkasten Schnelltest";
+      knopf.disabled = false;
+    }
+  });
+  if (/[?&]auto\b/.test(location.search)) document.getElementById("los").click();
+})();
+</script>
+</body>
+</html>

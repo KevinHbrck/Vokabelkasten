@@ -239,6 +239,15 @@
     margin: -4px 0 12px; min-height: 1.2em;
   }
   .meldung-wann { white-space: nowrap; }
+  /* Eintippen (nur wenn in den Einstellungen gewählt) */
+  .eingabe { display: flex; gap: 8px; margin: 14px 0 0; }
+  .eingabe input[type=text] { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 17px; }
+  .eingabe button { flex: 0 0 auto; }
+  .eingabe-ergebnis { margin: 10px 2px 0; font-size: 14px; line-height: 1.4; text-align: center; }
+  .eingabe-ergebnis.ok b { color: var(--moss); }
+  .eingabe-ergebnis.falsch b { color: var(--clay); }
+  .eingabe-ergebnis q { font-style: italic; }
+  .grade button.vorschlag { box-shadow: 0 0 0 3px var(--accent, var(--ink)); }
   .bsp b { font-weight: 700; font-style: normal; color: var(--ink); }
   .meldung b { font-weight: 600; color: var(--ink); }
   .card {
@@ -1580,6 +1589,12 @@
       </button>
       </div>
       <div class="bedien">
+      <form class="eingabe" id="eingabe" hidden autocomplete="off">
+        <input type="text" id="eingabe-feld" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+               enterkeyhint="done" placeholder="Deine Antwort" aria-label="Deine Antwort">
+        <button type="submit" id="eingabe-los">Prüfen</button>
+      </form>
+      <p class="eingabe-ergebnis" id="eingabe-ergebnis" hidden></p>
       <div class="grade" id="bewertung" hidden>
         <button class="again" id="btn-nochmal" type="button">
           <span class="haupt">Nochmal</span><span class="neben" id="ziel-nochmal"></span>
@@ -1817,6 +1832,15 @@
       </div>
 
       <div class="sk-block">
+        <h3 class="sk-titel">Antwort</h3>
+        <div class="modus" id="eingabewahl">
+          <button type="button" data-eingabe="aufdecken">Aufdecken</button>
+          <button type="button" data-eingabe="tippen">Eintippen</button>
+        </div>
+        <p class="note"><b>Eintippen:</b> Du schreibst die Lösung unter die Karte und die App prüft sie. Kleine Tippfehler, fehlende Artikel („to“, „der“) und Groß/klein zählen nicht. Über das Mikrofon deiner Tastatur kannst du auch diktieren. Bewertet wird wie gewohnt mit Gewusst oder Nochmal, die App schlägt nur vor.</p>
+      </div>
+
+      <div class="sk-block">
         <h3 class="sk-titel">Wiederholungstempo</h3>
         <select id="sel-tempo" aria-label="Wiederholungstempo">
           <option value="gruendlich">Gründlich · 1, 2, 4, 8 Tage</option>
@@ -1933,9 +1957,10 @@
     <p class="note" id="sicher-status"></p>
     <p class="note">Dein Lernstand liegt im Speicher dieses Browsers, gebunden an die Adresse der App. Er wird nirgendwo hochgeladen. Löschst du die Browserdaten oder wechselst das Gerät, ist er weg. Lade dir deshalb ab und zu eine Sicherungsdatei herunter, sie enthält Vokabeln, Fächer, Termine und Sterne.</p>
     <div class="stack">
+      <button id="btn-teilen" type="button" hidden>Sicherung teilen (z. B. Drive, Mail)</button>
       <button id="btn-export" type="button">Sicherung herunterladen</button>
       <button class="ghost" id="btn-import" type="button">Sicherung einlesen</button>
-      <input type="file" id="file" accept="application/json,.json" hidden>
+      <input type="file" id="file" accept="application/json,.json,text/plain,.txt" hidden>
     </div>
     <p class="note" id="snap-status" style="margin-top:14px">Letzter Schnappschuss: noch keiner</p>
     <p class="note">Zusätzlich legt die App alle 7 Tage automatisch einen Schnappschuss deines Lernstands auf diesem Gerät ab. Es gibt immer nur einen, der ältere wird überschrieben.</p>
@@ -2827,11 +2852,14 @@
       document.getElementById("tipp").textContent = aufgedeckt ? "\u2190 Nochmal \u00b7 Gewusst \u2192" : "Zum Aufdecken tippen";
       trainer.classList.toggle("wischbar", wischen);
       document.getElementById("bewertung").hidden = !aufgedeckt;
+      if (eingabeModus === "tippen" && !aufgedeckt) document.getElementById("tipp").textContent = "Antwort unten eintippen – oder zum Aufdecken tippen";
+      eingabeZeichnen();
       status.textContent = (runde.length + 1) + " offen" + (filterFach ? " · Fach " + filterFach : "");
       return;
     }
 
     trainer.hidden = true;
+    eingabeZeichnen();
     leer.hidden = false;
     leer.textContent = "";
     var kasten = imKasten().length;
@@ -3392,6 +3420,7 @@
       setzeThema(thema);
       setzeModus(daten.modus);
       setzeWischen(daten.wischen);
+      setzeEingabe(daten.eingabe);
       document.getElementById("btn-saetze").textContent = saetze ? "Sätze aus" : "Sätze ein";
       document.getElementById("sel-richtung").value = richtung;
       sichern();
@@ -3760,7 +3789,74 @@
 
   document.getElementById("karte").addEventListener("click", function () {
     if (wischGerade) { wischGerade = false; return; }   // Klick nach einer Wischbewegung ignorieren
-    if (aktuell && !aufgedeckt) { aufgedeckt = true; zeichneUeben(); }
+    if (aktuell && !aufgedeckt) {
+      if (eingabeModus === "tippen") eingabe = { karte: aktuell, text: "", ok: false, genau: false };
+      aufgedeckt = true; zeichneUeben();
+    }
+  });
+
+  /* ---------- Eintippen: nur wenn eingestellt (daten.eingabe = "tippen"), Standard bleibt Aufdecken ----------
+     Die Antwort wird gnädig geprüft (dieselbe Prüfung wie beim Sprechen, Stufe „locker“: kleine Tippfehler,
+     fehlende Artikel, Klammern und Varianten „a / b“ zählen). Das Ergebnis ist nur ein Vorschlag -
+     bewertet wird wie immer mit Gewusst / Nochmal, die Leitner-Logik bleibt unverändert. */
+  var eingabeModus = "aufdecken", eingabe = null, eingabeKarte = null;
+  function setzeEingabe(m) {
+    eingabeModus = m === "tippen" ? "tippen" : "aufdecken";
+    daten.eingabe = eingabeModus;
+    Array.prototype.forEach.call(document.querySelectorAll("#eingabewahl button"), function (b) {
+      b.setAttribute("aria-pressed", b.dataset.eingabe === eingabeModus ? "true" : "false");
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#eingabewahl button"), function (b) {
+    b.addEventListener("click", function () { setzeEingabe(b.dataset.eingabe); sichern(); zeichneUeben(); });
+  });
+  function eingabeZeichnen() {
+    var form = document.getElementById("eingabe"), feld = document.getElementById("eingabe-feld");
+    var erg = document.getElementById("eingabe-ergebnis");
+    var an = eingabeModus === "tippen" && !!aktuell;
+    form.hidden = !an;
+    if (aktuell && eingabeKarte !== aktuell) {   // neue Karte: Feld leeren, Fokus behalten, wenn man gerade tippt
+      eingabeKarte = aktuell;
+      eingabe = null;
+      feld.value = "";
+    }
+    var gilt = an && aufgedeckt && eingabe && eingabe.karte === aktuell;
+    erg.hidden = !gilt;
+    erg.className = "eingabe-ergebnis" + (gilt ? (eingabe.ok ? " ok" : " falsch") : "");
+    erg.textContent = "";
+    if (gilt) {
+      var b = document.createElement("b");
+      b.textContent = !eingabe.text ? "Aufgedeckt" : eingabe.ok ? (eingabe.genau ? "Richtig!" : "Fast richtig") : "Leider nicht";
+      erg.appendChild(b);
+      if (eingabe.text && !eingabe.genau) {
+        erg.appendChild(document.createTextNode(" – du hast "));
+        var q = document.createElement("q"); q.textContent = eingabe.text; erg.appendChild(q);
+        erg.appendChild(document.createTextNode(" geschrieben."));
+      }
+    }
+    document.getElementById("eingabe-los").textContent = gilt ? "Weiter" : "Prüfen";
+    document.getElementById("btn-gewusst").classList.toggle("vorschlag", !!(gilt && eingabe.text && eingabe.ok));
+    document.getElementById("btn-nochmal").classList.toggle("vorschlag", !!(gilt && eingabe.text && !eingabe.ok));
+    feld.readOnly = !!gilt;
+  }
+  function eingabePruefen(text) {
+    if (!aktuell) return;
+    var loesung = seiten(aktuell)[1], t = String(text || "").trim();
+    var l = duLoesungen(loesung), treffer = t ? duPasst(t, l, 1) : { ok: false };
+    var n = duNorm(t), nk = n.replace(DU_WEG_EN, "").replace(DU_WEG_DE, "");
+    eingabe = { karte: aktuell, text: t, ok: !!treffer.ok, genau: !!t && (l.indexOf(n) > -1 || l.indexOf(nk) > -1) };
+    aufgedeckt = true;
+    zeichneUeben();
+  }
+  document.getElementById("eingabe").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!aktuell) return;
+    if (aufgedeckt && eingabe && eingabe.karte === aktuell) {
+      bewerten(eingabe.text ? eingabe.ok : false);   // „Weiter“ / Enter übernimmt den Vorschlag
+    } else {
+      eingabePruefen(document.getElementById("eingabe-feld").value);
+    }
+    if (eingabeModus === "tippen" && aktuell && !aufgedeckt) document.getElementById("eingabe-feld").focus();
   });
 
   /* ---------- Wischen: rechts = gewusst, links = nochmal (erst nach dem Aufdecken) ---------- */
@@ -4290,8 +4386,36 @@
     });
   });
 
+  /* Teilen: Sicherungsdatei direkt an Drive, Mail, Messenger … (Teilen-Menü des Handys).
+     Chrome teilt nicht jede Dateiart - geht JSON nicht, dieselbe Datei als .txt (Einlesen versteht beides). */
+  function sicherungsDatei() {
+    var d = new Date(), name = "vokabeln-" + d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    var inhalt = JSON.stringify(daten, null, 1);
+    try {
+      var f = new File([inhalt], name + ".json", { type: "application/json" });
+      if (navigator.canShare && navigator.canShare({ files: [f] })) return f;
+      f = new File([inhalt], name + ".txt", { type: "text/plain" });
+      if (navigator.canShare && navigator.canShare({ files: [f] })) return f;
+    } catch (e) {}
+    return null;
+  }
+  var kannTeilen = !!(navigator.share && sicherungsDatei());
+  document.getElementById("btn-teilen").hidden = !kannTeilen;
+  document.getElementById("btn-teilen").addEventListener("click", function () {
+    var f = sicherungsDatei();
+    if (!f) { document.getElementById("btn-export").click(); return; }
+    navigator.share({ files: [f], title: "Vokabelkasten" }).then(function () {
+      daten.letzteSicherung = Date.now();
+      sichern();
+      zeichneHinweis();
+    }).catch(function (e) {
+      if (e && e.name === "AbortError") return;   // im Teilen-Menü abgebrochen
+      document.getElementById("btn-export").click();
+    });
+  });
+
   document.getElementById("hinweis-tun").addEventListener("click", function () {
-    document.getElementById("btn-export").click();
+    document.getElementById(kannTeilen ? "btn-teilen" : "btn-export").click();
   });
 
   document.getElementById("hinweis-weg").addEventListener("click", function () {
@@ -5976,6 +6100,7 @@
   setzeThema(thema);
   setzeModus(daten.modus);
   setzeWischen(daten.wischen);
+  setzeEingabe(daten.eingabe);
 
   /* Klick-Rückmeldung: bei kurzen Taps bleibt der Knopf kurz sichtbar gedrückt */
   (function () {
