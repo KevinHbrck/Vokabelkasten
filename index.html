@@ -1197,6 +1197,30 @@
     display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--ink);
   }
   .kopf-zurueck[hidden] { display: none; }
+  .kopf-einst {
+    flex: none; align-self: center; width: 46px; height: 46px; margin: -4px -6px -4px 0; padding: 0;
+    display: flex; align-items: center; justify-content: center; border-radius: 14px;
+    background: var(--card); border: 1px solid var(--rule); color: var(--ink); box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .kopf-einst[hidden] { display: none; }
+  .uw-befehl-zeile { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; min-height: 44px; }
+  .uw-mic { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 14px; border-radius: 22px;
+    background: var(--card); border: 1px solid var(--rule); color: var(--ink-soft); font: inherit; font-size: 14px; font-weight: 600; }
+  .uw-mic svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .uw-mic.an { color: #fff; background: var(--moss); border-color: var(--moss); }
+  .uw-mic.hoert svg { animation: uwMic 1.2s ease-in-out infinite; }
+  @keyframes uwMic { 50% { opacity: .45; } }
+  .uw-mic[hidden] { display: none; }
+  .uw-befehl-info { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--moss); opacity: 0; transition: opacity .25s ease; }
+  .uw-befehl-info.zeigen { opacity: 1; }
+  .blatt-form label { display: block; margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  .blatt-form input, .blatt-form select { display: block; width: 100%; margin-top: 5px; font-size: 16px; }
+  .blatt-speichern { width: 100%; min-height: 50px; margin: 4px 0 2px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 600; }
+  .blatt-speichern svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .kopf-einst:active { transform: scale(.96); }
+  .kopf-einst svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  html[data-vintage] .kopf-einst { border-radius: 8px; }
   .kopf-zurueck svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
   /* Startseite: klare Rangordnung - groß das Lernen heute, dann die Lernarten, unten Verwalten */
   #view-start { padding-bottom: 12px; }
@@ -1360,6 +1384,7 @@
   <button type="button" id="btn-start" class="kopf-zurueck" hidden aria-label="Zur Startseite" title="Zur Startseite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
   <h1 class="serif" id="kopf-titel">Vokabelkasten</h1>
   <span id="status"></span>
+  <button type="button" id="btn-einst" class="kopf-einst" hidden aria-label="Einstellungen" title="Einstellungen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
 </header>
 
 <div id="hinweisbar" hidden>
@@ -1400,10 +1425,6 @@
       <button type="button" class="kachel st-zeile" data-ziel="neu">
         <span class="st-ico st-ico-klein"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg></span>
         <span class="st-z-txt"><b>Neu</b><small>Vokabeln hinzufügen oder einfügen</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-      </button>
-      <button type="button" class="kachel st-zeile" data-ziel="sichern">
-        <span class="st-ico st-ico-klein"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>
-        <span class="st-z-txt"><b>Einstellungen</b><small>Darstellung, Stimmen, Sichern</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
       </button>
     </div>
   </section>
@@ -1475,6 +1496,7 @@
             </select>
           </label>
           <label class="zeile-check"><input type="checkbox" id="uw-bsp-an"> Beispielsatz mitlesen</label>
+          <label class="zeile-check hg-option"><input type="checkbox" id="uw-befehle"> <span>Sprachbefehle (Mikrofon)<small>Sag „Kasten“, um die Vokabel in den Kasten zu legen – außerdem „schwierig“, „weiter“, „zurück“, „nochmal“, „Pause“. Nur bei eingeschaltetem Bildschirm; das Mikrofon kann Musik anhalten.</small></span></label>
           <label class="zeile-check hg-option"><input type="checkbox" id="uw-hintergrund"> <span>Im Hintergrund weiterlaufen<small>mit Tasten auf dem Sperrbildschirm – hält dafür deine Musik (z. B. Spotify) an</small></span></label>
         </div>
         <button id="btn-uw-weiter" type="button" class="hoer-start uw-weiter" hidden></button>
@@ -1898,6 +1920,10 @@
     <h2>Unterwegs</h2>
     <span id="uw-stand"></span>
   </div>
+  <div class="uw-befehl-zeile">
+    <button id="uw-mic" type="button" class="uw-mic" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg><span id="uw-mic-txt">Sprachbefehle aus</span></button>
+    <span class="uw-befehl-info" id="uw-befehl-info" aria-live="polite"></span>
+  </div>
   <div class="uw-karte" aria-live="polite">
     <p class="uw-phase" id="uw-phase"></p>
     <p class="uw-vorne" id="uw-vorne"></p>
@@ -1987,7 +2013,7 @@
   // [bleibt, geht darin auf, Deutsch alt, English alt]
   var SEED_ZUSAMMEN = [[14,16,"entsprechend","according to"],[27,185,"angemessen","appropriate"],[33,31,"vorhersehen","predict"],[36,108,"normalerweise / in der Regel","usually"],[46,82,"außerdem","in addition"],[56,96,"vermuten","suppose"],[59,67,"erhalten","receive"],[76,102,"ohne Rücksicht auf","regardless"],[90,114,"betonen, hervorheben","emphasize"],[161,162,"erreichen","achieve"],[240,243,"Was Sie hierher führt","What brings you here"]];
   var KATS = SEED.kats;
-  var FASSUNG = "2026-09-27-10";
+  var FASSUNG = "2026-09-27-11";
   var KEY = "vokabelkasten.v2";
   var ALT_KEY = "vokabelkasten.v1";
   var VORLAGEN = {
@@ -3419,6 +3445,7 @@
     document.getElementById("kopf-titel").textContent = titel;
     document.getElementById("btn-start").hidden = ansicht === "start";
     document.getElementById("status").hidden = ansicht === "start";   // steht auf der Startseite schon in der großen Karte
+    document.getElementById("btn-einst").hidden = ansicht !== "start";   // Zahnrad oben rechts, wie bei BLOC
   }
   function zeichneKacheln() {
     var f = daten.cards.filter(function (c) { return c.aktiv && c.due <= heute(); }).length, k = imKasten().length;
@@ -3454,6 +3481,7 @@
       } else wechsle(z);
     });
   });
+  document.getElementById("btn-einst").addEventListener("click", function () { wechsle("sichern"); });
   document.getElementById("btn-start").addEventListener("click", function () {
     wechsle(ansicht === "statistik" ? "ueben" : "start");
   });
@@ -3663,6 +3691,7 @@
   document.getElementById("btn-mehr").addEventListener("click", function () {
     if (!aktuell) return;
     var k = aktuell, akt = [];
+    akt.push({ text: "✎ Vokabel bearbeiten", tun: function () { karteBearbeitenBlatt(k); } });
     if (k.box > 1) akt.push({ text: "↓ Zurück in Fach " + (k.box - 1), tun: function () {
       if (!einFachRunter(k)) return;
       // Passt die Karte nicht mehr zur Auswahl, faellt sie aus der Runde.
@@ -3680,6 +3709,61 @@
     } });
     blattAuf(k.front, akt);
   });
+
+  /* Bearbeiten direkt aus dem ⋯-Fenster: Text, Beispiel, Kategorie. Fach, Termine und Stern bleiben. */
+  function karteBearbeitenBlatt(c) {
+    var knoepfe = document.getElementById("blatt-knoepfe");
+    document.getElementById("blatt-titel").textContent = "Vokabel bearbeiten";
+    knoepfe.textContent = "";
+    var form = document.createElement("div");
+    form.className = "blatt-form";
+    function feld(text, wert) {
+      var l = document.createElement("label");
+      l.textContent = text;
+      var i = document.createElement("input");
+      i.type = "text"; i.value = wert || ""; i.autocomplete = "off";
+      l.appendChild(i);
+      form.appendChild(l);
+      return i;
+    }
+    var eVorne = feld("Deutsch", c.front), eHinten = feld("English", c.back), eBsp = feld("Beispielsatz (optional)", c.bsp);
+    var kl = document.createElement("label");
+    kl.textContent = "Kategorie";
+    var kat = document.createElement("select");
+    KATS.forEach(function (k, i) {
+      var o = document.createElement("option");
+      o.value = String(i); o.textContent = k;
+      kat.appendChild(o);
+    });
+    kat.value = String(c.kat);
+    kl.appendChild(kat);
+    form.appendChild(kl);
+    var ok = document.createElement("button");
+    ok.type = "button"; ok.className = "blatt-speichern";
+    ok.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Speichern';
+    form.appendChild(ok);
+    knoepfe.appendChild(form);
+    function speichern() {
+      var vorne = eVorne.value.trim(), hinten = eHinten.value.trim();
+      if (!vorne || !hinten) { (vorne ? eHinten : eVorne).focus(); return; }
+      c.front = vorne; c.back = hinten; c.bsp = eBsp.value.trim(); c.kat = Number(kat.value) || 0;
+      sichern();
+      blattZu();
+      // passt die Karte nicht mehr zur Auswahl, fällt sie aus der laufenden Runde
+      if (!imFilter(c)) {
+        runde = runde.filter(function (x) { return x.id !== c.id; });
+        if (aktuell && aktuell.id === c.id) { naechsteKarte(); zeichneListe(); return; }
+      }
+      zeichneUeben();
+      zeichneListe();
+    }
+    ok.addEventListener("click", speichern);
+    [eVorne, eHinten, eBsp].forEach(function (i) {
+      i.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); speichern(); } });
+    });
+    document.getElementById("blatt").hidden = false;
+    waechterAbgleichen();
+  }
 
   /* ---------- Einblendfenster (⋯) ---------- */
   function blattAuf(titel, aktionen) {
@@ -4128,6 +4212,7 @@
       richtung: e.richtung === "en" ? "en" : "de",
       bsp: e.bsp !== false,
       hintergrund: e.hintergrund === true,   // standardmäßig aus, damit Musik anderer Apps weiterläuft
+      befehle: e.befehle === true,           // Sprachbefehle: standardmäßig aus (Mikrofon)
       stimmeDe: e.stimmeDe || "",
       stimmeEn: e.stimmeEn || "",
       laut: e.laut >= 0.1 && e.laut <= 1 ? e.laut : 1
@@ -4140,6 +4225,9 @@
     document.getElementById("uw-richtung").value = e.richtung;
     document.getElementById("uw-bsp-an").checked = e.bsp;
     document.getElementById("uw-hintergrund").checked = e.hintergrund;
+    var bef = document.getElementById("uw-befehle");
+    bef.checked = e.befehle && !!srKlasse();
+    bef.disabled = !srKlasse();
     stimmenFuellen();
     document.getElementById("uw-laut").value = String(Math.round(e.laut * 100));
     lautAnzeigen();
@@ -4154,6 +4242,7 @@
       richtung: document.getElementById("uw-richtung").value,
       bsp: document.getElementById("uw-bsp-an").checked,
       hintergrund: document.getElementById("uw-hintergrund").checked,
+      befehle: document.getElementById("uw-befehle").checked,
       stimmeDe: document.getElementById("uw-stimme-de").value,
       stimmeEn: document.getElementById("uw-stimme-en").value,
       laut: (Number(document.getElementById("uw-laut").value) || 100) / 100
@@ -4469,6 +4558,7 @@
     var frage = deZuerst ? c.front : c.back, antwort = deZuerst ? c.back : c.front;
     var sFrage = deZuerst ? "de-DE" : "en-GB", sAntwort = deZuerst ? "en-GB" : "de-DE";
     var aktiv = function () { return uw && lauf === uw.lauf; };
+    if (uw.zeigI !== uw.i) { uw.vorI = uw.zeigI; uw.zeigI = uw.i; uw.wechselZeit = Date.now(); }
 
     uwText("uw-stand", (uw.i + 1) + " / " + uw.karten.length);
     uwMerken();
@@ -4504,6 +4594,121 @@
       });
   }
 
+  /* ---------- Sprachbefehle im Hörtraining ----------
+     Das Mikrofon hört dauerhaft mit (solange die Runde läuft und der Bildschirm an ist).
+     Kurze Befehle wie „Kasten“ wirken auf die aktuelle Karte - kommt der Befehl direkt nach dem
+     Wechsel (unter 2,5 s), ist die Karte davor gemeint. Was die App selbst vorliest, wird ignoriert. */
+  var uwRec = null, uwBefehlZeit = 0;
+  function srKlasse() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
+  function uwBefehlAn() { return !!srKlasse() && uwEinstellungen().befehle; }
+  function uwMicZeigen() {
+    var b = document.getElementById("uw-mic"), an = uwBefehlAn();
+    b.hidden = !srKlasse();
+    b.classList.toggle("an", an);
+    b.classList.toggle("hoert", an && !!uwRec);
+    b.setAttribute("aria-pressed", an ? "true" : "false");
+    document.getElementById("uw-mic-txt").textContent = an ? "Sprachbefehle an" : "Sprachbefehle aus";
+  }
+  function uwBefehlStart() {
+    uwMicZeigen();
+    if (!uw || uw.fertig || uwRec || !uwBefehlAn() || document.visibilityState === "hidden") return;
+    var rec;
+    try { rec = new (srKlasse())(); } catch (x) { return; }
+    rec.lang = "de-DE";
+    rec.continuous = true;
+    rec.interimResults = false;
+    rec.maxAlternatives = 3;
+    uwRec = rec;
+    rec.onresult = function (ev) {
+      for (var i = ev.resultIndex; i < ev.results.length; i++) {
+        var r = ev.results[i];
+        if (!r.isFinal) continue;
+        for (var j = 0; j < r.length; j++) if (uwBefehl(r[j].transcript)) break;
+      }
+    };
+    rec.onerror = function (ev) {
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
+        uwBefehlInfo("Kein Mikrofon erlaubt");
+        if (daten.unterwegs) { daten.unterwegs.befehle = false; sichern(); }
+        uwEinstellungenZeigen();
+      }
+    };
+    // Android beendet die Erkennung nach etwas Stille - dann einfach weiterhören
+    rec.onend = function () {
+      if (uwRec !== rec) return;
+      uwRec = null;
+      uwMicZeigen();
+      setTimeout(uwBefehlStart, 300);
+    };
+    try { rec.start(); } catch (x) { uwRec = null; }
+    uwMicZeigen();
+  }
+  function uwBefehlStop(leise) {
+    var rec = uwRec;
+    uwRec = null;
+    if (rec) { rec.onresult = rec.onerror = rec.onend = null; try { rec.abort(); } catch (x) {} }
+    if (!leise) uwMicZeigen();
+  }
+  function uwBefehlInfo(text) {
+    var el = document.getElementById("uw-befehl-info");
+    el.textContent = text;
+    el.classList.add("zeigen");
+    clearTimeout(uwBefehlInfo.t);
+    uwBefehlInfo.t = setTimeout(function () { el.classList.remove("zeigen"); }, 2600);
+  }
+  function uwBefehl(text) {
+    if (!uw || uw.fertig) return false;
+    var t = duNorm(text);
+    if (!t || t.split(" ").length > 4) return false;          // lange Sätze sind eher die App-Stimme
+    var c = uw.karten[uw.i];
+    if (c && duNorm(c.front + " " + c.back + " " + (c.bsp || "")).indexOf(t) > -1) return false;   // Echo der Vokabel
+    if (Date.now() - uwBefehlZeit < 900) return false;       // doppelt erkannt
+    function hat(re) { return re.test(" " + t + " "); }
+    // gemeint ist die Karte davor, wenn gerade erst gewechselt wurde
+    var ziel = c;
+    if (uw.vorI === uw.i - 1 && Date.now() - (uw.wechselZeit || 0) < 2500) ziel = uw.karten[uw.vorI] || c;
+    var erkannt = true;
+    if (hat(/ (kasten|kiste|rein|aufnehmen|merken|lernen) /)) {
+      if (!ziel) return false;
+      if (ziel.aktiv) uwBefehlInfo("„" + ziel.front + "“ ist schon im Kasten");
+      else {
+        aufnehmen([ziel]);
+        uw.neu[ziel.id] = true;
+        uw.geaendert = true;
+        uwBefehlInfo("✓ „" + ziel.front + "“ in den Kasten gelegt");
+      }
+      uwExtraZeigen();
+    } else if (hat(/ (schwierig|schwer|stern) /)) {
+      if (!ziel) return false;
+      ziel.merk = true;
+      uw.geaendert = true;
+      sichern();
+      uwBefehlInfo("★ „" + ziel.front + "“ als schwierig markiert");
+      uwExtraZeigen();
+    } else if (hat(/ (pause|stopp|stop|halt|warte) /)) {
+      if (!uw.pausiert) document.getElementById("uw-pause").click();
+      uwBefehlInfo("Pausiert");
+    } else if (hat(/ (weiter|naechste|naechstes|skip|ueberspringen) /)) {
+      if (uw.pausiert) document.getElementById("uw-pause").click();
+      else document.getElementById("uw-naechste").click();
+    } else if (hat(/ (zurueck|vorherige) /)) {
+      document.getElementById("uw-zurueck").click();
+    } else if (hat(/ (nochmal|noch mal|wiederholen|wiederholung) /)) {
+      document.getElementById("uw-wdh").click();
+    } else erkannt = false;
+    if (erkannt) { uwBefehlZeit = Date.now(); duTon(true, 1320); }
+    return erkannt;
+  }
+  document.getElementById("uw-mic").addEventListener("click", function () {
+    if (!srKlasse()) return;
+    var an = !uwBefehlAn();
+    daten.unterwegs = daten.unterwegs || {};
+    daten.unterwegs.befehle = an;
+    sichern();
+    uwEinstellungenZeigen();
+    if (an) uwBefehlStart(); else uwBefehlStop();
+  });
+
   function uwExtraZeigen() {
     var c = uw && !uw.fertig ? uw.karten[uw.i] : null;
     document.getElementById("uw-extra").hidden = !c;
@@ -4523,6 +4728,7 @@
 
   function uwFertig() {
     uw.fertig = true;
+    uwBefehlStop();
     uw.lauf++;
     uwText("uw-stand", uw.karten.length + " / " + uw.karten.length);
     uwText("uw-phase", "Runde fertig");
@@ -4563,6 +4769,7 @@
       uwWach();
       waechterAbgleichen();
       uwKarte();
+      uwBefehlStart();
       return;
     }
     if (Array.isArray(eigene)) { karten = eigene; reihe = true; }
@@ -4582,10 +4789,12 @@
     uwWach();
     waechterAbgleichen();
     uwKarte();
+    uwBefehlStart();
   }
 
   function uwBeenden() {
     if (!uw) return;
+    uwBefehlStop();
     var geaendert = uw.geaendert;
     uw.lauf++;
     uw = null;
@@ -4615,6 +4824,7 @@
       uwMedienAn();
       uwWach();
       uwKarte();
+      uwBefehlStart();
       return;
     }
     if (uw.pausiert) {                      // weiter: die aktuelle Karte beginnt von vorn
@@ -4664,7 +4874,7 @@
     uw.geaendert = true;
     uwExtraZeigen();
   });
-  ["uw-auswahl", "uw-denk", "uw-richtung", "uw-bsp-an", "uw-hintergrund", "uw-stimme-de", "uw-stimme-en", "uw-laut"].forEach(function (id) {
+  ["uw-auswahl", "uw-denk", "uw-richtung", "uw-bsp-an", "uw-hintergrund", "uw-befehle", "uw-stimme-de", "uw-stimme-en", "uw-laut"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", uwEinstellungenMerken);
   });
   document.getElementById("uw-laut").addEventListener("input", lautAnzeigen);
@@ -4675,7 +4885,8 @@
     });
   });
   document.addEventListener("visibilitychange", function () {
-    if (uw && !uw.fertig && document.visibilityState === "visible") uwWach();
+    if (uw && !uw.fertig && document.visibilityState === "visible") { uwWach(); uwBefehlStart(); }
+    if (document.visibilityState === "hidden") uwBefehlStop(true);
   });
   // Seite wird im Hintergrund beendet (v. a. iOS): Stand der Runde noch schnell sichern
   window.addEventListener("pagehide", function () { if (uw) uwMerken(); else if (aktuell || runde.length) sitzungMerken(); });
