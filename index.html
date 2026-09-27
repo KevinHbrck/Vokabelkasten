@@ -1294,6 +1294,24 @@
   .st-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px 11px 18px; border-radius: 999px;
     background: #fff; color: #d4580a; font-size: 15.5px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
   .st-cta svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  /* Schnell anlegen */
+  .st-schnell { margin: 14px 0 0; padding: 12px; border-radius: 18px; background: var(--card); border: 1px solid var(--rule);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .sn-zeile { display: flex; gap: 8px; }
+  .sn-zeile input[type=text], .sn-zeile textarea { flex: 1 1 auto; min-width: 0; margin: 0; }
+  #sn-bsp { width: 100%; padding: 9px 12px; border: 1px solid var(--rule); border-radius: 3px; background: var(--card); color: var(--ink);
+    resize: none; font: inherit; line-height: 1.35; }
+  #sn-bsp:focus { outline: 2px solid var(--indigo); outline-offset: -1px; border-color: var(--indigo); }
+  html[data-vintage] #sn-bsp { background: var(--field, var(--card)); border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,.1); }
+  #sn-vorschlag { flex: 0 0 auto; white-space: nowrap; align-self: stretch; }
+  #sn-los { flex: 0 0 auto; width: 50px; padding: 0; font-size: 26px; line-height: 1; border-radius: 12px; }
+  .sn-mehr { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .sn-mehr > input[type=text] { margin: 0; }
+  .sn-fuss { display: flex; gap: 8px; align-items: center; }
+  .sn-fuss select { flex: 1 1 auto; min-width: 0; margin: 0; }
+  .sn-info { margin: 8px 2px 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.4; }
+  .sn-info b { color: var(--ink); }
+  html[data-vintage] .st-schnell { border-radius: 10px; background: var(--raised, var(--card)); }
   /* zwei Lernarten */
   .st-paar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
   .st-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 142px; padding: 16px;
@@ -1463,6 +1481,26 @@
       <span class="st-ziel" aria-hidden="true"><span class="st-ziel-balken"><i id="st-ziel-fuell"></i></span><span id="st-ziel-txt"></span></span>
       <span class="st-cta"><span id="st-cta-txt">Jetzt üben</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
     </button>
+    <!-- Neues Wort in Sekunden: English eintippen, Deutsch dazu, Enter - liegt sofort im Kasten -->
+    <form class="st-schnell" id="schnell" autocomplete="off">
+      <div class="sn-zeile">
+        <input type="text" id="sn-en" placeholder="Neues Wort (English)" aria-label="Neues Wort auf Englisch"
+               autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
+        <button type="submit" id="sn-los" aria-label="In den Kasten legen" title="In den Kasten legen">+</button>
+      </div>
+      <div class="sn-mehr" id="sn-mehr" hidden>
+        <input type="text" id="sn-de" placeholder="Deutsch" aria-label="Übersetzung auf Deutsch" enterkeyhint="done">
+        <div class="sn-zeile">
+          <textarea id="sn-bsp" rows="2" placeholder="Beispielsatz (optional)" aria-label="Beispielsatz" enterkeyhint="done"></textarea>
+          <button type="button" class="ghost" id="sn-vorschlag">Vorschlag</button>
+        </div>
+        <div class="sn-fuss">
+          <select id="sn-kat" aria-label="Kategorie"></select>
+          <button type="button" class="ghost sn-weg" id="sn-weg">Abbrechen</button>
+        </div>
+      </div>
+      <p class="sn-info" id="sn-info" hidden></p>
+    </form>
     <div class="st-paar">
       <button type="button" class="kachel st-kachel" data-ziel="hoeren" style="--ton:var(--indigo)">
         <span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.5"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.5"/></svg></span>
@@ -3741,6 +3779,10 @@
 
   /* ---------- Aufbau ---------- */
   function fuelleSelects() {
+    KATS.forEach(function (k, i) {
+      var o2 = document.createElement("option"); o2.value = String(i); o2.textContent = k;
+      document.getElementById("sn-kat").appendChild(o2);
+    });
     var s = document.getElementById("sel-kat");
     var n = document.getElementById("neu-kat");
     var ik = document.getElementById("imp-kat");
@@ -3943,6 +3985,163 @@
   document.getElementById("btn-gewusst").addEventListener("click", function (e) {
     e.stopPropagation(); bewerten(true);
   });
+
+  /* ---------- Schnell anlegen (Startseite) ----------
+     English zuerst (so begegnet einem das Wort), Deutsch dazu, Enter: die Karte liegt sofort in Fach 1.
+     Gibt es das Wort schon, wird die vorhandene Karte in den Kasten gelegt statt einer doppelten.
+     Beispielsatz-Vorschlag: zuerst aus den eigenen Sätzen der App (offline), sonst - nur auf Tipp - aus dem
+     freien Wörterbuch Wiktionary (dabei geht nur das Wort übers Netz, siehe Datenschutz). */
+  var sn = { vorschlaege: [], nr: 0, fuer: "" };
+  function snEl(x) { return document.getElementById("sn-" + x); }
+  function snNorm(t) { return String(t || "").toLowerCase().replace(/^to\s+/, "").replace(/\s+/g, " ").trim(); }
+  function snVorhanden(en) {
+    var n = snNorm(en);
+    if (!n) return null;
+    for (var i = 0; i < daten.cards.length; i++) {
+      var c = daten.cards[i];
+      if (String(c.back).split(/\s*[\/;]\s*/).some(function (v) { return snNorm(v) === n; })) return c;
+    }
+    return null;
+  }
+  function snKatRaten(en) {
+    var t = String(en || "").trim().toLowerCase(), i;
+    if (/^to\s/.test(t)) i = KATS.indexOf("Verben");
+    else if (t.split(/\s+/).length > 3) i = KATS.indexOf("Ganze Sätze");
+    else if (t.split(/\s+/).length > 1) i = KATS.indexOf("Wendungen");
+    else if (/ly$/.test(t)) i = KATS.indexOf("Adjektive & Adverbien");
+    else i = KATS.indexOf("Sonstiges");
+    return i > -1 ? i : KATS.length - 1;
+  }
+  function snInfo(text, fett) {
+    var el = snEl("info");
+    el.textContent = "";
+    el.hidden = !text && !fett;
+    if (fett) { var b = document.createElement("b"); b.textContent = fett; el.appendChild(b); el.appendChild(document.createTextNode(" ")); }
+    if (text) el.appendChild(document.createTextNode(text));
+  }
+  function snPruefen() {
+    var en = snEl("en").value.trim();
+    snEl("mehr").hidden = !en;
+    if (!en) { snInfo(""); return; }
+    var c = snVorhanden(en);
+    if (c) {
+      snInfo(c.aktiv ? "liegt schon im Kasten (Fach " + c.box + ")." : "steht schon in der Liste – + legt die Karte in den Kasten.",
+             "„" + c.back + "“ = „" + c.front + "“");
+      if (!snEl("de").value) snEl("de").placeholder = c.front;
+    } else {
+      snEl("de").placeholder = "Deutsch";
+      snInfo("");
+    }
+    if (sn.fuer !== snNorm(en)) { sn.vorschlaege = []; sn.nr = 0; sn.fuer = ""; }
+    snEl("kat").value = String(snKatRaten(en));
+  }
+  function snLeeren() {
+    snEl("en").value = ""; snEl("de").value = ""; snEl("bsp").value = "";
+    sn.vorschlaege = []; sn.nr = 0; sn.fuer = "";
+    snEl("mehr").hidden = true;
+  }
+  // Sätze aus der App, in denen das Wort vorkommt (auch mit Endung: decide -> decided)
+  function snLokaleSaetze(en) {
+    var w = snNorm(en).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (!w) return [];
+    var stamm = w.indexOf(" ") < 0 && w.length > 4 ? w.replace(/(e|y)$/, "") : w;
+    var re = new RegExp("\\b" + stamm.replace(/ /g, "\\s+") + (w.indexOf(" ") < 0 ? "\\w*" : ""), "i");
+    var out = [];
+    daten.cards.forEach(function (c) { if (c.bsp && re.test(c.bsp) && out.indexOf(c.bsp) < 0) out.push(c.bsp); });
+    return out.slice(0, 5);
+  }
+  // Wiktionary (freies Wörterbuch, erlaubt Abfragen direkt aus dem Browser): Beispielsätze zu den Bedeutungen
+  function snOnline(en) {
+    var wort = snNorm(en);
+    if (!wort || !window.fetch || navigator.onLine === false) return Promise.resolve([]);
+    var url = "https://en.wiktionary.org/api/rest_v1/page/definition/" + encodeURIComponent(wort.replace(/ /g, "_"));
+    var stopp = new Promise(function (ok) { setTimeout(function () { ok([]); }, 8000); });   // nicht ewig warten
+    var holen = fetch(url, { headers: { "Api-User-Agent": "Vokabelkasten (persönliche Lern-App)" } })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (j) {
+        var out = [], leser = new DOMParser();   // DOMParser: fremdes HTML nur lesen, nichts davon wird ausgeführt
+        (j && j.en || []).forEach(function (e) {
+          (e.definitions || []).forEach(function (d) {
+            (d.examples || []).forEach(function (x) {
+              var t = (leser.parseFromString(String(x), "text/html").body.textContent || "").replace(/\s+/g, " ").trim();
+              var n = t.split(" ").length;
+              if (n < 4 || n > 22 || out.indexOf(t) > -1) return;   // zu kurze Bruchstücke und lange Zitate weglassen
+              out.push(t.charAt(0).toUpperCase() + t.slice(1) + (/[.!?]$/.test(t) ? "" : "."));
+            });
+          });
+        });
+        return out.sort(function (a, b) { return Math.abs(a.split(" ").length - 9) - Math.abs(b.split(" ").length - 9); }).slice(0, 6);
+      })
+      .catch(function () { return []; });
+    return Promise.race([holen, stopp]);
+  }
+  function snZeigeVorschlag() {
+    if (!sn.vorschlaege.length) return false;
+    snEl("bsp").value = sn.vorschlaege[sn.nr % sn.vorschlaege.length];
+    snEl("vorschlag").textContent = sn.vorschlaege.length > 1 ? "↻ " + (sn.nr % sn.vorschlaege.length + 1) + "/" + sn.vorschlaege.length : "Vorschlag";
+    sn.nr++;
+    return true;
+  }
+  snEl("vorschlag").addEventListener("click", function () {
+    var en = snEl("en").value.trim();
+    if (!en) { snEl("en").focus(); return; }
+    if (sn.fuer === snNorm(en)) { snZeigeVorschlag(); return; }
+    sn.fuer = snNorm(en); sn.nr = 0;
+    sn.vorschlaege = snLokaleSaetze(en);
+    if (snZeigeVorschlag()) return;
+    var knopf = snEl("vorschlag");
+    knopf.disabled = true; knopf.textContent = "Suche …";
+    var fuer = sn.fuer;
+    snOnline(en).then(function (liste) {
+      knopf.disabled = false; knopf.textContent = "Vorschlag";
+      if (sn.fuer !== fuer || snNorm(snEl("en").value) !== fuer) return;   // inzwischen ein anderes Wort
+      sn.vorschlaege = liste;
+      if (!snZeigeVorschlag()) snInfo(navigator.onLine === false ? "Ohne Internet gibt es nur Sätze aus der App – für dieses Wort keiner." : "Kein Beispielsatz gefunden – du kannst selbst einen schreiben.");
+    });
+  });
+  snEl("en").addEventListener("input", snPruefen);
+  snEl("weg").addEventListener("click", function () { snLeeren(); snInfo(""); });
+  snEl("de").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("schnell").requestSubmit(); } });
+  snEl("bsp").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("schnell").requestSubmit(); } });
+  document.getElementById("schnell").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var en = snEl("en").value.trim(), de = snEl("de").value.trim(), bsp = snEl("bsp").value.trim();
+    if (!en) { snEl("en").focus(); return; }
+    var da = snVorhanden(en);
+    if (da && !de) {   // vorhandene Karte in den Kasten legen
+      if (!da.aktiv) { da.aktiv = true; da.box = 1; da.due = heute(); }
+      if (bsp && !da.bsp) da.bsp = bsp;
+      sichern(); snLeeren(); zeichneKacheln();
+      snInfo("ist jetzt im Kasten (Fach " + da.box + ").", "„" + da.back + "“");
+      snEl("en").focus();
+      return;
+    }
+    if (!de) { snEl("de").focus(); return; }
+    daten.cards.push({
+      id: neueId(), front: de, back: en, bsp: bsp,
+      kat: Number(snEl("kat").value) || 0,
+      ord: naechsteOrd(), aktiv: true, merk: false, box: 1, due: heute(), created: Date.now()
+    });
+    sichern(); snLeeren(); zeichneKacheln();
+    snInfo("liegt im Kasten (Fach 1) und kommt heute noch dran.", "„" + en + "“ = „" + de + "“");
+    snEl("en").focus();
+  });
+  // Geteilt aus einer anderen App (Android: Text markieren → Teilen → Vokabelkasten): Wort vorausfüllen
+  (function () {
+    try {
+      var q = new URLSearchParams(location.search), t = q.get("text") || q.get("title") || "";
+      if (!t) return;
+      t = t.split(/\r?\n/)[0].replace(/https?:\/\/\S+/g, "").replace(/^["'“„‚‘\s]+|["'”“‘’\s.,;:!?]+$/g, "").trim().slice(0, 80);
+      history.replaceState(null, "", location.pathname);
+      if (!t) return;
+      setTimeout(function () {
+        wechsle("start");
+        snEl("en").value = t;
+        snPruefen();
+        snEl("de").focus();
+      }, 0);
+    } catch (e) {}
+  })();
 
   document.getElementById("btn-add").addEventListener("click", function () {
     var vf = document.getElementById("in-vorne");

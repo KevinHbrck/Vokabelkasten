@@ -9,6 +9,7 @@
   "orientation": "any",
   "background_color": "#e9ebee",
   "theme_color": "#e9ebee",
+  "share_target": { "action": "./", "method": "GET", "params": { "title": "title", "text": "text" } },
   "icons": [
     { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },

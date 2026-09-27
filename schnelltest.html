@@ -143,6 +143,22 @@
       pruefe(id("btn-export") && id("btn-import"), "Herunterladen/Einlesen fehlt");
       pruefe(id("btn-teilen"), "Teilen-Knopf fehlt");
     }],
+    ["Schnell anlegen auf der Startseite (neu und schon vorhanden)", async function () {
+      klick('[data-view="ueben"]');
+      await laden();
+      await bis(function () { return id("sn-en"); }, 5000, "Feld auf der Startseite");
+      eingeben(id("sn-en"), "zzqtestword");
+      pruefe(!id("sn-mehr").hidden, "Felder für Deutsch/Beispielsatz erscheinen nicht");
+      id("sn-de").value = "Testwort";
+      id("schnell").requestSubmit();
+      pruefe(/liegt im Kasten/.test(id("sn-info").textContent), "keine Bestätigung: " + id("sn-info").textContent);
+      pruefe(id("sn-en").value === "", "Feld wird nach dem Speichern nicht geleert");
+      eingeben(id("sn-en"), "zzqtestword");
+      pruefe(/schon im Kasten/.test(id("sn-info").textContent), "doppeltes Wort nicht erkannt: " + id("sn-info").textContent);
+      id("schnell").requestSubmit();   // ohne Deutsch: vorhandene Karte statt doppelter
+      var n = JSON.parse(W.localStorage.getItem(KEY)).cards.filter(function (c) { return c.back === "zzqtestword"; }).length;
+      pruefe(n === 1, "Wort ist " + n + "-mal gespeichert");
+    }],
     ["Keine Skriptfehler", async function () {
       pruefe(!fehler.length, fehler.slice(0, 3).join(" | "));
     }]

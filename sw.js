@@ -6,7 +6,7 @@
  */
 
 /* Einzige Stelle für die Fassung - die App fragt sie per postMessage ab (Einstellungen, ganz unten) */
-var FASSUNG = "2026-09-27-17";
+var FASSUNG = "2026-09-27-18";
 var SPEICHER = "vokabelkasten-" + FASSUNG;
 var GRUNDGERUEST = ["./", "./index.html", "./daten.js", "./privacy.html", "./manifest.json", "./icon.png"];
 
@@ -54,7 +54,8 @@ self.addEventListener("fetch", function (e) {
 
   e.respondWith(
     fetch(frisch).then(function (antwort) {
-      if (antwort && antwort.status === 200 && antwort.type === "basic") {
+      // geteilte Wörter kommen als ./?text=… - die nicht einzeln in den Speicher legen
+      if (antwort && antwort.status === 200 && antwort.type === "basic" && !(anfrage.mode === "navigate" && ziel.search)) {
         var kopie = antwort.clone();
         caches.open(SPEICHER).then(function (c) { c.put(anfrage, kopie); });
       }
