@@ -239,6 +239,14 @@
     margin: -4px 0 12px; min-height: 1.2em;
   }
   .meldung-wann { white-space: nowrap; }
+  /* Fotos */
+  .k-bild { display: block; max-width: 100%; max-height: 38vh; margin: 12px auto 4px; border-radius: 10px; object-fit: contain; }
+  .k-bild[hidden] { display: none; }
+  .ed-bild { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 12px; }
+  .ed-bild img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--rule); }
+  .ed-bild img[hidden], .ed-bild button[hidden] { display: none; }
+  .ed-bild button { margin: 0; padding: 9px 12px; font-size: 14px; }
+  #sn-foto { flex: 0 0 auto; padding-left: 14px; padding-right: 14px; }
   /* Kästen */
   .kasten-leiste { display: flex; gap: 8px; overflow-x: auto; margin: 0 -2px 12px; padding: 2px; scrollbar-width: none; }
   .kasten-leiste::-webkit-scrollbar { display: none; }
@@ -1549,6 +1557,7 @@
         </div>
         <div class="sn-fuss">
           <select id="sn-kat" aria-label="Kategorie"></select>
+          <button type="button" class="ghost" id="sn-foto" aria-label="Foto für die Rückseite">📷</button>
           <button type="button" class="ghost sn-weg" id="sn-weg">Abbrechen</button>
         </div>
       </div>
@@ -1674,6 +1683,7 @@
         <span class="divider" id="strich" hidden></span>
         <span class="back serif" id="hinten" hidden></span>
         <span class="bsp" id="bsp" hidden></span>
+        <img class="k-bild" id="k-bild" alt="" hidden>
         <span class="hint" id="tipp">Zum Aufdecken tippen</span>
         <span class="stempel gewusst" id="st-gewusst" aria-hidden="true">Gewusst</span>
         <span class="stempel nochmal" id="st-nochmal" aria-hidden="true">Nochmal</span>
@@ -2970,6 +2980,7 @@
       document.getElementById("hinten").hidden = !aufgedeckt;
       document.getElementById("strich").hidden = !aufgedeckt;
       document.getElementById("bsp").hidden = !aufgedeckt || !aktuell.bsp;
+      bildAufKarte();
       document.getElementById("tipp").hidden = aufgedeckt && !wischen;
       document.getElementById("tipp").textContent = aufgedeckt ? "\u2190 Nochmal \u00b7 Gewusst \u2192" : "Zum Aufdecken tippen";
       trainer.classList.toggle("wischbar", wischen);
@@ -3336,8 +3347,8 @@
       li.appendChild(i);
       return i;
     }
-    var eVorne = feld("ed-vorne", "Deutsch", c.front);
-    var eHinten = feld("ed-hinten", "English", c.back);
+    var eVorne = feld("ed-vorne", WISSEN ? "Begriff" : "Deutsch", c.front);
+    var eHinten = feld("ed-hinten", WISSEN ? "Bedeutung" : "English", c.back);
     var eBsp = feld("ed-bsp", "Beispielsatz (optional)", c.bsp);
 
     var kl = document.createElement("label");
@@ -3353,6 +3364,33 @@
     kat.value = String(c.kat);
     li.appendChild(kl);
     li.appendChild(kat);
+
+    // Foto für die Rückseite
+    var bz = document.createElement("div");
+    bz.className = "ed-bild";
+    var vorschau = document.createElement("img");
+    vorschau.alt = ""; vorschau.hidden = true;
+    var bAdd = document.createElement("button");
+    bAdd.type = "button"; bAdd.className = "ghost";
+    var bWeg = document.createElement("button");
+    bWeg.type = "button"; bWeg.className = "ghost"; bWeg.textContent = "Foto entfernen";
+    bz.appendChild(vorschau); bz.appendChild(bAdd); bz.appendChild(bWeg);
+    li.appendChild(bz);
+    function bildZeigen() {
+      bAdd.textContent = c.bild ? "📷 Foto ändern" : "📷 Foto für die Rückseite";
+      bWeg.hidden = !c.bild;
+      if (!c.bild) { vorschau.hidden = true; return; }
+      bildUrl(c.id).then(function (u) { if (u) { vorschau.src = u; vorschau.hidden = false; } });
+    }
+    bAdd.addEventListener("click", function () {
+      bildWaehlen(function (blob) {
+        bildSetzen(c.id, blob).then(function () { c.bild = true; sichern(); bildZeigen(); });
+      });
+    });
+    bWeg.addEventListener("click", function () {
+      bildSetzen(c.id, null).then(function () { delete c.bild; sichern(); bildZeigen(); });
+    });
+    bildZeigen();
 
     var knoepfe = document.createElement("div");
     knoepfe.className = "edit-knoepfe";
@@ -3408,6 +3446,7 @@
     weg.addEventListener("click", function () {
       if (!confirm("„" + c.front + "“ wirklich löschen? Fach und Lernstand dieser Vokabel gehen dabei verloren.")) return;
       daten.cards = daten.cards.filter(function (x) { return x.id !== c.id; });
+      if (c.bild) bildSetzen(c.id, null);
       runde = runde.filter(function (x) { return x.id !== c.id; });
       if (aktuell && aktuell.id === c.id) naechsteKarte();
       sichern();
@@ -4125,7 +4164,8 @@
   }
   function snLeeren() {
     snEl("en").value = ""; snEl("de").value = ""; snEl("bsp").value = "";
-    sn.vorschlaege = []; sn.nr = 0; sn.fuer = ""; sn.ueb = "";
+    sn.vorschlaege = []; sn.nr = 0; sn.fuer = ""; sn.ueb = ""; sn.bild = null;
+    snEl("foto").textContent = "📷";
     snEl("de").placeholder = WISSEN ? "Bedeutung" : "Deutsch";
     snEl("mehr").hidden = true;
   }
@@ -4294,6 +4334,9 @@
   snEl("en").addEventListener("input", snPruefen);
   snEl("en").addEventListener("change", snAutoUebersetzen);   // beim Verlassen des Feldes / Enter
   snEl("weg").addEventListener("click", function () { snLeeren(); snInfo(""); });
+  snEl("foto").addEventListener("click", function () {
+    bildWaehlen(function (blob) { sn.bild = blob; snEl("foto").textContent = "📷 ✓"; snInfo("Foto kommt auf die Rückseite."); });
+  });
   snEl("de").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("schnell").requestSubmit(); } });
   snEl("bsp").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("schnell").requestSubmit(); } });
   document.getElementById("schnell").addEventListener("submit", function (e) {
@@ -4310,11 +4353,13 @@
       return;
     }
     if (!de) { snEl("de").focus(); snAutoUebersetzen(); return; }
-    daten.cards.push({
+    var neuK = {
       id: neueId(), front: WISSEN ? en : de, back: WISSEN ? de : en, bsp: bsp,   // Wissenskasten: erstes Feld = Begriff (vorne)
       kat: Number(snEl("kat").value) || 0,
       ord: naechsteOrd(), aktiv: true, merk: false, box: 1, due: heute(), created: Date.now()
-    });
+    };
+    daten.cards.push(neuK);
+    if (sn.bild) { neuK.bild = true; bildSetzen(neuK.id, sn.bild); }
     sichern(); snLeeren(); zeichneKacheln();
     function kurz(x) { return x.length > 60 ? x.slice(0, 57).replace(/\s+\S*$/, "") + " …" : x; }
     snInfo("liegt im Kasten (Fach 1) und kommt heute noch dran.", "„" + en + "“ = „" + kurz(de) + "“");
@@ -4782,9 +4827,21 @@
 
   /* Teilen: Sicherungsdatei direkt an Drive, Mail, Messenger … (Teilen-Menü des Handys).
      Chrome teilt nicht jede Dateiart - geht JSON nicht, dieselbe Datei als .txt (Einlesen versteht beides). */
-  function sicherungsDatei() {
+  // Sicherung mit Fotos (als Daten-URL unter bilder["<Kasten>:<Karte>"])
+  function sicherungMitBildern() {
+    var aus = sicherungsInhalt(), wer = [];
+    aus.cards.forEach(function (c) { if (c.bild) wer.push(["en", c.id]); });
+    Object.keys(aus.kastenDaten || {}).forEach(function (kid) { aus.kastenDaten[kid].cards.forEach(function (c) { if (c.bild) wer.push([kid, c.id]); }); });
+    if (!wer.length) return Promise.resolve(aus);
+    aus.bilder = {};
+    return Promise.all(wer.map(function (w) {
+      return bildHolen(w[1], w[0]).then(function (b) { return b ? blobZuDatenUrl(b) : null; })
+        .then(function (u) { if (u) aus.bilder[w[0] + ":" + w[1]] = u; });
+    })).then(function () { return aus; });
+  }
+  function sicherungsDatei(inhalt) {
     var d = new Date(), name = "vokabeln-" + d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    var inhalt = JSON.stringify(sicherungsInhalt(), null, 1);
+    inhalt = inhalt || JSON.stringify(sicherungsInhalt(), null, 1);
     try {
       var f = new File([inhalt], name + ".json", { type: "application/json" });
       if (navigator.canShare && navigator.canShare({ files: [f] })) return f;
@@ -4796,7 +4853,8 @@
   var kannTeilen = !!(navigator.share && sicherungsDatei());
   document.getElementById("btn-teilen").hidden = !kannTeilen;
   document.getElementById("btn-teilen").addEventListener("click", function () {
-    var f = sicherungsDatei();
+    sicherungMitBildern().then(function (aus) {
+    var f = sicherungsDatei(JSON.stringify(aus, null, 1));
     if (!f) { document.getElementById("btn-export").click(); return; }
     navigator.share({ files: [f], title: "Vokabelkasten" }).then(function () {
       daten.letzteSicherung = Date.now();
@@ -4805,6 +4863,7 @@
     }).catch(function (e) {
       if (e && e.name === "AbortError") return;   // im Teilen-Menü abgebrochen
       document.getElementById("btn-export").click();
+    });
     });
   });
 
@@ -4818,7 +4877,10 @@
   });
 
   document.getElementById("btn-export").addEventListener("click", function () {
-    var blob = new Blob([JSON.stringify(sicherungsInhalt(), null, 1)], { type: "application/json" });
+    sicherungMitBildern().then(herunterladen);
+  });
+  function herunterladen(aus) {
+    var blob = new Blob([JSON.stringify(aus, null, 1)], { type: "application/json" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     var d = new Date();
@@ -4831,7 +4893,7 @@
       String(d.getDate()).padStart(2, "0") + ".json";
     a.click();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-  });
+  }
 
   document.getElementById("btn-import").addEventListener("click", function () {
     document.getElementById("file").click();
@@ -4857,8 +4919,14 @@
     return aus;
   }
   // Karten einer Sicherung in einen Kasten mischen: Vorhandenes behält den besseren Lernstand, Neues kommt dazu
-  function kartenMischen(ziel, karten, katAnzahl) {
+  function kartenMischen(ziel, karten, katAnzahl, kid, bilder, aufgaben) {
     var idx = {}, neu = 0, akt = 0;
+    function foto(c, karte) {   // Foto aus der Datei an die Karte hängen (hat sie schon eins, bleibt es)
+      var u = c.bild && bilder && bilder[kid + ":" + c.id];
+      if (!u) return;
+      aufgaben.push([kid, karte.id, u, !!karte.bild]);   // hatte die Karte schon ein Foto: nur ergänzen, falls es fehlt
+      karte.bild = true;
+    }
     ziel.cards.forEach(function (c) { idx[c.front + "\u0000" + c.back] = c; });
     var ord = ziel.cards.reduce(function (m, c) { return typeof c.ord === "number" && c.ord >= m ? c.ord + 1 : m; }, SEED.rows.length);
     (karten || []).forEach(function (c) {
@@ -4869,6 +4937,7 @@
         if (c.merk) vorhanden.merk = true;
         if (c.aktiv !== false) vorhanden.aktiv = true;
         if (box > vorhanden.box) { vorhanden.box = box; vorhanden.due = typeof c.due === "number" ? c.due : vorhanden.due; akt++; }
+        foto(c, vorhanden);
         return;
       }
       var karte = {
@@ -4878,6 +4947,7 @@
         due: typeof c.due === "number" ? c.due : heute(), created: typeof c.created === "number" ? c.created : Date.now()
       };
       ziel.cards.push(karte);
+      foto(c, karte);
       idx[c.front + "\u0000" + c.back] = karte;   // doppelte Zeilen in der Datei landen auf derselben Karte
       neu++;
     });
@@ -4888,10 +4958,10 @@
     try { window.localStorage.setItem(kastenKey(id), JSON.stringify(d)); } catch (e) {}
   }
   function sicherungEinlesen(p) {
-    var gesamt = { neu: 0, akt: 0 }, dazu = [];
+    var gesamt = { neu: 0, akt: 0 }, dazu = [], fotos = [];
     // Englisch (oben in der Datei)
     var en = kastenLesen("en") || { v: 2, seeded: true, cards: [] };
-    var r = kartenMischen(en, p.cards, SEED.kats.length);
+    var r = kartenMischen(en, p.cards, SEED.kats.length, "en", p.bilder, fotos);
     gesamt.neu += r.neu; gesamt.akt += r.akt;
     kastenSchreiben("en", en);
     // weitere Kästen: fehlende werden angelegt, vorhandene gemischt
@@ -4903,13 +4973,19 @@
         KAESTEN.liste.push(eintrag); dazu.push(kastenTitel(eintrag));
       }
       var d = kastenLesen(k.id) || { v: 2, seeded: true, cards: [] };
-      var r2 = kartenMischen(d, p.kastenDaten[k.id].cards, 4);
+      var r2 = kartenMischen(d, p.kastenDaten[k.id].cards, 4, String(k.id), p.bilder, fotos);
       gesamt.neu += r2.neu; gesamt.akt += r2.akt;
       kastenSchreiben(k.id, d);
     });
     kaestenSichern();
     kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
     zeichneListe();
+    fotos.forEach(function (f) {
+      (f[3] ? bildHolen(f[1], f[0]) : Promise.resolve(null)).then(function (da) {
+        if (da) return;
+        return fetch(f[2]).then(function (x) { return x.blob(); }).then(function (b) { return bildSetzen(f[1], b, f[0]); });
+      }).catch(function () {});
+    });
     alert(gesamt.neu + " neu, " + gesamt.akt + " Lernstände aktualisiert." + (dazu.length ? " Neue Kästen: " + dazu.join(", ") + "." : ""));
   }
 
@@ -4939,6 +5015,7 @@
   document.getElementById("btn-reset").addEventListener("click", function () {
     if (!confirm("Wirklich alle Vokabeln löschen? Nur eine Sicherungsdatei bringt sie zurück.")) return;
     daten = { v: 2, seeded: true, cards: [] };
+    bilderKastenLoeschen(KASTEN.id);
     runde = []; aktuell = null;
     sichern();
     zeichneListe(); zeichneStats();
@@ -6533,6 +6610,94 @@
     navigator.share({ title: "Vokabelkasten", text: "Englischvokabeln lernen mit dem Vokabelkasten:", url: appAdresse() }).catch(function () {});
   });
 
+  /* ---------- Fotos auf der Rückseite (nur auf diesem Gerät) ----------
+     Fotos liegen in IndexedDB (localStorage wäre dafür zu klein), Schlüssel "<Kasten>:<Karte>", verkleinert auf
+     höchstens 1024 px als JPEG. Die Karte selbst trägt nur bild:true. Nichts davon geht ins Internet;
+     die Sicherungsdatei nimmt die Fotos als Daten-URL mit. */
+  var BILD_DB = "vokabelkasten-bilder", BILD_STORE = "bilder", bildUrls = {};
+  function bildDb() {
+    return new Promise(function (ok, fehler) {
+      if (!window.indexedDB) { fehler(); return; }
+      var r;
+      try { r = indexedDB.open(BILD_DB, 1); } catch (e) { fehler(e); return; }
+      r.onupgradeneeded = function () { r.result.createObjectStore(BILD_STORE); };
+      r.onsuccess = function () { ok(r.result); };
+      r.onerror = function () { fehler(r.error); };
+    });
+  }
+  function bildKey(cid, kid) { return (kid || KASTEN.id) + ":" + cid; }
+  function bildHolen(cid, kid) {
+    return bildDb().then(function (db) {
+      return new Promise(function (ok) {
+        var q = db.transaction(BILD_STORE, "readonly").objectStore(BILD_STORE).get(bildKey(cid, kid));
+        q.onsuccess = function () { ok(q.result || null); };
+        q.onerror = function () { ok(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  function bildSetzen(cid, blob, kid) {
+    var k = bildKey(cid, kid);
+    if (bildUrls[k]) { URL.revokeObjectURL(bildUrls[k]); delete bildUrls[k]; }
+    return bildDb().then(function (db) {
+      return new Promise(function (ok) {
+        var tx = db.transaction(BILD_STORE, "readwrite"), st = tx.objectStore(BILD_STORE);
+        if (blob) st.put(blob, k); else st.delete(k);
+        tx.oncomplete = function () { ok(true); };
+        tx.onerror = function () { ok(false); };
+      });
+    }).catch(function () { return false; });
+  }
+  function bildUrl(cid) {
+    var k = bildKey(cid);
+    if (bildUrls[k]) return Promise.resolve(bildUrls[k]);
+    return bildHolen(cid).then(function (b) { if (!b) return null; bildUrls[k] = URL.createObjectURL(b); return bildUrls[k]; });
+  }
+  function bilderKastenLoeschen(kid) {
+    return bildDb().then(function (db) {
+      var st = db.transaction(BILD_STORE, "readwrite").objectStore(BILD_STORE);
+      var c = st.openCursor();
+      c.onsuccess = function () { var cur = c.result; if (!cur) return; if (String(cur.key).indexOf(kid + ":") === 0) cur.delete(); cur.continue(); };
+    }).catch(function () {});
+  }
+  // Foto verkleinern: längste Seite höchstens 1024 px, JPEG - so bleiben Speicher und Sicherung klein
+  function bildVerkleinern(datei) {
+    return new Promise(function (ok, fehler) {
+      var url = URL.createObjectURL(datei), img = new Image();
+      img.onload = function () {
+        var f = Math.min(1, 1024 / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas");
+        c.width = Math.round(img.naturalWidth * f); c.height = Math.round(img.naturalHeight * f);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { if (b) ok(b); else fehler(); }, "image/jpeg", 0.8);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); fehler(); };
+      img.src = url;
+    });
+  }
+  function bildWaehlen(fertig) {
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "image/*";
+    inp.addEventListener("change", function () {
+      var f = inp.files && inp.files[0];
+      if (!f) return;
+      bildVerkleinern(f).then(fertig).catch(function () { alert("Das Foto ließ sich nicht lesen."); });
+    });
+    inp.click();
+  }
+  function bildAufKarte() {
+    var kb = document.getElementById("k-bild");
+    if (!aktuell || !aufgedeckt || !aktuell.bild) { kb.hidden = true; kb.removeAttribute("src"); return; }
+    var id = aktuell.id;
+    bildUrl(id).then(function (u) {
+      if (!u || !aktuell || aktuell.id !== id || !aufgedeckt) return;
+      kb.src = u; kb.hidden = false;
+    });
+  }
+  function blobZuDatenUrl(b) {
+    return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { ok(null); }; r.readAsDataURL(b); });
+  }
+
   /* ---------- Kästen: Beschriftung, Leiste, Wischen, Anlegen ---------- */
   function kastenTexte() {
     document.documentElement.style.setProperty("--kasten", KASTEN_FARBEN[KASTEN.farbe % KASTEN_FARBEN.length]);
@@ -6665,6 +6830,7 @@
         lo.addEventListener("click", function () {
           if (!confirm("„" + kastenTitel(k) + "“ mit allen Karten löschen? Das lässt sich nur mit einer Sicherungsdatei rückgängig machen.")) return;
           try { window.localStorage.removeItem(kastenKey(k.id)); } catch (e) {}
+          bilderKastenLoeschen(k.id);
           KAESTEN.liste = KAESTEN.liste.filter(function (x) { return x.id !== k.id; });
           if (KAESTEN.aktiv === k.id) { KAESTEN.aktiv = "en"; kaestenSichern(); location.reload(); return; }
           kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen();
