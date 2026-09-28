@@ -6754,7 +6754,6 @@
     plus.setAttribute("aria-label", "Neuen Kasten anlegen"); plus.title = "Neuen Kasten anlegen";
     plus.addEventListener("click", kastenNeuFragen);
     leiste.appendChild(plus);
-    var pp = document.createElement("i"); pp.className = "plus"; punkte.appendChild(pp);
     punkte.hidden = KAESTEN.liste.length < 2;
     var an = leiste.querySelector(".an");
     if (an && an.scrollIntoView) an.scrollIntoView({ inline: "center", block: "nearest" });
@@ -6781,7 +6780,7 @@
     kastenAnlegen(document.getElementById("kasten-name").value);
   });
   document.getElementById("kasten-abbruch").addEventListener("click", function () { document.getElementById("kasten-dialog").hidden = true; });
-  // Wischen auf der Startseite: links = nächster Kasten (am Ende „+“), rechts = vorheriger
+  // Wischen auf der Startseite: links = nächster Kasten, rechts = vorheriger (am Ende passiert nichts - neu nur über „+“)
   (function () {
     var st = document.getElementById("view-start"), start = null;
     st.addEventListener("pointerdown", function (e) {
@@ -6795,7 +6794,7 @@
       if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5 || dt > 800) return;
       var i = 0;
       KAESTEN.liste.forEach(function (k, j) { if (k.id === KASTEN.id) i = j; });
-      if (dx < 0) { if (i + 1 < KAESTEN.liste.length) kastenWechseln(KAESTEN.liste[i + 1].id, "links"); else kastenNeuFragen(); }
+      if (dx < 0) { if (i + 1 < KAESTEN.liste.length) kastenWechseln(KAESTEN.liste[i + 1].id, "links"); }
       else if (i > 0) kastenWechseln(KAESTEN.liste[i - 1].id, "rechts");
     });
     st.addEventListener("pointercancel", function () { start = null; });
