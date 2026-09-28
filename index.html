@@ -3990,7 +3990,8 @@
      English zuerst (so begegnet einem das Wort), Deutsch dazu, Enter: die Karte liegt sofort in Fach 1.
      Gibt es das Wort schon, wird die vorhandene Karte in den Kasten gelegt statt einer doppelten.
      Beispielsatz-Vorschlag: zuerst aus den eigenen Sätzen der App (offline), sonst - nur auf Tipp - aus dem
-     freien Wörterbuch Wiktionary (dabei geht nur das Wort übers Netz, siehe Datenschutz). */
+     freien Wörterbuch Wiktionary. Übersetzung: automatisch nach dem Eintippen (Wiktionary, sonst MyMemory).
+     Dabei geht jeweils nur das englische Wort übers Netz, siehe Datenschutz. */
   var sn = { vorschlaege: [], nr: 0, fuer: "" };
   function snEl(x) { return document.getElementById("sn-" + x); }
   function snNorm(t) { return String(t || "").toLowerCase().replace(/^to\s+/, "").replace(/\s+/g, " ").trim(); }
@@ -4037,7 +4038,8 @@
   }
   function snLeeren() {
     snEl("en").value = ""; snEl("de").value = ""; snEl("bsp").value = "";
-    sn.vorschlaege = []; sn.nr = 0; sn.fuer = "";
+    sn.vorschlaege = []; sn.nr = 0; sn.fuer = ""; sn.ueb = "";
+    snEl("de").placeholder = "Deutsch";
     snEl("mehr").hidden = true;
   }
   // Sätze aus der App, in denen das Wort vorkommt (auch mit Endung: decide -> decided)
@@ -4075,6 +4077,89 @@
       .catch(function () { return []; });
     return Promise.race([holen, stopp]);
   }
+  /* Automatisch übersetzen: zuerst das deutsche Wiktionary (echte Wörterbucheinträge, mehrere Bedeutungen),
+     sonst MyMemory (freier Übersetzungsdienst). Übers Netz geht nur das englische Wort. Das Ergebnis ist ein
+     Vorschlag im Feld „Deutsch“ - markiert, damit man es mit dem ersten Tastendruck überschreiben kann. */
+  function snWiktDe(text) {
+    var i = text.search(/==[^=\n]*\(\{\{Sprache\|Englisch\}\}\)[^=\n]*==/);
+    if (i < 0) return [];
+    var rest = text.slice(i + 2), j = rest.search(/\n==[^=\n]*\(\{\{Sprache\|/);
+    var teil = j > -1 ? rest.slice(0, j) : rest, out = [];
+    teil.split("{{Bedeutungen}}").slice(1).forEach(function (block) {
+      block.split("\n").slice(1).some(function (zeile) {
+        if (!/^:/.test(zeile)) return zeile.trim() !== "";   // Block endet an der ersten Nicht-Bedeutungszeile
+        var body = zeile.replace(/^:\s*\[[^\]]*\]\s*/, "").replace(/\{\{[^{}]*\}\}/g, "").replace(/<[^>]+>/g, "");
+        var dp = body.lastIndexOf(":");
+        if (dp > -1 && /\[\[/.test(body.slice(dp))) body = body.slice(dp + 1);   // „Erklärung: [[Wort]], [[Wort]]“
+        var m, re = /\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/g, links = [];
+        while ((m = re.exec(body))) links.push((m[2] || m[1]).trim());
+        if (!links.length && body.trim().split(/\s+/).length <= 4) links = [body.replace(/[;.,]+$/, "").trim()];
+        links.forEach(function (w) { if (w && out.indexOf(w) < 0) out.push(w); });
+        return false;
+      });
+    });
+    return out.slice(0, 4);
+  }
+  function snUebersetzen(en) {
+    var wort = snNorm(en);
+    if (!wort || !window.fetch || navigator.onLine === false) return Promise.resolve(null);
+    function wikt(titel) {
+      return fetch("https://de.wiktionary.org/w/api.php?action=parse&prop=wikitext&format=json&formatversion=2&origin=*&page=" + encodeURIComponent(titel),
+                   { headers: { "Api-User-Agent": "Vokabelkasten (persönliche Lern-App)" } })
+        .then(function (r) { return r.ok ? r.json() : {}; })
+        .then(function (j) { return j && j.parse && j.parse.wikitext ? snWiktDe(j.parse.wikitext) : []; })
+        .catch(function () { return []; });
+    }
+    function mymemory() {
+      return fetch("https://api.mymemory.translated.net/get?langpair=en%7Cde&q=" + encodeURIComponent(wort))
+        .then(function (r) { return r.ok ? r.json() : {}; })
+        .then(function (j) {
+          var kand = [(j.responseData || {}).translatedText].concat((j.matches || []).map(function (m) { return m.translation; }));
+          var out = [], klein = [];
+          kand.forEach(function (x) {
+            x = String(x || "").replace(/[\s.!?:;]+$/, "").trim();
+            if (!x || x.toLowerCase() === wort || /[<>{}]|MYMEMORY|QUERY LENGTH/i.test(x) || x.length > 60) return;
+            if (klein.indexOf(x.toLowerCase()) > -1) return;
+            klein.push(x.toLowerCase()); out.push(x);
+          });
+          // erster Treffer; ein zweiter nur, wenn er kurz ist („abheben, Start“ ja, „Freuen Sie sich auf“ nein)
+          return out.slice(0, 1).concat(out.slice(1, 2).filter(function (x) { return x.split(" ").length <= 2; }));
+        })
+        .catch(function () { return []; });
+    }
+    var stopp = new Promise(function (ok) { setTimeout(function () { ok(null); }, 9000); });
+    var holen = wikt(wort).then(function (a) {
+      return a.length ? a : (wort !== en.trim() && en.trim().indexOf(" ") < 0 ? wikt(en.trim()) : []);
+    }).then(function (a) {
+      if (a.length) return { text: a.join(", "), quelle: "Wiktionary" };
+      return mymemory().then(function (b) {
+        if (!b.length) return null;
+        // englisches Verb („to give up“): deutsches Verb klein („aufgeben“ statt „Aufgeben“)
+        if (/^to\s/i.test(en.trim())) b = b.map(function (x) { return x.charAt(0).toLowerCase() + x.slice(1); });
+        return { text: b.join(", "), quelle: "MyMemory" };
+      });
+    });
+    return Promise.race([holen, stopp]);
+  }
+  function snAutoUebersetzen() {
+    var en = snEl("en").value.trim(), de = snEl("de");
+    if (!en || de.value.trim() || snVorhanden(en) || sn.ueb === snNorm(en)) return;
+    sn.ueb = snNorm(en);
+    var fuer = sn.ueb;
+    de.placeholder = "Übersetze …";
+    snUebersetzen(en).then(function (r) {
+      if (snNorm(snEl("en").value) !== fuer) return;   // inzwischen ein anderes Wort
+      de.placeholder = "Deutsch";
+      if (!r) {
+        if (navigator.onLine !== false) snInfo("Keine Übersetzung gefunden – schreib sie einfach selbst.");
+        return;
+      }
+      if (de.value.trim()) return;   // schon selbst geschrieben
+      de.value = r.text;
+      if (document.activeElement === de) de.select();
+      snInfo("Vorschlag von " + r.quelle + " – passt? Dann Enter. Sonst einfach überschreiben.");
+    });
+  }
   function snZeigeVorschlag() {
     if (!sn.vorschlaege.length) return false;
     snEl("bsp").value = sn.vorschlaege[sn.nr % sn.vorschlaege.length];
@@ -4100,6 +4185,7 @@
     });
   });
   snEl("en").addEventListener("input", snPruefen);
+  snEl("en").addEventListener("change", snAutoUebersetzen);   // beim Verlassen des Feldes / Enter
   snEl("weg").addEventListener("click", function () { snLeeren(); snInfo(""); });
   snEl("de").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("schnell").requestSubmit(); } });
   snEl("bsp").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("schnell").requestSubmit(); } });
@@ -4116,7 +4202,7 @@
       snEl("en").focus();
       return;
     }
-    if (!de) { snEl("de").focus(); return; }
+    if (!de) { snEl("de").focus(); snAutoUebersetzen(); return; }
     daten.cards.push({
       id: neueId(), front: de, back: en, bsp: bsp,
       kat: Number(snEl("kat").value) || 0,
@@ -4139,6 +4225,7 @@
         snEl("en").value = t;
         snPruefen();
         snEl("de").focus();
+        snAutoUebersetzen();
       }, 0);
     } catch (e) {}
   })();
