@@ -3665,6 +3665,11 @@
     return !!(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
   }
 
+  // Daten dauerhaft behalten: der Browser soll sie auch bei knappem Speicher nicht von sich aus löschen
+  try {
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(function (ja) { if (!ja) return navigator.storage.persist(); }).catch(function () {});
+  } catch (e) {}
+
   function tageSeit(zeit) {
     if (!zeit) return null;
     return Math.floor((Date.now() - zeit) / 86400000);
