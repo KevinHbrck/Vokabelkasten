@@ -9,6 +9,16 @@
 <link rel="icon" href="icon.png" type="image/png">
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
+<script>
+  /* Kastenwechsel: die Startseite steht vom ersten Bild an seitlich bereit und gleitet dann herein */
+  (function () {
+    try {
+      var rein = sessionStorage.getItem("vk-kasten-rein");
+      if (rein && document.visibilityState === "visible") document.documentElement.setAttribute("data-rein", rein);
+      if (/[?&]kw=1/.test(location.search)) history.replaceState(null, "", location.pathname + location.hash);
+    } catch (e) {}
+  })();
+</script>
 <style>
   :root {
     --ink: #17202b;
@@ -264,6 +274,8 @@
   .st-cta { color: var(--kasten, #d4580a) !important; }
   /* Wischen zwischen Kästen: die Startseite folgt dem Finger (Bewegung per JS), ohne seitliches Scrollen */
   #view-start { touch-action: pan-y; will-change: transform; }
+  html[data-rein="links"] #view-start { transform: translateX(100%); }
+  html[data-rein="rechts"] #view-start { transform: translateX(-100%); }
   main { overflow-x: clip; }
   @media (prefers-reduced-motion: reduce) { #view-start { transition: none !important; } }
   .kasten-dialog { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
@@ -6835,17 +6847,20 @@
     opt("#sel-sort", "de", "Begriff A–Z"); opt("#sel-sort", "en", "Bedeutung A–Z");
     opt("#sel-abdeck", "en", "Bedeutung abdecken"); opt("#sel-abdeck", "de", "Begriff abdecken");
   }
-  function kastenWechseln(id, weg) {
+  function kastenWechseln(id, weg, tempo) {
     if (id === KASTEN.id) return;
     KAESTEN.aktiv = id;
     kaestenSichern();
     try { sessionStorage.setItem("vk-kasten-rein", weg || "links"); } catch (e) {}
-    // Seite gleitet ganz hinaus (aus der aktuellen Wischposition weiter), dann kommt der neue Kasten
-    var st = document.getElementById("view-start");
-    st.style.transition = "transform .24s cubic-bezier(.4,0,1,1), opacity .24s ease-in";
+    // Seite gleitet ganz hinaus - aus der aktuellen Wischposition und mit dem Schwung des Fingers weiter
+    var st = document.getElementById("view-start"), breite = st.offsetWidth || 400;
+    var jetzt = new DOMMatrix(getComputedStyle(st).transform).m41 || 0, rest = breite - Math.abs(jetzt);
+    var dauer = Math.round(Math.max(140, Math.min(260, tempo ? rest / tempo : 240)));
+    st.style.transition = "transform " + dauer + "ms cubic-bezier(.25,.6,.45,1), opacity " + dauer + "ms linear";
     st.style.transform = "translateX(" + (weg === "rechts" ? "" : "-") + "100%)";
-    st.style.opacity = "0";
-    setTimeout(function () { location.reload(); }, 230);
+    st.style.opacity = ".4";
+    // ?kw=1: der Service Worker nimmt die Seite dafür aus dem Speicher (kein Warten aufs Netz)
+    setTimeout(function () { location.replace(location.pathname + "?kw=1" + location.hash); }, dauer);
   }
   function kastenLeisteZeichnen() {
     var leiste = document.getElementById("kasten-leiste"), punkte = document.getElementById("kasten-punkte");
@@ -6906,7 +6921,7 @@
       clearTimeout(fertigUhr);
       st.style.transition = animiert ? "transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease-out" : "none";
       st.style.transform = x ? "translateX(" + x + "px)" : "";
-      st.style.opacity = x ? String(Math.max(.35, 1 - Math.abs(x) / (st.offsetWidth * 1.6))) : "";
+      st.style.opacity = x ? String(Math.max(.5, 1 - Math.abs(x) / (st.offsetWidth * 2.2))) : "";
       // Absicherung: danach steht die Seite garantiert an ihrem Platz, auch falls ein Übergang hängen bleibt
       if (animiert) fertigUhr = setTimeout(function () { st.style.transition = ""; }, 320);
     }
@@ -6932,8 +6947,9 @@
       if (!zieht) return;
       var dx = e.clientX - s.x, dt = Math.max(1, Date.now() - s.t), i = index();
       var weit = Math.abs(dx) > st.offsetWidth * .28 || (Math.abs(dx) > 40 && Math.abs(dx) / dt > .5);
-      if (weit && dx < 0 && i + 1 < KAESTEN.liste.length) { kastenWechseln(KAESTEN.liste[i + 1].id, "links"); return; }
-      if (weit && dx > 0 && i > 0) { kastenWechseln(KAESTEN.liste[i - 1].id, "rechts"); return; }
+      var tempo = Math.min(3, Math.abs(dx) / dt);
+      if (weit && dx < 0 && i + 1 < KAESTEN.liste.length) { kastenWechseln(KAESTEN.liste[i + 1].id, "links", tempo); return; }
+      if (weit && dx > 0 && i > 0) { kastenWechseln(KAESTEN.liste[i - 1].id, "rechts", tempo); return; }
       setze(0, true);
     }
     st.addEventListener("pointerup", ende);
@@ -6943,15 +6959,19 @@
     // nach dem Wechsel: neuer Kasten gleitet von der Seite herein
     try {
       var rein = sessionStorage.getItem("vk-kasten-rein");
-      if (rein && document.visibilityState !== "visible") sessionStorage.removeItem("vk-kasten-rein");   // unsichtbar: ohne Animation
-      else if (rein) {
-        sessionStorage.removeItem("vk-kasten-rein");
+      if (rein) sessionStorage.removeItem("vk-kasten-rein");
+      if (rein && document.visibilityState === "visible") {
         st.style.transition = "none";
-        st.style.transform = "translateX(" + (rein === "rechts" ? "-" : "") + "60%)";
-        st.style.opacity = "0";
+        st.style.transform = "translateX(" + (rein === "rechts" ? "-" : "") + "100%)";
+        st.style.opacity = ".4";
+        document.documentElement.removeAttribute("data-rein");
         void st.offsetWidth;   // Startlage festschreiben, dann sofort hineingleiten (ohne auf ein Bildsignal zu warten)
-        setze(0, true);
+        clearTimeout(fertigUhr);
+        st.style.transition = "transform .36s cubic-bezier(.16,1,.3,1), opacity .3s ease-out";
+        st.style.transform = ""; st.style.opacity = "";
+        fertigUhr = setTimeout(function () { st.style.transition = ""; }, 420);
       }
+      document.documentElement.removeAttribute("data-rein");   // unsichtbar: ohne Animation an Ort und Stelle
     } catch (e) {}
   })();
   // Einstellungen: Kasten umbenennen oder löschen (Englisch bleibt immer)
