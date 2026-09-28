@@ -178,25 +178,48 @@
       var n = JSON.parse(W.localStorage.getItem(KEY)).cards.filter(function (c) { return c.back === "zzqtestword"; }).length;
       pruefe(n === 1, "Wort ist " + n + "-mal gespeichert");
     }],
-    ["Kästen: neuen Kasten anlegen, Begriff speichern, zurück zu Englisch", async function () {
+    ["Kästen: anlegen, Begriff speichern, wechseln ohne Neuladen, Texte, löschen", async function () {
       await laden();
-      var enVorher = JSON.parse(W.localStorage.getItem(KEY)).cards.length;
+      var enVorher = W.localStorage.getItem(KEY), enKarten = JSON.parse(enVorher).cards.length;
+      var phVorher = id("sn-de").placeholder;
+      W.__ohneNeuladen = true;   // verschwindet, falls die Seite doch neu lädt
       klick(await bis(function () { return $(".kasten-reiter.plus"); }, 3000, "„+“ für neuen Kasten"));
       pruefe(!id("kasten-dialog").hidden, "Frage nach dem Thema erscheint nicht");
       id("kasten-name").value = "Testthema";
-      await neuGeladen(function () { id("kasten-form").requestSubmit(); });
-      await bis(function () { return id("st-hero-name"); }, 3000, "Startseite nach dem Wechsel");
-      pruefe(id("st-hero-name").textContent === "Testthemakasten", "Titel ist „" + id("st-hero-name").textContent + "“");
+      id("kasten-form").requestSubmit();
+      await bis(function () { return id("st-hero-name").textContent === "Testthemakasten"; }, 3000, "Wechsel in den neuen Kasten");
+      pruefe(W.__ohneNeuladen === true, "Seite wurde neu geladen");
       pruefe(D.documentElement.hasAttribute("data-wissen"), "Wissenskasten nicht erkannt");
+      pruefe(id("sn-de").placeholder === "Bedeutung", "Wissens-Texte fehlen: " + id("sn-de").placeholder);
+      pruefe(id("sel-kat").options.length === 6, "Kategorien im Wissenskasten: " + id("sel-kat").options.length);
       eingeben(id("sn-en"), "ABC");
       id("sn-de").value = "Testbedeutung";
       id("schnell").requestSubmit();
       var reg = JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten"));
       var karten = JSON.parse(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv)).cards;
       pruefe(karten.length === 1 && karten[0].front === "ABC" && karten[0].back === "Testbedeutung", "Begriff falsch gespeichert: " + JSON.stringify(karten));
-      await neuGeladen(function () { klick($$(".kasten-reiter")[0]); });
-      pruefe(id("st-hero-name").textContent === "Vokabelkasten", "nicht zurück im Englisch-Kasten");
-      pruefe(JSON.parse(W.localStorage.getItem(KEY)).cards.length === enVorher, "Englisch-Kasten hat sich verändert");
+      pruefe(JSON.parse(W.localStorage.getItem(KEY)).cards.length === enKarten, "Begriff ist im Englisch-Kasten gelandet");
+      klick($$(".kasten-reiter")[0]);
+      await bis(function () { return id("st-hero-name").textContent === "Vokabelkasten"; }, 3000, "zurück im Englisch-Kasten");
+      pruefe(W.__ohneNeuladen === true, "Seite wurde beim Zurückwechseln neu geladen");
+      pruefe(!D.documentElement.hasAttribute("data-wissen"), "noch als Wissenskasten markiert");
+      pruefe(id("sn-de").placeholder === phVorher, "Texte nicht zurückgesetzt: " + id("sn-de").placeholder);
+      var enNach = JSON.parse(W.localStorage.getItem(KEY));
+      pruefe(enNach.cards.length === enKarten && JSON.stringify(enNach.cards) === JSON.stringify(JSON.parse(enVorher).cards), "Englisch-Kasten hat sich verändert");
+      pruefe(id("sel-kat").options.length === 2 + W.VK_DATEN.SEED.kats.length, "Kategorien doppelt oder falsch: " + id("sel-kat").options.length);
+      // wieder hin und den offenen Kasten löschen: zurück zu Englisch, Testkasten weg
+      klick($$(".kasten-reiter")[1]);
+      await bis(function () { return id("st-hero-name").textContent === "Testthemakasten"; }, 3000, "erneut im Testkasten");
+      pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv)).cards.length === 1, "Karte im Testkasten fehlt nach dem Wechsel");
+      W.confirm = function () { return true; };
+      var weg = $$(".kv-weg")[0];
+      pruefe(weg, "Löschen-Knopf für den Testkasten fehlt");
+      weg.click();
+      await bis(function () { return id("st-hero-name").textContent === "Vokabelkasten"; }, 3000, "nach dem Löschen zurück bei Englisch");
+      pruefe(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv) === null, "gelöschter Kasten wurde wieder angelegt");
+      pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")).liste.length === 1, "Testkasten steht noch im Verzeichnis");
+      pruefe(JSON.parse(W.localStorage.getItem(KEY)).cards.length === enKarten, "Englisch-Kasten nach dem Löschen verändert");
+      pruefe(W.__ohneNeuladen === true, "Seite wurde beim Löschen neu geladen");
     }],
     ["Lernstand übersteht Neustart auch mit Teilen-Funktion (wie am Handy)", async function () {
       var vorher = W.localStorage.getItem(KEY);

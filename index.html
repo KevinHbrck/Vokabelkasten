@@ -9,16 +9,6 @@
 <link rel="icon" href="icon.png" type="image/png">
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
-<script>
-  /* Kastenwechsel: die Startseite steht vom ersten Bild an seitlich bereit und gleitet dann herein */
-  (function () {
-    try {
-      var rein = sessionStorage.getItem("vk-kasten-rein");
-      if (rein && document.visibilityState === "visible") document.documentElement.setAttribute("data-rein", rein);
-      if (/[?&]kw=1/.test(location.search)) history.replaceState(null, "", location.pathname + location.hash);
-    } catch (e) {}
-  })();
-</script>
 <style>
   :root {
     --ink: #17202b;
@@ -274,8 +264,6 @@
   .st-cta { color: var(--kasten, #d4580a) !important; }
   /* Wischen zwischen Kästen: die Startseite folgt dem Finger (Bewegung per JS), ohne seitliches Scrollen */
   #view-start { touch-action: pan-y; will-change: transform; }
-  html[data-rein="links"] #view-start { transform: translateX(100%); }
-  html[data-rein="rechts"] #view-start { transform: translateX(-100%); }
   main { overflow-x: clip; }
   @media (prefers-reduced-motion: reduce) { #view-start { transition: none !important; } }
   .kasten-dialog { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
@@ -2232,8 +2220,8 @@
      Mehrere Karteikästen nebeneinander. Englisch ist der ursprüngliche Kasten und bleibt technisch genau wie er war
      (Schlüssel vokabelkasten.v2, Startliste, Stimmen). Jeder weitere Kasten ist ein „Wissenskasten“ (Begriff → Bedeutung)
      mit eigenem Speicher vokabelkasten.kasten.<id> - gleiche Funktionen, nur ohne Englisch-Startliste und -Stimmen.
-     Verzeichnis: vokabelkasten.kaesten = { aktiv, liste:[{ id, name, farbe, art }] }. Wechseln lädt die Seite neu,
-     so startet jeder Kasten mit sauberem Zustand. */
+     Verzeichnis: vokabelkasten.kaesten = { aktiv, liste:[{ id, name, farbe, art }] }. Wechseln geht ohne Neuladen:
+     kastenOeffnen() sichert den alten Stand, setzt alles auf Anfang und liest den neuen Kasten wie beim Start ein. */
   var KASTEN_REG = "vokabelkasten.kaesten";
   var KASTEN_FARBEN = ["#ef7b17", "#2b78e4", "#7b4fd6", "#1f9d63", "#d6453d", "#c28a00", "#0e9aa7"];
   function kaestenLesen() {
@@ -2254,7 +2242,8 @@
     var n = String(k.name || "").trim();
     return /kasten$/i.test(n) ? n : n + "kasten";
   }
-  var KATS = WISSEN ? ["Begriffe", "Abkürzungen", "Zusammenhänge", "Sonstiges"] : SEED.kats;
+  function kastenKats() { return WISSEN ? ["Begriffe", "Abkürzungen", "Zusammenhänge", "Sonstiges"] : SEED.kats; }
+  var KATS = kastenKats();
   var KEY = kastenKey(KASTEN.id);
   var ALT_KEY = "vokabelkasten.v1";
   // Index = Fach. Fach 1 wird nie angesteuert, eine richtige Antwort
@@ -2520,9 +2509,12 @@
   }
   /* Tagesziel und Lernserie zählen über alle Kästen: gelernt ist gelernt, egal in welchem Kasten.
      Die Tagesverläufe der anderen Kästen werden beim Start einmal gelesen (sie ändern sich nur, wenn sie offen sind). */
-  var fremdeLogs = KAESTEN.liste.filter(function (k) { return k.id !== KASTEN.id; }).map(function (k) {
-    try { var d = JSON.parse(window.localStorage.getItem(kastenKey(k.id))); return (d && d.log) || {}; } catch (e) { return {}; }
-  });
+  function fremdeLogsLesen() {
+    return KAESTEN.liste.filter(function (k) { return k.id !== KASTEN.id; }).map(function (k) {
+      try { var d = JSON.parse(window.localStorage.getItem(kastenKey(k.id))); return (d && d.log) || {}; } catch (e) { return {}; }
+    });
+  }
+  var fremdeLogs = fremdeLogsLesen();
 
   function zeigeWarnung() {
     var w = document.getElementById("warnbox");
@@ -3551,7 +3543,8 @@
      Alle 7 Tage eine vollständige Kopie von daten in IndexedDB (nicht in localStorage - dort liegen die
      eigentlichen Daten). Immer nur einer, der alte wird überschrieben. Klappt das Speichern nicht
      (voll, gesperrt), wird still beim nächsten Start neu versucht. */
-  var SNAP_TAGE = 7, SNAP_DB = "vokabelkasten-sicherung", SNAP_STORE = "stand", SNAP_KEY = KASTEN.id === "en" ? "schnappschuss" : "schnappschuss." + KASTEN.id;
+  var SNAP_TAGE = 7, SNAP_DB = "vokabelkasten-sicherung", SNAP_STORE = "stand", SNAP_KEY = snapKey();
+  function snapKey() { return KASTEN.id === "en" ? "schnappschuss" : "schnappschuss." + KASTEN.id; }
   var snapZeit = null;   // null = noch nicht nachgesehen, 0 = keiner, sonst Zeitpunkt (ms)
   function snapOeffnen() {
     return new Promise(function (ok, fehler) {
@@ -3964,6 +3957,7 @@
 
   /* ---------- Aufbau ---------- */
   function fuelleSelects() {
+    ["sn-kat", "sel-kat", "neu-kat", "imp-kat"].forEach(function (id) { document.getElementById(id).textContent = ""; });
     KATS.forEach(function (k, i) {
       var o2 = document.createElement("option"); o2.value = String(i); o2.textContent = k;
       document.getElementById("sn-kat").appendChild(o2);
@@ -6829,43 +6823,117 @@
   }
 
   /* ---------- Kästen: Beschriftung, Leiste, Wischen, Anlegen ---------- */
+  /* Ursprüngliche Texte (Vokabel-Fassung) merken, bevor ein Wissenskasten sie umschreibt - für den Wechsel zurück */
+  var textUrsprung = [];   // [Element, Eigenschaft ("@name" = Attribut), ursprünglicher Wert]
+  function merke(el, eig) {
+    for (var i = 0; i < textUrsprung.length; i++) if (textUrsprung[i][0] === el && textUrsprung[i][1] === eig) return;
+    textUrsprung.push([el, eig, eig.charAt(0) === "@" ? el.getAttribute(eig.slice(1)) : el[eig]]);
+  }
+  function texteZurueck() {
+    textUrsprung.forEach(function (u) {
+      if (u[1].charAt(0) !== "@") u[0][u[1]] = u[2];
+      else if (u[2] === null) u[0].removeAttribute(u[1].slice(1));
+      else u[0].setAttribute(u[1].slice(1), u[2]);
+    });
+  }
   function kastenTexte() {
     document.documentElement.style.setProperty("--kasten", KASTEN_FARBEN[KASTEN.farbe % KASTEN_FARBEN.length]);
     document.documentElement.toggleAttribute("data-wissen", WISSEN);
     document.title = kastenTitel(KASTEN);
     document.getElementById("st-hero-name").textContent = kastenTitel(KASTEN);
+    texteZurueck();   // erst die Vokabel-Texte, dann (bei Wissenskästen) umschreiben
     if (!WISSEN) return;
-    function txt(sel, t) { var el = document.querySelector(sel); if (el) el.textContent = t; }
-    function opt(sel, wert, t) { var el = document.querySelector(sel + ' option[value="' + wert + '"]'); if (el) el.textContent = t; }
-    var en = document.getElementById("sn-en");
-    en.placeholder = "Neuer Begriff"; en.setAttribute("aria-label", "Neuer Begriff");
-    en.setAttribute("autocapitalize", "sentences");
-    document.getElementById("sn-de").placeholder = "Bedeutung";
-    document.getElementById("sn-de").rows = 3;   // Erklärungen sind länger als Übersetzungen
-    document.getElementById("sn-de").setAttribute("aria-label", "Bedeutung");
+    function setze(el, eig, wert) {
+      if (!el) return;
+      merke(el, eig);
+      if (eig.charAt(0) === "@") el.setAttribute(eig.slice(1), wert); else el[eig] = wert;
+    }
+    function txt(sel, t) { setze(document.querySelector(sel), "textContent", t); }
+    function opt(sel, wert, t) { setze(document.querySelector(sel + ' option[value="' + wert + '"]'), "textContent", t); }
+    var en = document.getElementById("sn-en"), de = document.getElementById("sn-de");
+    setze(en, "placeholder", "Neuer Begriff"); setze(en, "@aria-label", "Neuer Begriff");
+    setze(en, "@autocapitalize", "sentences");
+    setze(de, "placeholder", "Bedeutung");
+    setze(de, "rows", 3);   // Erklärungen sind länger als Übersetzungen
+    setze(de, "@aria-label", "Bedeutung");
     txt('label[for="in-vorne"]', "Begriff"); txt('label[for="in-hinten"]', "Bedeutung");
     txt("#view-neu h2", "Neuer Begriff"); txt("#btn-add", "Begriff speichern");
-    document.getElementById("einf-hilfe").innerHTML = "Eine Zeile pro Karte: <b>Begriff · Bedeutung</b>, getrennt durch Tab, |, ; oder „ = “.";
-    document.getElementById("einfuegen").placeholder = "Leitzins = Zinssatz, zu dem sich Banken bei der Zentralbank Geld leihen";
+    setze(document.getElementById("einf-hilfe"), "innerHTML", "Eine Zeile pro Karte: <b>Begriff · Bedeutung</b>, getrennt durch Tab, |, ; oder „ = “.");
+    setze(document.getElementById("einfuegen"), "placeholder", "Leitzins = Zinssatz, zu dem sich Banken bei der Zentralbank Geld leihen");
     opt("#sel-richtung", "de", "Begriff zuerst"); opt("#sel-richtung", "en", "Bedeutung zuerst");
     ["#uw-richtung", "#du-richtung"].forEach(function (sel) { opt(sel, "de", "Begriff → Bedeutung"); opt(sel, "en", "Bedeutung → Begriff"); });
     opt("#sel-sort", "de", "Begriff A–Z"); opt("#sel-sort", "en", "Bedeutung A–Z");
     opt("#sel-abdeck", "en", "Bedeutung abdecken"); opt("#sel-abdeck", "de", "Begriff abdecken");
   }
-  function kastenWechseln(id, weg, tempo) {
-    if (id === KASTEN.id) return;
-    KAESTEN.aktiv = id;
+  /* Kasten öffnen ohne Neuladen: Laufendes beenden, alten Stand sichern, Zustand auf Anfang,
+     dann den neuen Kasten genau wie beim Start einlesen. Gespeichert wird erst wieder nach laden() (geladen). */
+  function kastenOeffnen(id) {
+    var k = KAESTEN.liste.filter(function (x) { return x.id === id; })[0];
+    if (!k) return;
+    if (uw) uwBeenden();
+    if (du) duSchliessen();
+    if (geladen) sichern();
+    geladen = false;
+    daten = { v: 2, seeded: false, cards: [] };
+    KAESTEN.aktiv = k.id;
     kaestenSichern();
-    try { sessionStorage.setItem("vk-kasten-rein", weg || "links"); } catch (e) {}
+    KASTEN = k; WISSEN = k.art === "wissen"; KATS = kastenKats(); KEY = kastenKey(k.id);
+    SNAP_KEY = snapKey(); snapZeit = null;
+    fremdeLogs = fremdeLogsLesen();
+    // alles, was zu einem Kasten gehört, auf Anfang (wie beim Start der Seite)
+    filterKat = "alle"; richtung = "de"; nurMerk = false; nurKasten = false; filterFach = 0; paket = 15; abdeck = "aus";
+    bearbeiteId = null; frischId = null; frischSet = {}; fokusNach = null; saetze = true;
+    listKat = "alle"; listSort = "nr"; listeTreffer = [];
+    runde = []; aktuell = null; aufgedeckt = false; rundeBilanz = [0, 0]; meldung = null; verlauf = [];
+    extraOffen = {}; extraGehabt = {}; eingabeKarte = null; statMonat = null; statTag = null;
+    kastenTexte();
+    kastenLeisteZeichnen();
+    kastenVerwaltenZeichnen();
+    fuelleSelects();
+    laden();
+    document.getElementById("sel-paket").value = String(paket);
+    document.getElementById("sel-abdeck").value = abdeck;
+    setzeThema(thema);
+    setzeModus(daten.modus);
+    setzeWischen(daten.wischen);
+    setzeEingabe(daten.eingabe);
+    document.getElementById("btn-saetze").textContent = saetze ? "Sätze aus" : "Sätze ein";
+    document.getElementById("sel-richtung").value = richtung;
+    snLeeren();
+    if (!sitzungFortsetzen()) rundeStarten(false);
+    uwWeiterKnopf();
+    snapPruefen();
+    zeichneListe();
+    wechsle(ansicht);
+  }
+  var wechselLaeuft = false;
+  function kastenWechseln(id, weg, tempo) {
+    if (id === KASTEN.id || wechselLaeuft) return;
+    var st = document.getElementById("view-start");
+    if (document.visibilityState !== "visible" || ansicht !== "start" || wenigBewegung) {   // ohne Animation
+      st.style.transition = ""; st.style.transform = ""; st.style.opacity = "";
+      kastenOeffnen(id);
+      return;
+    }
+    wechselLaeuft = true;
     // Seite gleitet ganz hinaus - aus der aktuellen Wischposition und mit dem Schwung des Fingers weiter
-    var st = document.getElementById("view-start"), breite = st.offsetWidth || 400;
+    var breite = st.offsetWidth || 400;
     var jetzt = new DOMMatrix(getComputedStyle(st).transform).m41 || 0, rest = breite - Math.abs(jetzt);
     var dauer = Math.round(Math.max(140, Math.min(260, tempo ? rest / tempo : 240)));
     st.style.transition = "transform " + dauer + "ms cubic-bezier(.25,.6,.45,1), opacity " + dauer + "ms linear";
     st.style.transform = "translateX(" + (weg === "rechts" ? "" : "-") + "100%)";
     st.style.opacity = ".4";
-    // ?kw=1: der Service Worker nimmt die Seite dafür aus dem Speicher (kein Warten aufs Netz)
-    setTimeout(function () { location.replace(location.pathname + "?kw=1" + location.hash); }, dauer);
+    setTimeout(function () {
+      try { kastenOeffnen(id); } catch (e) { wechselLaeuft = false; st.style.transition = ""; st.style.transform = ""; st.style.opacity = ""; throw e; }
+      // der neue Kasten steht auf der anderen Seite bereit und gleitet herein
+      st.style.transition = "none";
+      st.style.transform = "translateX(" + (weg === "rechts" ? "-" : "") + "100%)";
+      st.style.opacity = ".4";
+      void st.offsetWidth;
+      st.style.transition = "transform .36s cubic-bezier(.16,1,.3,1), opacity .3s ease-out";
+      st.style.transform = ""; st.style.opacity = "";
+      setTimeout(function () { st.style.transition = ""; wechselLaeuft = false; }, 420);
+    }, dauer);
   }
   function kastenLeisteZeichnen() {
     var leiste = document.getElementById("kasten-leiste"), punkte = document.getElementById("kasten-punkte");
@@ -6932,6 +7000,7 @@
     }
     st.addEventListener("pointerdown", function (e) {
       if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (wechselLaeuft) { start = null; return; }
       if (e.target.closest("input, textarea, select, .kasten-leiste, .kasten-dialog")) { start = null; return; }
       start = { x: e.clientX, y: e.clientY, t: Date.now() }; zieht = false;
     });
@@ -6961,23 +7030,7 @@
     st.addEventListener("pointercancel", function (e) { if (start) { start = null; setze(0, true); } });
     // nach einem Wisch kein versehentlicher Tipp auf Karten oder Knöpfe
     st.addEventListener("click", function (e) { if (zieht) { e.stopPropagation(); e.preventDefault(); zieht = false; } }, true);
-    // nach dem Wechsel: neuer Kasten gleitet von der Seite herein
-    try {
-      var rein = sessionStorage.getItem("vk-kasten-rein");
-      if (rein) sessionStorage.removeItem("vk-kasten-rein");
-      if (rein && document.visibilityState === "visible") {
-        st.style.transition = "none";
-        st.style.transform = "translateX(" + (rein === "rechts" ? "-" : "") + "100%)";
-        st.style.opacity = ".4";
-        document.documentElement.removeAttribute("data-rein");
-        void st.offsetWidth;   // Startlage festschreiben, dann sofort hineingleiten (ohne auf ein Bildsignal zu warten)
-        clearTimeout(fertigUhr);
-        st.style.transition = "transform .36s cubic-bezier(.16,1,.3,1), opacity .3s ease-out";
-        st.style.transform = ""; st.style.opacity = "";
-        fertigUhr = setTimeout(function () { st.style.transition = ""; }, 420);
-      }
-      document.documentElement.removeAttribute("data-rein");   // unsichtbar: ohne Animation an Ort und Stelle
-    } catch (e) {}
+    try { sessionStorage.removeItem("vk-kasten-rein"); } catch (e) {}   // Rest aus Fassungen mit Neuladen
   })();
   // Einstellungen: Kasten umbenennen oder löschen (Englisch bleibt immer)
   function kastenVerwaltenZeichnen() {
@@ -7002,7 +7055,7 @@
           try { window.localStorage.removeItem(kastenKey(k.id)); } catch (e) {}
           bilderKastenLoeschen(k.id);
           KAESTEN.liste = KAESTEN.liste.filter(function (x) { return x.id !== k.id; });
-          if (KAESTEN.aktiv === k.id) { KAESTEN.aktiv = "en"; kaestenSichern(); location.reload(); return; }
+          if (KAESTEN.aktiv === k.id) { geladen = false; kastenOeffnen("en"); return; }   // Stand des gelöschten Kastens nicht wieder anlegen
           kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen();
         });
         z.appendChild(um); z.appendChild(lo);

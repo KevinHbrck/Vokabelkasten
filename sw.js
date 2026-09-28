@@ -6,7 +6,7 @@
  */
 
 /* Einzige Stelle für die Fassung - die App fragt sie per postMessage ab (Einstellungen, ganz unten) */
-var FASSUNG = "2026-09-28-11";
+var FASSUNG = "2026-09-28-12";
 var SPEICHER = "vokabelkasten-" + FASSUNG;
 var GRUNDGERUEST = ["./", "./index.html", "./daten.js", "./privacy.html", "./manifest.json", "./icon.png"];
 
@@ -51,14 +51,6 @@ self.addEventListener("fetch", function (e) {
   var frisch = anfrage.mode === "navigate"
     ? new Request(anfrage.url, { cache: "no-cache", credentials: "same-origin" })
     : new Request(anfrage, { cache: "no-cache" });
-
-  // Kastenwechsel (./?kw=1): Seite sofort aus dem Speicher - online wird sie beim nächsten normalen Start aufgefrischt
-  if (anfrage.mode === "navigate" && ziel.searchParams.get("kw") === "1") {
-    e.respondWith(caches.match("./").then(function (t) { return t || caches.match("./index.html"); }).then(function (t) {
-      return t || fetch(frisch);
-    }));
-    return;
-  }
 
   e.respondWith(
     fetch(frisch).then(function (antwort) {
