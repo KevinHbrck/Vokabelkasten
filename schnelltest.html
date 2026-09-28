@@ -178,7 +178,7 @@
       var n = JSON.parse(W.localStorage.getItem(KEY)).cards.filter(function (c) { return c.back === "zzqtestword"; }).length;
       pruefe(n === 1, "Wort ist " + n + "-mal gespeichert");
     }],
-    ["Kästen: anlegen, Begriff speichern, wechseln ohne Neuladen, Texte, löschen", async function () {
+    ["Kästen: anlegen, wechseln ohne Neuladen, Texte, Einlesen ohne Doppel, Menü, Papierkorb", async function () {
       await laden();
       var enVorher = W.localStorage.getItem(KEY), enKarten = JSON.parse(enVorher).cards.length;
       var phVorher = id("sn-de").placeholder;
@@ -211,13 +211,40 @@
       klick($$(".kasten-reiter")[1]);
       await bis(function () { return id("st-hero-name").textContent === "Testthemakasten"; }, 3000, "erneut im Testkasten");
       pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv)).cards.length === 1, "Karte im Testkasten fehlt nach dem Wechsel");
+      // Einlesen einer Sicherung mit gleichnamigem Kasten (andere Kennung): kein doppelter Kasten, Karte kommt dazu
+      W.alert = function () {};
+      var sich = { v: 2, seeded: true, cards: [], kaesten: [{ id: "kanders", name: "Testthema", farbe: 2, art: "wissen" }],
+                   kastenDaten: { kanders: { cards: [{ id: "x1", front: "DEF", back: "Zweite Bedeutung", kat: 0, aktiv: true, box: 1 }] } } };
+      var dt = new W.DataTransfer(); dt.items.add(new W.File([JSON.stringify(sich)], "sicherung.json", { type: "" }));
+      id("file").files = dt.files; id("file").dispatchEvent(new W.Event("change", { bubbles: true }));
+      await bis(function () { return JSON.parse(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv)).cards.length === 2; }, 3000, "Karte aus der Sicherung im vorhandenen Kasten");
+      pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")).liste.length === 2, "Einlesen hat einen doppelten Kasten angelegt");
+      pruefe(!id("file").hasAttribute("accept"), "Dateiauswahl schränkt die Dateitypen wieder ein (Android graut .json aus)");
+      // lange drücken: Menü mit Papierkorb, verschieben, umbenennen
+      var reiter = $$(".kasten-reiter")[1];
+      reiter.dispatchEvent(new W.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+      pruefe(!id("kasten-menue").hidden, "Menü nach langem Drücken erscheint nicht");
+      pruefe(/2 Karten/.test(id("km-info").textContent), "Menü zeigt die Kartenzahl nicht: " + id("km-info").textContent);
+      pruefe(id("km-links").disabled && id("km-rechts").disabled, "Verschieben sollte mit nur einem weiteren Kasten nicht gehen");
+      klick("#km-papierkorb");
+      await bis(function () { return id("st-hero-name").textContent === "Vokabelkasten"; }, 3000, "nach dem Papierkorb zurück bei Englisch");
+      var regK = JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten"));
+      pruefe(regK.liste.length === 1 && regK.papierkorb && regK.papierkorb.length === 1, "Testkasten liegt nicht im Papierkorb");
+      pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv)).cards.length === 2, "Karten im Papierkorb verloren");
+      // zurückholen, wieder in den Papierkorb, dann endgültig löschen
+      var zurueck = $$("#kasten-verwalten button").filter(function (x) { return x.textContent === "Zurückholen"; })[0];
+      pruefe(zurueck, "Zurückholen-Knopf fehlt");
+      zurueck.click();
+      pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")).liste.length === 2, "Zurückholen hat nicht geklappt");
+      $$(".kasten-reiter")[1].dispatchEvent(new W.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+      klick("#km-papierkorb");
       W.confirm = function () { return true; };
-      var weg = $$(".kv-weg")[0];
-      pruefe(weg, "Löschen-Knopf für den Testkasten fehlt");
-      weg.click();
-      await bis(function () { return id("st-hero-name").textContent === "Vokabelkasten"; }, 3000, "nach dem Löschen zurück bei Englisch");
-      pruefe(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv) === null, "gelöschter Kasten wurde wieder angelegt");
-      pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")).liste.length === 1, "Testkasten steht noch im Verzeichnis");
+      var endg = $$("#kasten-verwalten button").filter(function (x) { return x.textContent === "Endgültig löschen"; })[0];
+      pruefe(endg, "Endgültig-löschen-Knopf fehlt");
+      endg.click();
+      pruefe(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv) === null, "endgültig gelöschter Kasten ist noch gespeichert");
+      regK = JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten"));
+      pruefe(regK.liste.length === 1 && !regK.papierkorb.length, "Papierkorb nicht leer");
       pruefe(JSON.parse(W.localStorage.getItem(KEY)).cards.length === enKarten, "Englisch-Kasten nach dem Löschen verändert");
       pruefe(W.__ohneNeuladen === true, "Seite wurde beim Löschen neu geladen");
     }],

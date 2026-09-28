@@ -273,6 +273,16 @@
   .kasten-karte h2 { margin: 0 0 12px; }
   .kasten-knoepfe { display: flex; gap: 10px; margin-top: 6px; }
   .kasten-knoepfe button { flex: 1; }
+  .kasten-reiter { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .kasten-karte .note { margin: -6px 0 14px; }
+  .km-knoepfe { display: flex; flex-direction: column; gap: 10px; }
+  .km-knoepfe button { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
+  .km-knoepfe svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .km-knoepfe .km-weg { color: var(--alarm-ink); border-color: var(--alarm-rule); }
+  .km-reihe { display: flex; gap: 10px; }
+  .km-reihe button { flex: 1; }
+  .km-knoepfe button:disabled { opacity: .4; }
+  .kv-korb { margin: 14px 0 2px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
   .kv-zeile { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--rule); }
   .kv-zeile:first-child { border-top: 0; }
   .kv-name { flex: 1; font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -1603,6 +1613,19 @@
   </form>
 </div>
 
+<div class="kasten-dialog" id="kasten-menue" hidden>
+  <div class="kasten-karte" role="dialog" aria-labelledby="km-titel">
+    <h2 id="km-titel"></h2>
+    <p class="note" id="km-info"></p>
+    <div class="km-knoepfe">
+      <button type="button" class="ghost km-weg" id="km-papierkorb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>In den Papierkorb</button>
+      <div class="km-reihe"><button type="button" class="ghost" id="km-links"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Nach links</button><button type="button" class="ghost" id="km-rechts">Nach rechts<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
+      <button type="button" class="ghost" id="km-umbenennen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>Umbenennen</button>
+      <button type="button" class="ghost" id="km-abbruch">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <div id="hinweisbar" hidden>
   <span id="hinweistext"></span>
   <button id="hinweis-tun" type="button"></button>
@@ -1859,7 +1882,7 @@
         <button type="button" class="ghost" id="btn-datei">📄 Datei wählen</button>
         <button type="button" class="ghost" id="btn-clip">📋 Aus Zwischenablage</button>
       </div>
-      <input type="file" id="liste-datei" accept=".csv,.tsv,.txt,.json,text/csv,text/plain,application/json" hidden>
+      <input type="file" id="liste-datei" hidden><!-- ohne accept: Android kennt .json oft nicht und graut sie sonst aus; geprüft wird der Inhalt -->
     </div>
     <label for="einfuegen">Zeilen einfügen</label>
     <textarea id="einfuegen" placeholder="dennoch&#9;nevertheless&#9;It was raining; nevertheless, we went for a walk."></textarea>
@@ -2158,7 +2181,7 @@
       <button id="btn-teilen" type="button" hidden>Sicherung teilen (z. B. Drive, Mail)</button>
       <button id="btn-export" type="button">Sicherung herunterladen</button>
       <button class="ghost" id="btn-import" type="button">Sicherung einlesen</button>
-      <input type="file" id="file" accept="application/json,.json,text/plain,.txt" hidden>
+      <input type="file" id="file" hidden>
     </div>
     <p class="note" id="snap-status" style="margin-top:14px">Letzter Schnappschuss: noch keiner</p>
     <p class="note">Zusätzlich alle 7 Tage ein automatischer Schnappschuss auf diesem Gerät.</p>
@@ -4000,12 +4023,22 @@
     document.getElementById("status").hidden = ansicht === "start";   // steht auf der Startseite schon in der großen Karte
     document.getElementById("btn-einst").hidden = ansicht !== "start";   // Zahnrad oben rechts, wie bei BLOC
   }
+  /* Begrüßung oben: bei jedem Öffnen der nächste Gruß (Buongiorno nur vormittags), während der Sitzung bleibt er */
+  var GRUESSE = ["Servus", "Moin", "Buongiorno", "Grüß dich", "Moin Moin"], grussHeute = null;
+  function begruessung() {
+    if (grussHeute) return grussHeute;
+    var passend = GRUESSE.filter(function (g) { return g !== "Buongiorno" || new Date().getHours() < 12; });
+    var i = 0;
+    try { i = (parseInt(window.localStorage.getItem("vokabelkasten.gruss"), 10) + 1) || 0; window.localStorage.setItem("vokabelkasten.gruss", String(i % 100)); } catch (e) {}
+    grussHeute = passend[i % passend.length];
+    return grussHeute;
+  }
   function zeichneKacheln() {
     var f = daten.cards.filter(function (c) { return c.aktiv && c.due <= heute(); }).length, k = imKasten().length;
     var ziel = tagesZiel(), h = geuebtAm(Date.now()), serie = lernSerie(), std = new Date().getHours();
     // Begrüßung mit Lernserie
     var gruss = document.getElementById("st-gruss");
-    gruss.textContent = std < 11 ? "Guten Morgen" : std < 18 ? "Hallo" : "Guten Abend";
+    gruss.textContent = begruessung();
     if (serie) {
       var b = document.createElement("b");
       b.textContent = " · " + serie + (serie === 1 ? " Tag" : " Tage") + " in Folge";
@@ -5133,10 +5166,10 @@
     return aus;
   }
   // Karten einer Sicherung in einen Kasten mischen: Vorhandenes behält den besseren Lernstand, Neues kommt dazu
-  function kartenMischen(ziel, karten, katAnzahl, kid, bilder, aufgaben) {
+  function kartenMischen(ziel, karten, katAnzahl, kid, bilder, aufgaben, quelle) {
     var idx = {}, neu = 0, akt = 0;
     function foto(c, karte) {   // Foto aus der Datei an die Karte hängen (hat sie schon eins, bleibt es)
-      var u = c.bild && bilder && bilder[kid + ":" + c.id];
+      var u = c.bild && bilder && bilder[(quelle || kid) + ":" + c.id];   // in der Datei unter der Kennung des Quell-Kastens
       if (!u) return;
       aufgaben.push([kid, karte.id, u, !!karte.bild]);   // hatte die Karte schon ein Foto: nur ergänzen, falls es fehlt
       karte.bild = true;
@@ -5182,14 +5215,26 @@
     (Array.isArray(p.kaesten) ? p.kaesten : []).forEach(function (k) {
       if (!k || !k.id || k.id === "en" || !p.kastenDaten || !p.kastenDaten[k.id]) return;
       var eintrag = KAESTEN.liste.filter(function (x) { return x.id === k.id; })[0];
+      if (!eintrag) {   // liegt er im Papierkorb, kommt er zurück in die Leiste
+        var imKorb = papierkorb().filter(function (x) { return x.id === k.id; })[0];
+        if (imKorb) {
+          KAESTEN.papierkorb = papierkorb().filter(function (x) { return x !== imKorb; });
+          eintrag = { id: imKorb.id, name: imKorb.name, farbe: imKorb.farbe, art: imKorb.art || "wissen" };
+          KAESTEN.liste.push(eintrag);
+        }
+      }
+      if (!eintrag) {   // gleicher Name schon da (z. B. vorher von Hand angelegt): die Karten kommen dort hinein
+        var titel = kastenTitel({ id: k.id, name: k.name }).toLowerCase();
+        eintrag = KAESTEN.liste.filter(function (x) { return x.id !== "en" && kastenTitel(x).toLowerCase() === titel; })[0];
+      }
       if (!eintrag) {
         eintrag = { id: String(k.id), name: String(k.name || "Kasten").slice(0, 30), farbe: +k.farbe || 1, art: "wissen" };
         KAESTEN.liste.push(eintrag); dazu.push(kastenTitel(eintrag));
       }
-      var d = kastenLesen(k.id) || { v: 2, seeded: true, cards: [] };
-      var r2 = kartenMischen(d, p.kastenDaten[k.id].cards, 4, String(k.id), p.bilder, fotos);
+      var d = kastenLesen(eintrag.id) || { v: 2, seeded: true, cards: [] };
+      var r2 = kartenMischen(d, p.kastenDaten[k.id].cards, 4, eintrag.id, p.bilder, fotos, String(k.id));
       gesamt.neu += r2.neu; gesamt.akt += r2.akt;
-      kastenSchreiben(k.id, d);
+      kastenSchreiben(eintrag.id, d);
     });
     kaestenSichern();
     kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
@@ -7034,6 +7079,7 @@
       b.style.setProperty("--k", KASTEN_FARBEN[k.farbe % KASTEN_FARBEN.length]);
       b.textContent = k.id === "en" ? "Englisch" : k.name;
       b.addEventListener("click", function () { kastenWechseln(k.id, i > aktivI ? "links" : "rechts"); });
+      if (k.id !== "en") { langDruck(b, function () { kastenMenue(k); }); b.title = "Lange drücken: Papierkorb, verschieben, umbenennen"; }
       leiste.appendChild(b);
       var pk = document.createElement("i");
       if (k.id === KASTEN.id) pk.className = "an";
@@ -7120,6 +7166,76 @@
     try { sessionStorage.removeItem("vk-kasten-rein"); } catch (e) {}   // Rest aus Fassungen mit Neuladen
   })();
   // Einstellungen: Kasten umbenennen oder löschen (Englisch bleibt immer)
+  function kastenUmbenennen(k) {
+    var neu = prompt("Neuer Name für den Kasten:", k.name);
+    if (!neu || !neu.trim()) return false;
+    k.name = neu.trim().slice(0, 30); kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen(); kastenTexte(); kopfZeigen();
+    return true;
+  }
+  /* Papierkorb: der Kasten verschwindet aus der Leiste, seine Karten bleiben gespeichert (KAESTEN.papierkorb).
+     Zurückholen oder endgültig löschen in den Einstellungen unter „Kästen“. Englisch bleibt immer. */
+  function papierkorb() { return KAESTEN.papierkorb || (KAESTEN.papierkorb = []); }
+  function kastenInPapierkorb(k) {
+    if (k.id === "en") return;
+    var offen = KAESTEN.aktiv === k.id;
+    if (offen && geladen) sichern();
+    KAESTEN.liste = KAESTEN.liste.filter(function (x) { return x.id !== k.id; });
+    papierkorb().push({ id: k.id, name: k.name, farbe: k.farbe, art: k.art, weg: Date.now() });
+    if (offen) kastenOeffnen("en"); else { kaestenSichern(); fremdeLogs = fremdeLogsLesen(); kastenLeisteZeichnen(); }
+    kastenVerwaltenZeichnen();
+    snInfo("liegt im Papierkorb – zurückholen in den Einstellungen unter „Kästen“.", "„" + kastenTitel(k) + "“");
+  }
+  function kastenZurueckholen(k) {
+    KAESTEN.papierkorb = papierkorb().filter(function (x) { return x.id !== k.id; });
+    KAESTEN.liste.push({ id: k.id, name: k.name, farbe: k.farbe, art: k.art || "wissen" });
+    kaestenSichern(); fremdeLogs = fremdeLogsLesen(); kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
+  }
+  function kastenEndgueltigLoeschen(k) {
+    if (!confirm("„" + kastenTitel(k) + "“ mit allen Karten endgültig löschen? Das lässt sich nur mit einer Sicherungsdatei rückgängig machen.")) return;
+    try { window.localStorage.removeItem(kastenKey(k.id)); } catch (e) {}
+    bilderKastenLoeschen(k.id);
+    KAESTEN.papierkorb = papierkorb().filter(function (x) { return x.id !== k.id; });
+    kaestenSichern(); kastenVerwaltenZeichnen();
+  }
+  // Reihenfolge ändern - Englisch bleibt vorn (das Verzeichnis gilt nur mit Englisch an erster Stelle)
+  function kastenVerschieben(k, um) {
+    var l = KAESTEN.liste, i = l.indexOf(k), j = i + um;
+    if (i < 1 || j < 1 || j >= l.length) return;
+    l[i] = l[j]; l[j] = k;
+    kaestenSichern(); kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
+  }
+  /* Langes Drücken auf einen Kasten oben öffnet sein Menü (der Tipp danach wechselt nicht) */
+  function langDruck(el, fn) {
+    var uhr = null, ausgeloest = false, x0 = 0, y0 = 0;
+    function weg() { clearTimeout(uhr); uhr = null; }
+    function los() { weg(); ausgeloest = true; try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {} fn(); }
+    el.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      ausgeloest = false; x0 = e.clientX; y0 = e.clientY; weg();
+      uhr = setTimeout(los, 520);
+    });
+    el.addEventListener("pointermove", function (e) { if (uhr && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) weg(); });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (t) { el.addEventListener(t, weg); });
+    el.addEventListener("contextmenu", function (e) { e.preventDefault(); if (!ausgeloest) los(); });   // Android und Rechtsklick
+    el.addEventListener("click", function (e) { if (ausgeloest) { ausgeloest = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  }
+  var menueKasten = null;
+  function kastenMenue(k) {
+    var d = kastenLesen(k.id), n = d ? d.cards.length : 0, i = KAESTEN.liste.indexOf(k);
+    menueKasten = k;
+    document.getElementById("km-titel").textContent = kastenTitel(k);
+    document.getElementById("km-info").textContent = n + (n === 1 ? " Karte" : " Karten") + (k.id === KASTEN.id ? " · gerade offen" : "");
+    document.getElementById("km-links").disabled = i <= 1;
+    document.getElementById("km-rechts").disabled = i >= KAESTEN.liste.length - 1;
+    document.getElementById("kasten-menue").hidden = false;
+  }
+  function kastenMenueZu() { document.getElementById("kasten-menue").hidden = true; menueKasten = null; }
+  document.getElementById("km-papierkorb").addEventListener("click", function () { var k = menueKasten; kastenMenueZu(); if (k) kastenInPapierkorb(k); });
+  document.getElementById("km-umbenennen").addEventListener("click", function () { var k = menueKasten; kastenMenueZu(); if (k) kastenUmbenennen(k); });
+  document.getElementById("km-links").addEventListener("click", function () { var k = menueKasten; if (k) { kastenVerschieben(k, -1); kastenMenue(k); } });
+  document.getElementById("km-rechts").addEventListener("click", function () { var k = menueKasten; if (k) { kastenVerschieben(k, 1); kastenMenue(k); } });
+  document.getElementById("km-abbruch").addEventListener("click", kastenMenueZu);
+  document.getElementById("kasten-menue").addEventListener("click", function (e) { if (e.target.id === "kasten-menue") kastenMenueZu(); });
   function kastenVerwaltenZeichnen() {
     var box = document.getElementById("kasten-verwalten");
     if (!box) return;
@@ -7131,22 +7247,27 @@
       z.appendChild(n);
       if (k.id !== "en") {
         var um = document.createElement("button"); um.type = "button"; um.className = "ghost"; um.textContent = "Umbenennen";
-        um.addEventListener("click", function () {
-          var neu = prompt("Neuer Name für den Kasten:", k.name);
-          if (!neu || !neu.trim()) return;
-          k.name = neu.trim().slice(0, 30); kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen(); kastenTexte(); kopfZeigen();
-        });
-        var lo = document.createElement("button"); lo.type = "button"; lo.className = "ghost kv-weg"; lo.textContent = "Löschen";
-        lo.addEventListener("click", function () {
-          if (!confirm("„" + kastenTitel(k) + "“ mit allen Karten löschen? Das lässt sich nur mit einer Sicherungsdatei rückgängig machen.")) return;
-          try { window.localStorage.removeItem(kastenKey(k.id)); } catch (e) {}
-          bilderKastenLoeschen(k.id);
-          KAESTEN.liste = KAESTEN.liste.filter(function (x) { return x.id !== k.id; });
-          if (KAESTEN.aktiv === k.id) { geladen = false; kastenOeffnen("en"); return; }   // Stand des gelöschten Kastens nicht wieder anlegen
-          kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen();
-        });
+        um.addEventListener("click", function () { kastenUmbenennen(k); });
+        var lo = document.createElement("button"); lo.type = "button"; lo.className = "ghost kv-weg"; lo.textContent = "Papierkorb";
+        lo.addEventListener("click", function () { kastenInPapierkorb(k); });
         z.appendChild(um); z.appendChild(lo);
       }
+      box.appendChild(z);
+    });
+    // Papierkorb: zurückholen oder endgültig löschen
+    if (!papierkorb().length) return;
+    var t = document.createElement("p"); t.className = "kv-korb"; t.textContent = "Papierkorb";
+    box.appendChild(t);
+    papierkorb().forEach(function (k) {
+      var d = kastenLesen(k.id), n = d ? d.cards.length : 0;
+      var z = document.createElement("div"); z.className = "kv-zeile";
+      var name = document.createElement("span"); name.className = "kv-name"; name.style.setProperty("--k", KASTEN_FARBEN[k.farbe % KASTEN_FARBEN.length]);
+      name.textContent = kastenTitel(k) + " (" + n + (n === 1 ? " Karte)" : " Karten)");
+      var zu = document.createElement("button"); zu.type = "button"; zu.className = "ghost"; zu.textContent = "Zurückholen";
+      zu.addEventListener("click", function () { kastenZurueckholen(k); });
+      var lo = document.createElement("button"); lo.type = "button"; lo.className = "ghost kv-weg"; lo.textContent = "Endgültig löschen";
+      lo.addEventListener("click", function () { kastenEndgueltigLoeschen(k); });
+      z.appendChild(name); z.appendChild(zu); z.appendChild(lo);
       box.appendChild(z);
     });
   }
