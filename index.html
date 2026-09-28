@@ -4221,7 +4221,7 @@
       setTimeout(function () { wischGerade = false; }, 350);
       karte.classList.remove("zieht");
       if (Math.abs(dx) >= SCHWELLE && e && e.type === "pointerup") {
-        var gewusst = dx > 0, weit = (window.innerWidth || 400) * 1.1;
+        var gewusst = dx > 0, weit = (window.innerWidth || 400) * 1.1, gewischt = aktuell;
         karte.classList.add("fliegt");
         karte.style.transform = "translateX(" + (gewusst ? weit : -weit) + "px) rotate(" + (gewusst ? 18 : -18) + "deg)";
         karte.style.opacity = "0";
@@ -4229,7 +4229,9 @@
           karte.classList.remove("fliegt");
           karte.style.opacity = "";
           lage(0);
-          bewerten(gewusst);
+          // schon per Knopf bewertet, während sie flog? Dann nicht noch einmal (sonst träfe es die nächste Karte)
+          if (aktuell === gewischt) bewerten(gewusst);
+          wischGerade = false;   // die nächste Karte ist da - ein Tipp zum Aufdecken zählt sofort
           karte.classList.add("rein");
           setTimeout(function () { karte.classList.remove("rein"); }, 260);
         }, 220);
