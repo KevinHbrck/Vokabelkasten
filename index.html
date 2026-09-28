@@ -10,26 +10,13 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <script>
-  /* Kastenwechsel. Mit Seitenübergängen (Chrome): der Browser hält die alte Seite fest, bis die neue fertig ist,
-     und schiebt dann beide zusammen wie ein Karussell (Animation im CSS, html[data-vt]).
-     Ohne: die neue Startseite steht vom ersten Bild an seitlich bereit und gleitet dann herein (html[data-rein]). */
+  /* Kastenwechsel: die Startseite steht vom ersten Bild an seitlich bereit und gleitet dann herein */
   (function () {
-    var de = document.documentElement, vt = "onpagereveal" in window;
     try {
-      var rein = sessionStorage.getItem("vk-kasten-rein"), von = parseFloat(sessionStorage.getItem("vk-kasten-von")) || 0;
+      var rein = sessionStorage.getItem("vk-kasten-rein");
+      if (rein && document.visibilityState === "visible") document.documentElement.setAttribute("data-rein", rein);
       if (/[?&]kw=1/.test(location.search)) history.replaceState(null, "", location.pathname + location.hash);
-      if (rein && vt) {
-        sessionStorage.removeItem("vk-kasten-rein"); sessionStorage.removeItem("vk-kasten-von");
-        de.setAttribute("data-vt", rein);
-        de.style.setProperty("--von", von + "px");
-      } else if (rein && document.visibilityState === "visible") de.setAttribute("data-rein", rein);
     } catch (e) {}
-    // nur der Kastenwechsel bekommt den Übergang - alles andere (z. B. Datenschutz-Seite) ohne
-    if (vt) window.addEventListener("pagereveal", function (e) {
-      if (!e.viewTransition) { de.removeAttribute("data-vt"); return; }
-      if (!de.hasAttribute("data-vt") || (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) { e.viewTransition.skipTransition(); return; }
-      e.viewTransition.finished.then(function () { de.removeAttribute("data-vt"); }, function () { de.removeAttribute("data-vt"); });
-    });
   })();
 </script>
 <style>
@@ -289,21 +276,6 @@
   #view-start { touch-action: pan-y; will-change: transform; }
   html[data-rein="links"] #view-start { transform: translateX(100%); }
   html[data-rein="rechts"] #view-start { transform: translateX(-100%); }
-  /* Karussell beim Kastenwechsel: alte Seite läuft ab ihrer Wischposition (--von) hinaus, die neue hängt direkt daneben */
-  @view-transition { navigation: auto; }
-  #view-start { view-transition-name: kastenseite; }
-  ::view-transition-group(kastenseite) { animation: none; }
-  ::view-transition-old(kastenseite), ::view-transition-new(kastenseite) {
-    animation-duration: .46s; animation-timing-function: cubic-bezier(.45,.05,.25,1); animation-fill-mode: both; mix-blend-mode: normal; }
-  html[data-vt="links"]::view-transition-old(kastenseite) { animation-name: vkRausLinks; }
-  html[data-vt="links"]::view-transition-new(kastenseite) { animation-name: vkReinRechts; }
-  html[data-vt="rechts"]::view-transition-old(kastenseite) { animation-name: vkRausRechts; }
-  html[data-vt="rechts"]::view-transition-new(kastenseite) { animation-name: vkReinLinks; }
-  @keyframes vkRausLinks { from { transform: translateX(var(--von, 0px)); } to { transform: translateX(-100%); } }
-  @keyframes vkReinRechts { from { transform: translateX(calc(100% + var(--von, 0px))); } to { transform: none; } }
-  @keyframes vkRausRechts { from { transform: translateX(var(--von, 0px)); } to { transform: translateX(100%); } }
-  @keyframes vkReinLinks { from { transform: translateX(calc(-100% + var(--von, 0px))); } to { transform: none; } }
-  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .46s; }
   main { overflow-x: clip; }
   @media (prefers-reduced-motion: reduce) { #view-start { transition: none !important; } }
   .kasten-dialog { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
@@ -6875,7 +6847,7 @@
     opt("#sel-sort", "de", "Begriff A–Z"); opt("#sel-sort", "en", "Bedeutung A–Z");
     opt("#sel-abdeck", "en", "Bedeutung abdecken"); opt("#sel-abdeck", "de", "Begriff abdecken");
   }
-  function kastenWechseln(id, weg) {
+  function kastenWechseln(id, weg, tempo) {
     if (id === KASTEN.id) return;
     KAESTEN.aktiv = id;
     kaestenSichern();
@@ -6883,15 +6855,8 @@
     // Seite gleitet ganz hinaus - aus der aktuellen Wischposition und mit dem Schwung des Fingers weiter
     var st = document.getElementById("view-start"), breite = st.offsetWidth || 400;
     var jetzt = new DOMMatrix(getComputedStyle(st).transform).m41 || 0, rest = breite - Math.abs(jetzt);
-    if ("onpagereveal" in window) {
-      // Seitenübergang: sofort neu laden - der Browser zeigt die alte Seite, bis die neue bereit ist, und schiebt beide gleichmäßig
-      try { sessionStorage.setItem("vk-kasten-von", String(Math.round(jetzt))); } catch (e) {}
-      st.style.opacity = "";
-      location.replace(location.pathname + "?kw=1" + location.hash);
-      return;
-    }
-    var dauer = Math.round(160 + 140 * rest / breite);   // gleichmäßig, unabhängig vom Tempo des Fingers
-    st.style.transition = "transform " + dauer + "ms cubic-bezier(.45,.05,.55,.95), opacity " + dauer + "ms linear";
+    var dauer = Math.round(Math.max(140, Math.min(260, tempo ? rest / tempo : 240)));
+    st.style.transition = "transform " + dauer + "ms cubic-bezier(.25,.6,.45,1), opacity " + dauer + "ms linear";
     st.style.transform = "translateX(" + (weg === "rechts" ? "" : "-") + "100%)";
     st.style.opacity = ".4";
     // ?kw=1: der Service Worker nimmt die Seite dafür aus dem Speicher (kein Warten aufs Netz)
@@ -6956,7 +6921,7 @@
       clearTimeout(fertigUhr);
       st.style.transition = animiert ? "transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease-out" : "none";
       st.style.transform = x ? "translateX(" + x + "px)" : "";
-      st.style.opacity = "";
+      st.style.opacity = x ? String(Math.max(.5, 1 - Math.abs(x) / (st.offsetWidth * 2.2))) : "";
       // Absicherung: danach steht die Seite garantiert an ihrem Platz, auch falls ein Übergang hängen bleibt
       if (animiert) fertigUhr = setTimeout(function () { st.style.transition = ""; }, 320);
     }
@@ -6982,8 +6947,9 @@
       if (!zieht) return;
       var dx = e.clientX - s.x, dt = Math.max(1, Date.now() - s.t), i = index();
       var weit = Math.abs(dx) > st.offsetWidth * .28 || (Math.abs(dx) > 40 && Math.abs(dx) / dt > .5);
-      if (weit && dx < 0 && i + 1 < KAESTEN.liste.length) { kastenWechseln(KAESTEN.liste[i + 1].id, "links"); return; }
-      if (weit && dx > 0 && i > 0) { kastenWechseln(KAESTEN.liste[i - 1].id, "rechts"); return; }
+      var tempo = Math.min(3, Math.abs(dx) / dt);
+      if (weit && dx < 0 && i + 1 < KAESTEN.liste.length) { kastenWechseln(KAESTEN.liste[i + 1].id, "links", tempo); return; }
+      if (weit && dx > 0 && i > 0) { kastenWechseln(KAESTEN.liste[i - 1].id, "rechts", tempo); return; }
       setze(0, true);
     }
     st.addEventListener("pointerup", ende);
