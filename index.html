@@ -565,6 +565,13 @@
     border-radius: 2px; font-family: ui-monospace, Menlo, monospace;
     font-size: 12px; color: var(--ink); overflow-x: auto;
   }
+  /* Ablage zum Einfügen: Datei hineinziehen, wählen oder aus der Zwischenablage */
+  .ablage { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 4px 0 14px; padding: 16px 12px;
+    border: 2px dashed var(--rule); border-radius: 10px; text-align: center; color: var(--ink-soft); font-size: 14px; transition: border-color .15s, background .15s; }
+  .ablage.drueber { border-color: var(--indigo); background: color-mix(in srgb, var(--indigo) 8%, transparent); color: var(--ink); }
+  .ablage-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .ablage-knoepfe button { margin: 0; padding: 10px 14px; font-size: 14px; }
+  @media (hover: none) { .ablage-text { display: none; } }   /* am Handy gibt es kein Hineinziehen */
   #einfuegen {
     width: 100%; min-height: 120px; margin-bottom: 8px;
     font-family: ui-monospace, Menlo, monospace; font-size: 12px;
@@ -1515,7 +1522,7 @@
     <h2>Neuer Kasten</h2>
     <label for="kasten-name">Welches Thema?</label>
     <input type="text" id="kasten-name" maxlength="30" placeholder="z. B. Wirtschaft, Klausur Mathe, Gardena" enterkeyhint="done">
-    <p class="note">Der Kasten heißt dann z. B. „Wirtschaftskasten“ und hat alle Funktionen: Fächer, Liste, schnell anlegen, Hörtraining, Statistik. Vorne steht der Begriff, hinten die Bedeutung.</p>
+    <p class="note">Aus „Wirtschaft“ wird der Wirtschaftskasten – mit allen Funktionen. Vorne Begriff, hinten Bedeutung.</p>
     <div class="kasten-knoepfe"><button type="button" class="ghost" id="kasten-abbruch">Abbrechen</button><button type="submit">Anlegen</button></div>
   </form>
 </div>
@@ -1653,14 +1660,14 @@
             </select>
           </label>
           <label class="zeile-check"><input type="checkbox" id="uw-bsp-an"> Beispielsatz mitlesen</label>
-          <label class="zeile-check hg-option"><input type="checkbox" id="uw-hintergrund"> <span>Im Hintergrund weiterlaufen<small>mit Tasten auf dem Sperrbildschirm – hält dafür deine Musik (z. B. Spotify) an</small></span></label>
+          <label class="zeile-check hg-option"><input type="checkbox" id="uw-hintergrund"> <span>Im Hintergrund weiterlaufen<small>Tasten auf dem Sperrbildschirm – hält dafür deine Musik an</small></span></label>
         </div>
         <button id="btn-uw-weiter" type="button" class="hoer-start uw-weiter" hidden></button>
         <button id="btn-unterwegs" type="button" class="hoer-start">
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.9"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.9"/></svg>
           Anhören starten
         </button>
-        <p class="note">Die App liest jede Karte vor, lässt dir Zeit zum Nachdenken und sagt dann die Lösung. Nur zum Wiederholen: Fächer und Termine ändern sich dabei nicht. Der Bildschirm bleibt an, solange die Runde läuft, und deine Musik läuft weiter.</p>
+        <p class="note">Liest Karte und Lösung vor – nur zum Wiederholen, Fächer bleiben unverändert. Musik läuft weiter.</p>
       </div>
     </div>
 
@@ -1749,7 +1756,7 @@
         <option value="50">50 Karten am Tag</option>
         <option value="80">80 Karten am Tag</option>
       </select>
-      <p class="note">Gezählt wird jede bewertete Karte im Karteikasten. Ein Tag zählt für die Serie, sobald du mindestens eine Karte geübt hast.</p>
+      <p class="note">Zählt jede bewertete Karte, über alle Kästen. Ein Tag mit mindestens einer Karte zählt für die Serie.</p>
     </div>
   </section>
 
@@ -1765,13 +1772,18 @@
     <select id="neu-kat"></select>
     <button id="btn-add" type="button">Vokabel speichern</button>
     <p class="note" id="add-ok" hidden></p>
-    <p class="note">Neue Vokabeln hängen sich hinten an die Liste an und starten in Fach 1.</p>
+    <p class="note">Neue Karten starten in Fach 1.</p>
 
     <h2 class="spaced">Ganze Liste einfügen</h2>
-    <div class="hilfe">
-      <p>Markier in Excel die Spalten und kopier sie mit Strg&nbsp;+&nbsp;C. Hier einfügen, fertig. Eine Zeile pro Vokabel, die Spalten in dieser Reihenfolge:</p>
-      <pre>Deutsch  ⇥  English  ⇥  Beispielsatz</pre>
-      <p>Die dritte Spalte ist freiwillig. Statt Tabulator gehen auch Semikolon oder Senkrechtstrich, falls du aus einer Textdatei kopierst. Leere Zeilen und eine Überschriftenzeile werden übersprungen.</p>
+    <p class="note" id="einf-hilfe">Eine Zeile pro Karte: <b>Deutsch · English · Beispiel</b>, getrennt durch Tab, | oder ; – aus Excel einfach kopieren.</p>
+    <!-- Datei hineinziehen, auswählen oder aus der Zwischenablage holen -->
+    <div class="ablage" id="ablage">
+      <span class="ablage-text">Datei hierher ziehen (CSV, TXT oder Sicherung)</span>
+      <div class="ablage-knoepfe">
+        <button type="button" class="ghost" id="btn-datei">📄 Datei wählen</button>
+        <button type="button" class="ghost" id="btn-clip">📋 Aus Zwischenablage</button>
+      </div>
+      <input type="file" id="liste-datei" accept=".csv,.tsv,.txt,.json,text/csv,text/plain,application/json" hidden>
     </div>
     <label for="einfuegen">Zeilen einfügen</label>
     <textarea id="einfuegen" placeholder="dennoch&#9;nevertheless&#9;It was raining; nevertheless, we went for a walk."></textarea>
@@ -1902,7 +1914,7 @@
       <button id="du-test" type="button" class="ghost du-test">&#127908; Mikrofon testen</button>
       <p class="du-testergebnis" id="du-testergebnis" hidden></p>
       <button id="du-start" type="button" class="hoer-start">Duell starten</button>
-      <p class="note">Das Duell ändert keine Fächer und Termine. Die Kategorie-Auswahl beim Üben gilt auch hier. Stimme und Tempo: in den Einstellungen.</p>
+      <p class="note">Ändert keine Fächer. Es gilt die Kategorie-Auswahl vom Üben.</p>
     </div>
   </section>
 
@@ -1929,13 +1941,13 @@
           <button type="button" data-wischen="an">An</button>
           <button type="button" data-wischen="aus">Aus</button>
         </div>
-        <p class="note">Karte aufdecken, dann nach rechts wischen für <b>Gewusst</b>, nach links für <b>Nochmal</b>. Die Knöpfe bleiben zusätzlich da.</p>
+        <p class="note">Nach dem Aufdecken: rechts = <b>Gewusst</b>, links = <b>Nochmal</b>.</p>
       </div>
 
       <div class="sk-block">
         <h3 class="sk-titel">Kästen</h3>
         <div id="kasten-verwalten"></div>
-        <p class="note">Neue Kästen legst du auf der Startseite mit „+“ an. Jeder Kasten hat eigene Karten und Fächer; Einstellungen wie Design und Stimmen gelten für alle.</p>
+        <p class="note">Neue Kästen mit „+“ auf der Startseite. Karten und Fächer je Kasten, Einstellungen und Tagesziel gemeinsam.</p>
       </div>
 
       <div class="sk-block">
@@ -1944,7 +1956,7 @@
           <button type="button" data-eingabe="aufdecken">Aufdecken</button>
           <button type="button" data-eingabe="tippen">Eintippen</button>
         </div>
-        <p class="note"><b>Eintippen:</b> Du schreibst die Lösung unter die Karte und die App prüft sie. Kleine Tippfehler, fehlende Artikel („to“, „der“) und Groß/klein zählen nicht. Über das Mikrofon deiner Tastatur kannst du auch diktieren. Bewertet wird wie gewohnt mit Gewusst oder Nochmal, die App schlägt nur vor.</p>
+        <p class="note"><b>Eintippen:</b> Lösung schreiben oder diktieren, kleine Tippfehler zählen nicht. Die App schlägt Gewusst/Nochmal nur vor.</p>
       </div>
 
       <div class="sk-block">
@@ -1966,7 +1978,7 @@
 
       <div class="sk-block" id="sk-stimme">
         <h3 class="sk-titel">Stimme zum Vorlesen</h3>
-        <p class="note" style="margin-top:0">Stimme und Tempo gelten als Standard überall: Hörtraining, Quiz-Duell und Lautsprecher-Symbol auf der Karte.</p>
+        <p class="note" style="margin-top:0">Gilt überall, wo vorgelesen wird.</p>
         <label for="st-destimme">Deutsch vorlesen mit</label>
         <select id="st-destimme" style="width:100%;margin-bottom:12px">
           <option value="de">Deutscher Stimme</option>
@@ -1987,7 +1999,7 @@
         </div>
         <label for="uw-laut">Lautstärke <span id="uw-laut-wert"></span></label>
         <input type="range" id="uw-laut" min="10" max="100" step="5">
-        <p class="note" style="margin:6px 0 0">Deine Musik läuft beim Vorlesen weiter. iPhone: Steht es auf lautlos, bleibt die Stimme stumm – dann auf laut stellen.</p>
+        <p class="note" style="margin:6px 0 0">Musik läuft weiter. iPhone auf lautlos = keine Stimme.</p>
         <p class="note" id="stimm-tipp"></p>
       </div>
     </div>
@@ -2000,7 +2012,7 @@
           <button type="button" class="ghost" id="btn-teil-kopie">Link kopieren</button>
           <button type="button" id="btn-teil">Teilen …</button>
         </div>
-        <p class="note">Dein Lernstand bleibt auf deinem Gerät, wer den Link öffnet, startet mit einem eigenen, leeren Kasten.</p>
+        <p class="note">Dein Lernstand bleibt bei dir – andere starten leer.</p>
       </div>
     </div>
 
@@ -2028,7 +2040,7 @@
 
         <div class="plattform" id="pf-apple">
           <h3>iPhone und iPad</h3>
-          <p class="note">Hier ist es kein Komfort, sondern Pflicht: Safari löscht den Speicher einer normalen Webseite nach sieben Tagen ohne Besuch. Eine App vom Startbildschirm ist davon ausgenommen.</p>
+          <p class="note">Wichtig: Safari löscht Webseiten-Daten nach 7 Tagen ohne Besuch – eine installierte App nicht.</p>
           <ol class="dialogschritte">
             <li><span>Die Seite in <b>Safari</b> öffnen. Chrome und Firefox können das auf dem iPhone nicht.</span></li>
             <li>
@@ -2062,7 +2074,7 @@
       <summary><span class="ab-titel">Sicherung</span><span class="ab-unter">Lernstand herunterladen und einlesen</span></summary>
       <div class="ab-inhalt">
     <p class="note" id="sicher-status"></p>
-    <p class="note">Dein Lernstand liegt im Speicher dieses Browsers, gebunden an die Adresse der App. Er wird nirgendwo hochgeladen. Löschst du die Browserdaten oder wechselst das Gerät, ist er weg. Lade dir deshalb ab und zu eine Sicherungsdatei herunter, sie enthält Vokabeln, Fächer, Termine und Sterne.</p>
+    <p class="note">Alles liegt nur in diesem Browser. Browserdaten gelöscht oder neues Handy = weg. Deshalb ab und zu sichern – die Datei enthält alle Kästen und Fotos.</p>
     <div class="stack">
       <button id="btn-teilen" type="button" hidden>Sicherung teilen (z. B. Drive, Mail)</button>
       <button id="btn-export" type="button">Sicherung herunterladen</button>
@@ -2070,7 +2082,7 @@
       <input type="file" id="file" accept="application/json,.json,text/plain,.txt" hidden>
     </div>
     <p class="note" id="snap-status" style="margin-top:14px">Letzter Schnappschuss: noch keiner</p>
-    <p class="note">Zusätzlich legt die App alle 7 Tage automatisch einen Schnappschuss deines Lernstands auf diesem Gerät ab. Es gibt immer nur einen, der ältere wird überschrieben.</p>
+    <p class="note">Zusätzlich alle 7 Tage ein automatischer Schnappschuss auf diesem Gerät.</p>
     <div class="stack">
       <button class="ghost" id="btn-snap" type="button" hidden></button>
     </div>
@@ -2293,6 +2305,7 @@
       daten.seeded = true;
       sichern();
     }
+    gemeinsamHolen();
     if (typeof daten.richtung === "string") richtung = daten.richtung;
     if (!daten.start) daten.start = Date.now();
     if (typeof daten.paket === "number") paket = daten.paket;
@@ -2465,7 +2478,38 @@
     daten.listSort = listSort;
     try { window.localStorage.setItem(KEY, JSON.stringify(daten)); }
     catch (e) { speicherOk = false; zeigeWarnung(); }
+    gemeinsamAblegen();
   }
+
+  /* Einstellungen, die für alle Kästen gelten, liegen im Englisch-Kasten (vokabelkasten.v2):
+     ein anderer Kasten übernimmt sie beim Laden und schreibt Änderungen dorthin zurück.
+     Pro Kasten bleiben Karten, Fächer, Liste, Richtung und Tagesverlauf. */
+  var GEMEINSAM = ["thema", "wischen", "eingabe", "ziel", "deStimme", "deTempo", "enTempo", "unterwegs", "abstaende", "letzteSicherung"];
+  function gemeinsamHolen() {
+    if (KASTEN.id === "en") return;
+    try {
+      var en = JSON.parse(window.localStorage.getItem(kastenKey("en")));
+      if (!en) return;
+      GEMEINSAM.forEach(function (k) { if (en[k] !== undefined) daten[k] = en[k]; });
+    } catch (e) {}
+  }
+  function gemeinsamAblegen() {
+    if (KASTEN.id === "en") return;
+    try {
+      var en = JSON.parse(window.localStorage.getItem(kastenKey("en")));
+      if (!en || !Array.isArray(en.cards)) return;
+      var anders = false;
+      GEMEINSAM.forEach(function (k) {
+        if (daten[k] !== undefined && JSON.stringify(en[k]) !== JSON.stringify(daten[k])) { en[k] = daten[k]; anders = true; }
+      });
+      if (anders) window.localStorage.setItem(kastenKey("en"), JSON.stringify(en));
+    } catch (e) {}
+  }
+  /* Tagesziel und Lernserie zählen über alle Kästen: gelernt ist gelernt, egal in welchem Kasten.
+     Die Tagesverläufe der anderen Kästen werden beim Start einmal gelesen (sie ändern sich nur, wenn sie offen sind). */
+  var fremdeLogs = KAESTEN.liste.filter(function (k) { return k.id !== KASTEN.id; }).map(function (k) {
+    try { var d = JSON.parse(window.localStorage.getItem(kastenKey(k.id))); return (d && d.log) || {}; } catch (e) { return {}; }
+  });
 
   function zeigeWarnung() {
     var w = document.getElementById("warnbox");
@@ -2577,7 +2621,10 @@
      daten.log["2026-9-25"] = Anzahl bewerteter Karten an diesem Tag */
   function tagSchluessel(ms) { var d = new Date(ms); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
   function tagesZiel() { return [10, 20, 30, 50, 80].indexOf(daten.ziel) > -1 ? daten.ziel : 20; }
-  function geuebtAm(ms) { return (daten.log || {})[tagSchluessel(ms)] || 0; }
+  function geuebtAm(ms) {
+    var k = tagSchluessel(ms);
+    return fremdeLogs.reduce(function (s, log) { return s + (log[k] || 0); }, (daten.log || {})[k] || 0);
+  }
   function zaehleKarte(delta, ms) {
     if (!daten.log) daten.log = {};
     var k = tagSchluessel(ms || Date.now());
@@ -3661,8 +3708,7 @@
       document.getElementById(id).value = String(vier[i]);
     });
     document.getElementById("tempo-info").textContent =
-      "Aktuell: " + vier.join(", ") + " Tage. Die Änderung wirkt auf alle künftigen Antworten, " +
-      "bereits vergebene Termine bleiben stehen.";
+      "Aktuell: " + vier.join(", ") + " Tage. Gilt für künftige Antworten.";
   }
 
   var hinweisArt = null;
@@ -3721,18 +3767,14 @@
     if (apple && !drin) {
       k.className = "applekasten dringend";
       status.textContent = "Noch offen: Dein Fortschritt ist gefährdet.";
-      warum.textContent = "Safari behandelt diese Seite als gewöhnliche Webseite und löscht ihren Speicher, " +
-        "wenn du sie sieben Tage lang nicht besuchst. Fächer, Termine und Sterne wären dann weg, " +
-        "die Vokabeln fingen wieder bei null an. Eine App vom Startbildschirm ist von dieser Regel ausgenommen.";
-      note.textContent = "Dein bisheriger Fortschritt geht beim Installieren nicht verloren, er hängt an der Adresse und nicht am Symbol. " +
-        "Dieser Hinweis verschwindet von allein, sobald es erledigt ist.";
+      warum.textContent = "Safari löscht den Speicher nach 7 Tagen ohne Besuch – eine installierte App nicht.";
+      note.textContent = "Dein Fortschritt bleibt beim Installieren erhalten.";
       return;
     }
     if (apple && drin) {
       k.className = "applekasten erledigt";
       status.textContent = "Erledigt: Die App ist installiert.";
-      warum.textContent = "Sie läuft in einem eigenen Fenster ohne Adressleiste. " +
-        "Bei Apple-Geräten gilt damit auch die Sieben-Tage-Löschregel von Safari nicht mehr für dich.";
+      warum.textContent = "Die 7-Tage-Löschregel von Safari gilt damit nicht mehr.";
       note.textContent = "Die Anleitungen stehen hier weiter, falls du die App auf einem zweiten Gerät einrichten willst.";
       return;
     }
@@ -4405,6 +4447,79 @@
   });
   document.getElementById("suche").addEventListener("input", zeichneListe);
   document.getElementById("einfuegen").addEventListener("input", zeichneVorschau);
+
+  /* Ablage: Datei hineinziehen, wählen oder Text aus der Zwischenablage holen.
+     CSV (Excel speichert mit ; oder ,) wird in Tab-getrennte Zeilen umgewandelt; eine Sicherungsdatei (.json)
+     wird wie „Sicherung einlesen“ behandelt. Excel-Dateien selbst (.xlsx) kann der Browser nicht lesen. */
+  function csvZeilen(text) {
+    var zeilen = String(text).replace(/^﻿/, "").replace(/\r/g, "").split("\n");
+    var kopf = zeilen[0] || "";
+    if (kopf.indexOf("\t") > -1 || kopf.indexOf("|") > -1) return zeilen.join("\n");   // schon passend
+    var trenner = (kopf.split(";").length >= kopf.split(",").length) ? ";" : ",";
+    return zeilen.map(function (z) {
+      var teile = [], feld = "", inQ = false;
+      for (var i = 0; i < z.length; i++) {
+        var ch = z[i];
+        if (inQ) {
+          if (ch === '"' && z[i + 1] === '"') { feld += '"'; i++; }
+          else if (ch === '"') inQ = false;
+          else feld += ch;
+        } else if (ch === '"') inQ = true;
+        else if (ch === trenner) { teile.push(feld); feld = ""; }
+        else feld += ch;
+      }
+      teile.push(feld);
+      return teile.map(function (t) { return t.trim(); }).join("\t");
+    }).join("\n");
+  }
+  function ablageText(text, name) {
+    var ta = document.getElementById("einfuegen");
+    if (/\.json$/i.test(name || "") || /^\s*\{/.test(text)) {
+      var p = null;
+      try { p = JSON.parse(text); } catch (e) {}
+      if (p && Array.isArray(p.cards)) { sicherungEinlesen(p); return; }
+    }
+    if (/\.xlsx?$/i.test(name || "")) { alert("Excel-Dateien kann der Browser nicht lesen. In Excel „Speichern unter → CSV“ wählen oder die Zellen kopieren und hier einfügen."); return; }
+    var neu = /\.csv$/i.test(name || "") ? csvZeilen(text) : String(text).replace(/\r/g, "");
+    ta.value = (ta.value.trim() ? ta.value.replace(/\s*$/, "\n") : "") + neu.trim();
+    zeichneVorschau();
+  }
+  function ablageDatei(f) {
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () { ablageText(String(r.result), f.name); };
+    r.readAsText(f);
+  }
+  (function () {
+    var ablage = document.getElementById("ablage"), datei = document.getElementById("liste-datei");
+    document.getElementById("btn-datei").addEventListener("click", function () { datei.click(); });
+    datei.addEventListener("change", function () { ablageDatei(datei.files && datei.files[0]); datei.value = ""; });
+    document.getElementById("btn-clip").addEventListener("click", function () {
+      if (!navigator.clipboard || !navigator.clipboard.readText) {
+        document.getElementById("einfuegen").focus();
+        alert("Der Browser erlaubt das Auslesen nicht. Tippe lang ins Feld und wähle „Einfügen“.");
+        return;
+      }
+      navigator.clipboard.readText().then(function (t) {
+        if (t && t.trim()) ablageText(t);
+        else alert("Die Zwischenablage ist leer.");
+      }).catch(function () {
+        document.getElementById("einfuegen").focus();
+        alert("Kein Zugriff auf die Zwischenablage. Tippe lang ins Feld und wähle „Einfügen“.");
+      });
+    });
+    [ablage, document.getElementById("einfuegen")].forEach(function (el) {
+      el.addEventListener("dragover", function (e) { if (e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types, "Files") > -1) { e.preventDefault(); ablage.classList.add("drueber"); } });
+      el.addEventListener("dragleave", function () { ablage.classList.remove("drueber"); });
+      el.addEventListener("drop", function (e) {
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        ablage.classList.remove("drueber");
+        if (!f) return;   // Text aus einem anderen Fenster fügt der Browser selbst ins Feld ein
+        e.preventDefault();
+        ablageDatei(f);
+      });
+    });
+  })();
 
   document.getElementById("btn-import-text").addEventListener("click", function () {
     var feld = document.getElementById("einfuegen");
@@ -5183,15 +5298,11 @@
   function stimmTipp() {
     var el = document.getElementById("stimm-tipp");
     if (/Android/i.test(navigator.userAgent)) {
-      el.textContent = "Android zeigt hier meist nur eine Stimme pro Sprache, nämlich die aus den Systemeinstellungen. " +
-        "Andere Stimmen stellst du so ein: Einstellungen \u2192 Bedienungshilfen \u2192 Text-in-Sprache (je nach Handy auch unter " +
-        "Allgemeine Verwaltung oder System \u2192 Sprache). Dort als Modul \u201eGoogle Sprachausgabe\u201c wählen, auf das Zahnrad tippen, " +
-        "\u201eSprachdaten installieren\u201c \u2192 Deutsch bzw. Englisch und eine Stimme aussuchen. Die App nimmt sie dann automatisch.";
+      el.textContent = "Andere Stimmen: Android-Einstellungen \u2192 Bedienungshilfen \u2192 Text-in-Sprache \u2192 Google Sprachausgabe \u2192 Sprachdaten installieren.";
     } else if (istApple()) {
-      el.textContent = "Mehr und bessere Stimmen gibt es kostenlos unter Einstellungen \u2192 Bedienungshilfen \u2192 Gesprochene Inhalte " +
-        "\u2192 Stimmen. Stimmen mit \u201eErweitert\u201c oder \u201ePremium\u201c klingen natürlicher und oft lauter. Danach erscheinen sie hier.";
+      el.textContent = "Bessere Stimmen: Einstellungen \u2192 Bedienungshilfen \u2192 Gesprochene Inhalte \u2192 Stimmen (\u201ePremium\u201c).";
     } else {
-      el.textContent = "Die Stimmen kommen von deinem Gerät. Neue Stimmen installierst du in den Spracheinstellungen des Betriebssystems.";
+      el.textContent = "Neue Stimmen gibt es in den Spracheinstellungen des Geräts.";
     }
   }
   function stimmenFuellen() {
@@ -6715,8 +6826,7 @@
     document.getElementById("sn-de").setAttribute("aria-label", "Bedeutung");
     txt('label[for="in-vorne"]', "Begriff"); txt('label[for="in-hinten"]', "Bedeutung");
     txt("#view-neu h2", "Neuer Begriff"); txt("#btn-add", "Begriff speichern");
-    txt("#view-neu .hilfe pre", "Begriff  ⇥  Bedeutung  ⇥  Beispiel");
-    txt("#view-neu .hilfe p", "Eine Zeile pro Karte: Begriff und Bedeutung, getrennt durch Tabulator (aus Excel), Senkrechtstrich, Semikolon oder „ = “ (z. B. „OGS = Original GARDENA System“). Eine dritte Spalte ist freiwillig.");
+    document.getElementById("einf-hilfe").innerHTML = "Eine Zeile pro Karte: <b>Begriff · Bedeutung</b>, getrennt durch Tab, |, ; oder „ = “.";
     document.getElementById("einfuegen").placeholder = "Leitzins = Zinssatz, zu dem sich Banken bei der Zentralbank Geld leihen";
     opt("#sel-richtung", "de", "Begriff zuerst"); opt("#sel-richtung", "en", "Bedeutung zuerst");
     ["#uw-richtung", "#du-richtung"].forEach(function (sel) { opt(sel, "de", "Begriff → Bedeutung"); opt(sel, "en", "Bedeutung → Begriff"); });
