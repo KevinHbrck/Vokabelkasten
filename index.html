@@ -2274,6 +2274,7 @@
   }
 
   var daten = { v: 2, seeded: false, cards: [] };
+  var geladen = false;   // erst nach laden() wird gespeichert (siehe sichern)
   var speicherOk = true;
   var filterKat = "alle";
   var richtung = "de";
@@ -2300,6 +2301,7 @@
         if (p && Array.isArray(p.cards)) daten = p;
       } catch (e) { /* kaputter Eintrag: Startdatensatz nehmen */ }
     }
+    geladen = true;   // ab hier darf gespeichert werden
     if (!daten.seeded) {
       if (!WISSEN) { saeen(); uebernehmeAlteVersion(); }   // Wissenskästen starten leer
       daten.seeded = true;
@@ -2469,6 +2471,9 @@
   }
 
   function sichern() {
+    /* Schutz: vor dem Laden gibt es nichts zu speichern - sonst überschriebe der leere Anfangsstand
+       den echten Lernstand (so geschehen, als beim Start geprüft wurde, ob Teilen geht). */
+    if (!geladen) return;
     daten.richtung = richtung;
     daten.paket = paket;
     daten.abdeck = abdeck;
@@ -4965,7 +4970,8 @@
     } catch (e) {}
     return null;
   }
-  var kannTeilen = !!(navigator.share && sicherungsDatei());
+  // nur prüfen, ob Teilen von Dateien geht - mit einer Probedatei, ohne den echten Stand anzufassen
+  var kannTeilen = !!(navigator.share && sicherungsDatei("{}"));
   document.getElementById("btn-teilen").hidden = !kannTeilen;
   document.getElementById("btn-teilen").addEventListener("click", function () {
     sicherungMitBildern().then(function (aus) {

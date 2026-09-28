@@ -73,6 +73,18 @@
       iframe.src = "index.html?schnelltest=" + Date.now();
     });
   }
+  /* wie ein Android-Handy: Teilen von Dateien ist vorhanden (der Test-Browser hat das sonst nicht).
+     Die App wird dafür als srcdoc geladen, mit zwei vorangestellten Zeilen - gleicher Ursprung, gleicher Speicher. */
+  async function ladenMitTeilen() {
+    var html = await (await fetch("index.html?roh=" + Date.now())).text();
+    var vorspann = '<script>navigator.share = function () { return Promise.resolve(); }; navigator.canShare = function () { return true; };<\/script>';
+    html = html.replace(/<head>/i, "<head>" + vorspann);
+    return new Promise(function (ok) {
+      iframe.onload = function () { binden(); setTimeout(ok, 500); };
+      iframe.removeAttribute("src");
+      iframe.srcdoc = html;
+    });
+  }
   // die App lädt sich selbst neu (Kasten wechseln): auf das nächste „load“ warten
   function neuGeladen(aktion) {
     return new Promise(function (ok) {
@@ -185,6 +197,17 @@
       await neuGeladen(function () { klick($$(".kasten-reiter")[0]); });
       pruefe(id("st-hero-name").textContent === "Vokabelkasten", "nicht zurück im Englisch-Kasten");
       pruefe(JSON.parse(W.localStorage.getItem(KEY)).cards.length === enVorher, "Englisch-Kasten hat sich verändert");
+    }],
+    ["Lernstand übersteht Neustart auch mit Teilen-Funktion (wie am Handy)", async function () {
+      var vorher = W.localStorage.getItem(KEY);
+      var faecher = JSON.parse(vorher).cards.filter(function (c) { return c.aktiv; }).length;
+      pruefe(faecher > 0, "Test braucht Karten im Kasten");
+      await ladenMitTeilen();
+      await bis(function () { return D.getElementById("st-hero-name"); }, 5000, "Startseite mit Teilen");
+      var nachher = JSON.parse(W.localStorage.getItem(KEY));
+      var imKasten = nachher.cards.filter(function (c) { return c.aktiv; }).length;
+      pruefe(imKasten === faecher, "Lernstand verändert: vorher " + faecher + " im Kasten, nachher " + imKasten);
+      iframe.removeAttribute("srcdoc");
     }],
     ["Keine Skriptfehler", async function () {
       pruefe(!fehler.length, fehler.slice(0, 3).join(" | "));
