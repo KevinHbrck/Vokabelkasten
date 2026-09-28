@@ -239,6 +239,45 @@
     margin: -4px 0 12px; min-height: 1.2em;
   }
   .meldung-wann { white-space: nowrap; }
+  /* Kästen */
+  .kasten-leiste { display: flex; gap: 8px; overflow-x: auto; margin: 0 -2px 12px; padding: 2px; scrollbar-width: none; }
+  .kasten-leiste::-webkit-scrollbar { display: none; }
+  .kasten-reiter { flex: 0 0 auto; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--rule); background: var(--card); color: var(--ink);
+    font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .kasten-reiter.an { background: var(--k); border-color: var(--k); color: #fff; }
+  .kasten-reiter.plus { width: 40px; padding: 8px 0; font-size: 18px; line-height: 1; color: var(--ink-soft); }
+  .kasten-punkte { display: flex; justify-content: center; gap: 7px; margin: 10px 0 0; }
+  .kasten-punkte[hidden] { display: none; }
+  .kasten-punkte i { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); }
+  .kasten-punkte i.an { background: var(--kasten); transform: scale(1.3); }
+  .kasten-punkte i.plus { background: none; box-shadow: inset 0 0 0 1.5px var(--rule); }
+  .st-hero { background: linear-gradient(145deg, color-mix(in srgb, var(--kasten, #ef7b17) 78%, #fff) 0%, var(--kasten, #ef7b17) 50%, color-mix(in srgb, var(--kasten, #ef7b17) 85%, #000) 100%) !important;
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--kasten, #ef7b17) 28%, transparent), 0 2px 6px color-mix(in srgb, var(--kasten, #ef7b17) 18%, transparent) !important; }
+  .st-cta { color: var(--kasten, #d4580a) !important; }
+  #view-start.raus-links { transform: translateX(-40px); opacity: 0; transition: transform .17s ease, opacity .17s ease; }
+  #view-start.raus-rechts { transform: translateX(40px); opacity: 0; transition: transform .17s ease, opacity .17s ease; }
+  #view-start.rein-links { animation: reinL .3s ease; }
+  #view-start.rein-rechts { animation: reinR .3s ease; }
+  @keyframes reinL { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes reinR { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { #view-start.rein-links, #view-start.rein-rechts { animation: none; } }
+  #view-start { touch-action: pan-y; }
+  .kasten-dialog { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
+  .kasten-dialog[hidden] { display: none; }
+  .kasten-karte { width: 100%; max-width: 560px; background: var(--card); color: var(--ink); border-radius: 20px 20px 0 0;
+    padding: 20px 18px calc(18px + env(safe-area-inset-bottom)); }
+  .kasten-karte h2 { margin: 0 0 12px; }
+  .kasten-knoepfe { display: flex; gap: 10px; margin-top: 6px; }
+  .kasten-knoepfe button { flex: 1; }
+  .kv-zeile { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--rule); }
+  .kv-zeile:first-child { border-top: 0; }
+  .kv-name { flex: 1; font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .kv-name::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--k); flex: none; }
+  .kv-zeile button { padding: 7px 10px; font-size: 13px; margin: 0; }
+  html[data-wissen] [data-ziel="quiz"], html[data-wissen] nav [data-view="quiz"], html[data-wissen] #btn-sprache,
+  html[data-wissen] #sn-vorschlag { display: none !important; }
+  html[data-wissen] .st-paar { grid-template-columns: 1fr; }
+  html[data-wissen] .zelle.en { font-style: normal; }
   /* Eintippen (nur wenn in den Einstellungen gewählt) */
   .eingabe { display: flex; gap: 8px; margin: 14px 0 0; }
   .eingabe input[type=text] { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 17px; }
@@ -1299,10 +1338,10 @@
     box-shadow: 0 1px 2px rgba(0,0,0,.05); }
   .sn-zeile { display: flex; gap: 8px; }
   .sn-zeile input[type=text], .sn-zeile textarea { flex: 1 1 auto; min-width: 0; margin: 0; }
-  #sn-bsp { width: 100%; padding: 9px 12px; border: 1px solid var(--rule); border-radius: 3px; background: var(--card); color: var(--ink);
+  #sn-de, #sn-bsp { width: 100%; padding: 9px 12px; border: 1px solid var(--rule); border-radius: 3px; background: var(--card); color: var(--ink);
     resize: none; font: inherit; line-height: 1.35; }
-  #sn-bsp:focus { outline: 2px solid var(--indigo); outline-offset: -1px; border-color: var(--indigo); }
-  html[data-vintage] #sn-bsp { background: var(--field, var(--card)); border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,.1); }
+  #sn-de:focus, #sn-bsp:focus { outline: 2px solid var(--indigo); outline-offset: -1px; border-color: var(--indigo); }
+  html[data-vintage] #sn-de, html[data-vintage] #sn-bsp { background: var(--field, var(--card)); border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,.1); }
   #sn-vorschlag { flex: 0 0 auto; white-space: nowrap; align-self: stretch; }
   #sn-los { flex: 0 0 auto; width: 50px; padding: 0; font-size: 26px; line-height: 1; border-radius: 12px; }
   .sn-mehr { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
@@ -1462,6 +1501,17 @@
   <button type="button" id="btn-einst" class="kopf-einst" hidden aria-label="Einstellungen" title="Einstellungen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
 </header>
 
+<!-- Neuer Kasten: nur das Thema -->
+<div class="kasten-dialog" id="kasten-dialog" hidden>
+  <form class="kasten-karte" id="kasten-form" autocomplete="off">
+    <h2>Neuer Kasten</h2>
+    <label for="kasten-name">Welches Thema?</label>
+    <input type="text" id="kasten-name" maxlength="30" placeholder="z. B. Wirtschaft, Klausur Mathe, Gardena" enterkeyhint="done">
+    <p class="note">Der Kasten heißt dann z. B. „Wirtschaftskasten“ und hat alle Funktionen: Fächer, Liste, schnell anlegen, Hörtraining, Statistik. Vorne steht der Begriff, hinten die Bedeutung.</p>
+    <div class="kasten-knoepfe"><button type="button" class="ghost" id="kasten-abbruch">Abbrechen</button><button type="submit">Anlegen</button></div>
+  </form>
+</div>
+
 <div id="hinweisbar" hidden>
   <span id="hinweistext"></span>
   <button id="hinweis-tun" type="button"></button>
@@ -1472,15 +1522,18 @@
   <!-- Startseite: oben das Wichtigste (heute lernen), darunter die zwei Lernarten, unten Verwalten -->
   <section id="view-start" class="view active">
     <p class="st-gruss" id="st-gruss"></p>
+    <!-- Kästen: Reiter zum Antippen; auf der Startseite wechselt man auch per Wischen -->
+    <div class="kasten-leiste" id="kasten-leiste" role="tablist" aria-label="Karteikästen"></div>
     <button type="button" class="kachel st-hero" data-ziel="karten">
       <span class="st-hero-kopf">
         <span class="st-ico st-ico-hell"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/></svg></span>
-        <span class="st-hero-titel"><b>Vokabelkasten</b><small id="st-hero-sub"></small></span>
+        <span class="st-hero-titel"><b id="st-hero-name">Vokabelkasten</b><small id="st-hero-sub"></small></span>
       </span>
       <span class="st-hero-zahl"><strong id="st-faellig">0</strong><span id="st-faellig-txt"></span></span>
       <span class="st-ziel" aria-hidden="true"><span class="st-ziel-balken"><i id="st-ziel-fuell"></i></span><span id="st-ziel-txt"></span></span>
       <span class="st-cta"><span id="st-cta-txt">Jetzt üben</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
     </button>
+    <div class="kasten-punkte" id="kasten-punkte" aria-hidden="true"></div>
     <!-- Neues Wort in Sekunden: English eintippen, Deutsch dazu, Enter - liegt sofort im Kasten -->
     <form class="st-schnell" id="schnell" autocomplete="off">
       <div class="sn-zeile">
@@ -1489,7 +1542,7 @@
         <button type="submit" id="sn-los" aria-label="In den Kasten legen" title="In den Kasten legen">+</button>
       </div>
       <div class="sn-mehr" id="sn-mehr" hidden>
-        <input type="text" id="sn-de" placeholder="Deutsch" aria-label="Übersetzung auf Deutsch" enterkeyhint="done">
+        <textarea id="sn-de" rows="1" placeholder="Deutsch" aria-label="Übersetzung auf Deutsch" enterkeyhint="done"></textarea>
         <div class="sn-zeile">
           <textarea id="sn-bsp" rows="2" placeholder="Beispielsatz (optional)" aria-label="Beispielsatz" enterkeyhint="done"></textarea>
           <button type="button" class="ghost" id="sn-vorschlag">Vorschlag</button>
@@ -1870,6 +1923,12 @@
       </div>
 
       <div class="sk-block">
+        <h3 class="sk-titel">Kästen</h3>
+        <div id="kasten-verwalten"></div>
+        <p class="note">Neue Kästen legst du auf der Startseite mit „+“ an. Jeder Kasten hat eigene Karten und Fächer; Einstellungen wie Design und Stimmen gelten für alle.</p>
+      </div>
+
+      <div class="sk-block">
         <h3 class="sk-titel">Antwort</h3>
         <div class="modus" id="eingabewahl">
           <button type="button" data-eingabe="aufdecken">Aufdecken</button>
@@ -2139,8 +2198,34 @@
   var VK_DATEN = window.VK_DATEN;
   var SEED = VK_DATEN.SEED, SEED_STAND = VK_DATEN.SEED_STAND, SEED_NEU_AB = VK_DATEN.SEED_NEU_AB,
       SEED_AENDERUNG = VK_DATEN.SEED_AENDERUNG, SEED_ZUSAMMEN = VK_DATEN.SEED_ZUSAMMEN, VORLAGEN = VK_DATEN.VORLAGEN;
-  var KATS = SEED.kats;
-  var KEY = "vokabelkasten.v2";
+  /* ---------- Kästen ----------
+     Mehrere Karteikästen nebeneinander. Englisch ist der ursprüngliche Kasten und bleibt technisch genau wie er war
+     (Schlüssel vokabelkasten.v2, Startliste, Stimmen). Jeder weitere Kasten ist ein „Wissenskasten“ (Begriff → Bedeutung)
+     mit eigenem Speicher vokabelkasten.kasten.<id> - gleiche Funktionen, nur ohne Englisch-Startliste und -Stimmen.
+     Verzeichnis: vokabelkasten.kaesten = { aktiv, liste:[{ id, name, farbe, art }] }. Wechseln lädt die Seite neu,
+     so startet jeder Kasten mit sauberem Zustand. */
+  var KASTEN_REG = "vokabelkasten.kaesten";
+  var KASTEN_FARBEN = ["#ef7b17", "#2b78e4", "#7b4fd6", "#1f9d63", "#d6453d", "#c28a00", "#0e9aa7"];
+  function kaestenLesen() {
+    try {
+      var r = JSON.parse(window.localStorage.getItem(KASTEN_REG));
+      if (r && Array.isArray(r.liste) && r.liste.length && r.liste[0].id === "en") return r;
+    } catch (e) {}
+    return { aktiv: "en", liste: [{ id: "en", name: "Englisch", farbe: 0, art: "vokabel" }] };
+  }
+  function kaestenSichern() { try { window.localStorage.setItem(KASTEN_REG, JSON.stringify(KAESTEN)); } catch (e) {} }
+  var KAESTEN = kaestenLesen();
+  var KASTEN = KAESTEN.liste.filter(function (k) { return k.id === KAESTEN.aktiv; })[0] || KAESTEN.liste[0];
+  var WISSEN = KASTEN.art === "wissen";
+  function kastenKey(id) { return id === "en" ? "vokabelkasten.v2" : "vokabelkasten.kasten." + id; }
+  // „Wirtschaft“ -> „Wirtschaftskasten“, Englisch bleibt der „Vokabelkasten“
+  function kastenTitel(k) {
+    if (k.id === "en") return "Vokabelkasten";
+    var n = String(k.name || "").trim();
+    return /kasten$/i.test(n) ? n : n + "kasten";
+  }
+  var KATS = WISSEN ? ["Begriffe", "Abkürzungen", "Zusammenhänge", "Sonstiges"] : SEED.kats;
+  var KEY = kastenKey(KASTEN.id);
   var ALT_KEY = "vokabelkasten.v1";
   // Index = Fach. Fach 1 wird nie angesteuert, eine richtige Antwort
   // hebt die Karte immer mindestens auf Fach 2.
@@ -2194,8 +2279,7 @@
       } catch (e) { /* kaputter Eintrag: Startdatensatz nehmen */ }
     }
     if (!daten.seeded) {
-      saeen();
-      uebernehmeAlteVersion();
+      if (!WISSEN) { saeen(); uebernehmeAlteVersion(); }   // Wissenskästen starten leer
       daten.seeded = true;
       sichern();
     }
@@ -2215,9 +2299,9 @@
     } else {
       setzeAbstaende(VORLAGEN.normal);
     }
-    ordNachtragen();
+    if (!WISSEN) ordNachtragen();
     aktivNachtragen();
-    seedAktualisieren();
+    if (!WISSEN) seedAktualisieren();
   }
 
   /* Einmalige Umstellung auf die neue Startliste. Geändert wird nur, was noch genau so dasteht
@@ -3368,7 +3452,7 @@
      Alle 7 Tage eine vollständige Kopie von daten in IndexedDB (nicht in localStorage - dort liegen die
      eigentlichen Daten). Immer nur einer, der alte wird überschrieben. Klappt das Speichern nicht
      (voll, gesperrt), wird still beim nächsten Start neu versucht. */
-  var SNAP_TAGE = 7, SNAP_DB = "vokabelkasten-sicherung", SNAP_STORE = "stand", SNAP_KEY = "schnappschuss";
+  var SNAP_TAGE = 7, SNAP_DB = "vokabelkasten-sicherung", SNAP_STORE = "stand", SNAP_KEY = KASTEN.id === "en" ? "schnappschuss" : "schnappschuss." + KASTEN.id;
   var snapZeit = null;   // null = noch nicht nachgesehen, 0 = keiner, sonst Zeitpunkt (ms)
   function snapOeffnen() {
     return new Promise(function (ok, fehler) {
@@ -3651,6 +3735,7 @@
       var teile;
       if (z.indexOf("\t") > -1) teile = z.split("\t");
       else if (z.indexOf("|") > -1) teile = z.split("|");
+      else if (/^[^=]{1,60}\s=\s/.test(z)) { var gl = z.indexOf(" = "); teile = [z.slice(0, gl), z.slice(gl + 3)]; }   // „OGS = Original GARDENA System“
       else if (z.indexOf(";") > -1) teile = z.split(";");
       else if (/\s{2,}/.test(z)) teile = z.split(/\s{2,}/);
       else { ergebnis.uebersprungen++; return; }
@@ -3659,7 +3744,7 @@
       if (teile.length < 2) { ergebnis.uebersprungen++; return; }
 
       // Eine Ueberschriftenzeile ganz oben ignorieren
-      if (i === 0 && /^(deutsch|german)$/i.test(teile[0]) && /^(english|englisch)$/i.test(teile[1])) return;
+      if (i === 0 && /^(deutsch|german|begriff)$/i.test(teile[0]) && /^(english|englisch|bedeutung|erklärung)$/i.test(teile[1])) return;
 
       ergebnis.karten.push({
         de: teile[0],
@@ -3731,8 +3816,9 @@
   }
 
   function kopfZeigen() {
-    var titel = { start: "Vokabelkasten", ueben: modus === "hoeren" ? "Hörtraining" : "Vokabelkasten", liste: "Liste",
-                  neu: "Neu", quiz: "Quiz-Duell", sichern: "Einstellungen", statistik: "Statistik" }[ansicht] || "Vokabelkasten";
+    var name = kastenTitel(KASTEN);
+    var titel = { start: name, ueben: modus === "hoeren" ? "Hörtraining" : name, liste: "Liste",
+                  neu: "Neu", quiz: "Quiz-Duell", sichern: "Einstellungen", statistik: "Statistik" }[ansicht] || name;
     document.getElementById("kopf-titel").textContent = titel;
     document.getElementById("btn-start").hidden = ansicht === "start";
     document.getElementById("status").hidden = ansicht === "start";   // steht auf der Startseite schon in der großen Karte
@@ -3752,14 +3838,14 @@
     // große Karte: was heute ansteht
     document.getElementById("st-hero-sub").textContent = k ? k + " Karten im Kasten" : "Dein Kasten ist noch leer";
     document.getElementById("st-faellig").textContent = String(k ? f : daten.cards.length);
-    document.getElementById("st-faellig-txt").textContent = k ? (f === 1 ? "Karte heute fällig" : "Karten heute fällig") : "Vokabeln warten auf dich";
+    document.getElementById("st-faellig-txt").textContent = k ? (f === 1 ? "Karte heute fällig" : "Karten heute fällig") : (WISSEN ? (daten.cards.length ? "Karten warten auf dich" : "Leg unten die ersten Begriffe an") : "Vokabeln warten auf dich");
     document.getElementById("st-ziel-fuell").style.width = Math.min(100, Math.round(h / ziel * 100)) + "%";
     document.getElementById("st-ziel-txt").textContent = "Heute " + h + " / " + ziel + (h >= ziel ? " ✓" : "");
     document.getElementById("st-cta-txt").textContent = !k ? "Loslegen" : f ? "Jetzt üben" : "Alles erledigt · trotzdem üben";
     // Lernarten und Verwalten
     var n = uwKartenAuswahl(uwEinstellungen().auswahl).length;
     document.getElementById("k-hoeren").textContent = n ? n + (n === 1 ? " Karte" : " Karten") + " · freihändig" : "Vorlesen lassen, freihändig";
-    document.getElementById("k-liste").textContent = daten.cards.length + " Vokabeln · " + k + " im Kasten";
+    document.getElementById("k-liste").textContent = daten.cards.length + (WISSEN ? " Karten · " : " Vokabeln · ") + k + " im Kasten";
   }
   Array.prototype.forEach.call(document.querySelectorAll(".kachel"), function (b) {
     b.addEventListener("click", function () {
@@ -4000,6 +4086,7 @@
     if (!n) return null;
     for (var i = 0; i < daten.cards.length; i++) {
       var c = daten.cards[i];
+      if (WISSEN) { if (snNorm(c.front) === n) return c; continue; }
       if (String(c.back).split(/\s*[\/;]\s*/).some(function (v) { return snNorm(v) === n; })) return c;
     }
     return null;
@@ -4027,19 +4114,19 @@
     var c = snVorhanden(en);
     if (c) {
       snInfo(c.aktiv ? "liegt schon im Kasten (Fach " + c.box + ")." : "steht schon in der Liste – + legt die Karte in den Kasten.",
-             "„" + c.back + "“ = „" + c.front + "“");
+             WISSEN ? "„" + c.front + "“ = „" + c.back + "“" : "„" + c.back + "“ = „" + c.front + "“");
       if (!snEl("de").value) snEl("de").placeholder = c.front;
     } else {
-      snEl("de").placeholder = "Deutsch";
+      snEl("de").placeholder = WISSEN ? "Bedeutung" : "Deutsch";
       snInfo("");
     }
     if (sn.fuer !== snNorm(en)) { sn.vorschlaege = []; sn.nr = 0; sn.fuer = ""; }
-    snEl("kat").value = String(snKatRaten(en));
+    snEl("kat").value = String(WISSEN ? (/^[A-ZÄÖÜ0-9]{2,6}$/.test(en) ? 1 : 0) : snKatRaten(en));
   }
   function snLeeren() {
     snEl("en").value = ""; snEl("de").value = ""; snEl("bsp").value = "";
     sn.vorschlaege = []; sn.nr = 0; sn.fuer = ""; sn.ueb = "";
-    snEl("de").placeholder = "Deutsch";
+    snEl("de").placeholder = WISSEN ? "Bedeutung" : "Deutsch";
     snEl("mehr").hidden = true;
   }
   // Sätze aus der App, in denen das Wort vorkommt (auch mit Endung: decide -> decided)
@@ -4100,7 +4187,27 @@
     });
     return out.slice(0, 4);
   }
+  // Wissenskasten: erster Satz aus der deutschen Wikipedia als Vorschlag für die Bedeutung
+  function snWikipedia(begriff) {
+    var t = String(begriff || "").trim();
+    if (!t || !window.fetch || navigator.onLine === false) return Promise.resolve(null);
+    var stopp = new Promise(function (ok) { setTimeout(function () { ok(null); }, 8000); });
+    var holen = fetch("https://de.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(t.replace(/ /g, "_")),
+                      { headers: { "Api-User-Agent": "Vokabelkasten (persönliche Lern-App)" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j || j.type === "disambiguation" || !j.extract) return null;
+        var satz = String(j.extract).replace(/\s+/g, " ").trim();
+        var ende = satz.search(/[.!?](\s|$)/);   // nur der erste Satz
+        if (ende > 20) satz = satz.slice(0, ende + 1);
+        if (satz.length > 220) satz = satz.slice(0, 217).replace(/\s+\S*$/, "") + " …";
+        return { text: satz, quelle: "Wikipedia" };
+      })
+      .catch(function () { return null; });
+    return Promise.race([holen, stopp]);
+  }
   function snUebersetzen(en) {
+    if (WISSEN) return snWikipedia(en);
     var wort = snNorm(en);
     if (!wort || !window.fetch || navigator.onLine === false) return Promise.resolve(null);
     function wikt(titel) {
@@ -4146,12 +4253,12 @@
     if (!en || de.value.trim() || snVorhanden(en) || sn.ueb === snNorm(en)) return;
     sn.ueb = snNorm(en);
     var fuer = sn.ueb;
-    de.placeholder = "Übersetze …";
+    de.placeholder = WISSEN ? "Suche Erklärung …" : "Übersetze …";
     snUebersetzen(en).then(function (r) {
       if (snNorm(snEl("en").value) !== fuer) return;   // inzwischen ein anderes Wort
-      de.placeholder = "Deutsch";
+      de.placeholder = WISSEN ? "Bedeutung" : "Deutsch";
       if (!r) {
-        if (navigator.onLine !== false) snInfo("Keine Übersetzung gefunden – schreib sie einfach selbst.");
+        if (navigator.onLine !== false) snInfo(WISSEN ? "Keine Erklärung gefunden – schreib die Bedeutung einfach selbst." : "Keine Übersetzung gefunden – schreib sie einfach selbst.");
         return;
       }
       if (de.value.trim()) return;   // schon selbst geschrieben
@@ -4198,18 +4305,19 @@
       if (!da.aktiv) { da.aktiv = true; da.box = 1; da.due = heute(); }
       if (bsp && !da.bsp) da.bsp = bsp;
       sichern(); snLeeren(); zeichneKacheln();
-      snInfo("ist jetzt im Kasten (Fach " + da.box + ").", "„" + da.back + "“");
+      snInfo("ist jetzt im Kasten (Fach " + da.box + ").", "„" + (WISSEN ? da.front : da.back) + "“");
       snEl("en").focus();
       return;
     }
     if (!de) { snEl("de").focus(); snAutoUebersetzen(); return; }
     daten.cards.push({
-      id: neueId(), front: de, back: en, bsp: bsp,
+      id: neueId(), front: WISSEN ? en : de, back: WISSEN ? de : en, bsp: bsp,   // Wissenskasten: erstes Feld = Begriff (vorne)
       kat: Number(snEl("kat").value) || 0,
       ord: naechsteOrd(), aktiv: true, merk: false, box: 1, due: heute(), created: Date.now()
     });
     sichern(); snLeeren(); zeichneKacheln();
-    snInfo("liegt im Kasten (Fach 1) und kommt heute noch dran.", "„" + en + "“ = „" + de + "“");
+    function kurz(x) { return x.length > 60 ? x.slice(0, 57).replace(/\s+\S*$/, "") + " …" : x; }
+    snInfo("liegt im Kasten (Fach 1) und kommt heute noch dran.", "„" + en + "“ = „" + kurz(de) + "“");
     snEl("en").focus();
   });
   // Geteilt aus einer anderen App (Android: Text markieren → Teilen → Vokabelkasten): Wort vorausfüllen
@@ -4676,7 +4784,7 @@
      Chrome teilt nicht jede Dateiart - geht JSON nicht, dieselbe Datei als .txt (Einlesen versteht beides). */
   function sicherungsDatei() {
     var d = new Date(), name = "vokabeln-" + d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    var inhalt = JSON.stringify(daten, null, 1);
+    var inhalt = JSON.stringify(sicherungsInhalt(), null, 1);
     try {
       var f = new File([inhalt], name + ".json", { type: "application/json" });
       if (navigator.canShare && navigator.canShare({ files: [f] })) return f;
@@ -4710,7 +4818,7 @@
   });
 
   document.getElementById("btn-export").addEventListener("click", function () {
-    var blob = new Blob([JSON.stringify(daten, null, 1)], { type: "application/json" });
+    var blob = new Blob([JSON.stringify(sicherungsInhalt(), null, 1)], { type: "application/json" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     var d = new Date();
@@ -4729,6 +4837,82 @@
     document.getElementById("file").click();
   });
 
+  /* Sicherungsdatei: oben wie immer der Englisch-Kasten (alte Dateien bleiben lesbar),
+     dazu alle weiteren Kästen unter kaesten / kastenDaten. Egal, welcher Kasten gerade offen ist. */
+  function kastenLesen(id) {
+    if (id === KASTEN.id) return daten;
+    try { var x = JSON.parse(window.localStorage.getItem(kastenKey(id))); if (x && Array.isArray(x.cards)) return x; } catch (e) {}
+    return null;
+  }
+  function sicherungsInhalt() {
+    sichern();
+    var en = kastenLesen("en") || { v: 2, seeded: true, cards: [] };
+    var aus = JSON.parse(JSON.stringify(en));
+    var weitere = KAESTEN.liste.filter(function (k) { return k.id !== "en"; });
+    if (weitere.length) {
+      aus.kaesten = weitere.map(function (k) { return { id: k.id, name: k.name, farbe: k.farbe, art: k.art }; });
+      aus.kastenDaten = {};
+      weitere.forEach(function (k) { var d = kastenLesen(k.id); if (d) aus.kastenDaten[k.id] = { cards: d.cards }; });
+    }
+    return aus;
+  }
+  // Karten einer Sicherung in einen Kasten mischen: Vorhandenes behält den besseren Lernstand, Neues kommt dazu
+  function kartenMischen(ziel, karten, katAnzahl) {
+    var idx = {}, neu = 0, akt = 0;
+    ziel.cards.forEach(function (c) { idx[c.front + "\u0000" + c.back] = c; });
+    var ord = ziel.cards.reduce(function (m, c) { return typeof c.ord === "number" && c.ord >= m ? c.ord + 1 : m; }, SEED.rows.length);
+    (karten || []).forEach(function (c) {
+      if (typeof c.front !== "string" || typeof c.back !== "string") return;
+      var box = Math.min(5, Math.max(1, parseInt(c.box, 10) || 1));
+      var vorhanden = idx[c.front + "\u0000" + c.back];
+      if (vorhanden) {
+        if (c.merk) vorhanden.merk = true;
+        if (c.aktiv !== false) vorhanden.aktiv = true;
+        if (box > vorhanden.box) { vorhanden.box = box; vorhanden.due = typeof c.due === "number" ? c.due : vorhanden.due; akt++; }
+        return;
+      }
+      var karte = {
+        id: neueId(), front: c.front, back: c.back, bsp: typeof c.bsp === "string" ? c.bsp : "",
+        kat: (typeof c.kat === "number" && c.kat >= 0 && c.kat < katAnzahl) ? c.kat : katAnzahl - 1,
+        ord: ord++, merk: !!c.merk, aktiv: (typeof c.aktiv === "boolean") ? c.aktiv : true, box: box,
+        due: typeof c.due === "number" ? c.due : heute(), created: typeof c.created === "number" ? c.created : Date.now()
+      };
+      ziel.cards.push(karte);
+      idx[c.front + "\u0000" + c.back] = karte;   // doppelte Zeilen in der Datei landen auf derselben Karte
+      neu++;
+    });
+    return { neu: neu, akt: akt };
+  }
+  function kastenSchreiben(id, d) {
+    if (id === KASTEN.id) { sichern(); return; }
+    try { window.localStorage.setItem(kastenKey(id), JSON.stringify(d)); } catch (e) {}
+  }
+  function sicherungEinlesen(p) {
+    var gesamt = { neu: 0, akt: 0 }, dazu = [];
+    // Englisch (oben in der Datei)
+    var en = kastenLesen("en") || { v: 2, seeded: true, cards: [] };
+    var r = kartenMischen(en, p.cards, SEED.kats.length);
+    gesamt.neu += r.neu; gesamt.akt += r.akt;
+    kastenSchreiben("en", en);
+    // weitere Kästen: fehlende werden angelegt, vorhandene gemischt
+    (Array.isArray(p.kaesten) ? p.kaesten : []).forEach(function (k) {
+      if (!k || !k.id || k.id === "en" || !p.kastenDaten || !p.kastenDaten[k.id]) return;
+      var eintrag = KAESTEN.liste.filter(function (x) { return x.id === k.id; })[0];
+      if (!eintrag) {
+        eintrag = { id: String(k.id), name: String(k.name || "Kasten").slice(0, 30), farbe: +k.farbe || 1, art: "wissen" };
+        KAESTEN.liste.push(eintrag); dazu.push(kastenTitel(eintrag));
+      }
+      var d = kastenLesen(k.id) || { v: 2, seeded: true, cards: [] };
+      var r2 = kartenMischen(d, p.kastenDaten[k.id].cards, 4);
+      gesamt.neu += r2.neu; gesamt.akt += r2.akt;
+      kastenSchreiben(k.id, d);
+    });
+    kaestenSichern();
+    kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
+    zeichneListe();
+    alert(gesamt.neu + " neu, " + gesamt.akt + " Lernstände aktualisiert." + (dazu.length ? " Neue Kästen: " + dazu.join(", ") + "." : ""));
+  }
+
   document.getElementById("file").addEventListener("change", function (e) {
     var f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -4737,37 +4921,7 @@
       var p;
       try { p = JSON.parse(String(r.result)); } catch (err) { p = null; }
       if (!p || !Array.isArray(p.cards)) { alert("Das ist keine Sicherungsdatei dieser App."); return; }
-      var idx = {};
-      daten.cards.forEach(function (c) { idx[c.front + "\u0000" + c.back] = c; });
-      var neu = 0, akt = 0;
-      p.cards.forEach(function (c) {
-        if (typeof c.front !== "string" || typeof c.back !== "string") return;
-        var box = Math.min(5, Math.max(1, parseInt(c.box, 10) || 1));
-        var vorhanden = idx[c.front + "\u0000" + c.back];
-        if (vorhanden) {
-          if (c.merk) vorhanden.merk = true;
-          if (c.aktiv !== false) vorhanden.aktiv = true;
-          if (box > vorhanden.box) {
-            vorhanden.box = box;
-            vorhanden.due = typeof c.due === "number" ? c.due : vorhanden.due;
-            akt++;
-          }
-          return;
-        }
-        daten.cards.push({
-          id: neueId(), front: c.front, back: c.back,
-          bsp: typeof c.bsp === "string" ? c.bsp : "",
-          kat: (typeof c.kat === "number" && c.kat >= 0 && c.kat < KATS.length) ? c.kat : KATS.length - 1,
-          ord: naechsteOrd(), merk: !!c.merk,
-          aktiv: (typeof c.aktiv === "boolean") ? c.aktiv : true, box: box,
-          due: typeof c.due === "number" ? c.due : heute(),
-          created: typeof c.created === "number" ? c.created : Date.now()
-        });
-        neu++;
-      });
-      sichern();
-      zeichneListe();
-      alert(neu + " neu, " + akt + " Lernstände aktualisiert.");
+      sicherungEinlesen(p);
     };
     r.readAsText(f);
     e.target.value = "";
@@ -5011,6 +5165,7 @@
   function tempo(lang, basis) { return Math.min(2, basis * (/^de/i.test(lang) ? deTempo() : enTempo())); }
   function deModus() { return daten.deStimme === "en" || daten.deStimme === "aus" ? daten.deStimme : "de"; }
   function spracheFuer(lang) {
+    if (WISSEN) lang = "de-DE";   // Wissenskasten: Begriff und Bedeutung sind Deutsch
     if (!/^de/i.test(lang)) return lang;
     var m = deModus();
     return m === "aus" ? null : m === "en" ? "en-GB" : lang;
@@ -6378,7 +6533,152 @@
     navigator.share({ title: "Vokabelkasten", text: "Englischvokabeln lernen mit dem Vokabelkasten:", url: appAdresse() }).catch(function () {});
   });
 
+  /* ---------- Kästen: Beschriftung, Leiste, Wischen, Anlegen ---------- */
+  function kastenTexte() {
+    document.documentElement.style.setProperty("--kasten", KASTEN_FARBEN[KASTEN.farbe % KASTEN_FARBEN.length]);
+    document.documentElement.toggleAttribute("data-wissen", WISSEN);
+    document.title = kastenTitel(KASTEN);
+    document.getElementById("st-hero-name").textContent = kastenTitel(KASTEN);
+    if (!WISSEN) return;
+    function txt(sel, t) { var el = document.querySelector(sel); if (el) el.textContent = t; }
+    function opt(sel, wert, t) { var el = document.querySelector(sel + ' option[value="' + wert + '"]'); if (el) el.textContent = t; }
+    var en = document.getElementById("sn-en");
+    en.placeholder = "Neuer Begriff"; en.setAttribute("aria-label", "Neuer Begriff");
+    en.setAttribute("autocapitalize", "sentences");
+    document.getElementById("sn-de").placeholder = "Bedeutung";
+    document.getElementById("sn-de").rows = 3;   // Erklärungen sind länger als Übersetzungen
+    document.getElementById("sn-de").setAttribute("aria-label", "Bedeutung");
+    txt('label[for="in-vorne"]', "Begriff"); txt('label[for="in-hinten"]', "Bedeutung");
+    txt("#view-neu h2", "Neuer Begriff"); txt("#btn-add", "Begriff speichern");
+    txt("#view-neu .hilfe pre", "Begriff  ⇥  Bedeutung  ⇥  Beispiel");
+    txt("#view-neu .hilfe p", "Eine Zeile pro Karte: Begriff und Bedeutung, getrennt durch Tabulator (aus Excel), Senkrechtstrich, Semikolon oder „ = “ (z. B. „OGS = Original GARDENA System“). Eine dritte Spalte ist freiwillig.");
+    document.getElementById("einfuegen").placeholder = "Leitzins = Zinssatz, zu dem sich Banken bei der Zentralbank Geld leihen";
+    opt("#sel-richtung", "de", "Begriff zuerst"); opt("#sel-richtung", "en", "Bedeutung zuerst");
+    ["#uw-richtung", "#du-richtung"].forEach(function (sel) { opt(sel, "de", "Begriff → Bedeutung"); opt(sel, "en", "Bedeutung → Begriff"); });
+    opt("#sel-sort", "de", "Begriff A–Z"); opt("#sel-sort", "en", "Bedeutung A–Z");
+    opt("#sel-abdeck", "en", "Bedeutung abdecken"); opt("#sel-abdeck", "de", "Begriff abdecken");
+  }
+  function kastenWechseln(id, weg) {
+    if (id === KASTEN.id) return;
+    KAESTEN.aktiv = id;
+    kaestenSichern();
+    try { sessionStorage.setItem("vk-kasten-rein", weg || "links"); } catch (e) {}
+    var st = document.getElementById("view-start");
+    st.classList.add(weg === "rechts" ? "raus-rechts" : "raus-links");
+    setTimeout(function () { location.reload(); }, 170);
+  }
+  function kastenLeisteZeichnen() {
+    var leiste = document.getElementById("kasten-leiste"), punkte = document.getElementById("kasten-punkte");
+    leiste.textContent = ""; punkte.textContent = "";
+    var aktivI = 0;
+    KAESTEN.liste.forEach(function (k, i) {
+      if (k.id === KASTEN.id) aktivI = i;
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "kasten-reiter" + (k.id === KASTEN.id ? " an" : "");
+      b.setAttribute("role", "tab"); b.setAttribute("aria-selected", k.id === KASTEN.id ? "true" : "false");
+      b.style.setProperty("--k", KASTEN_FARBEN[k.farbe % KASTEN_FARBEN.length]);
+      b.textContent = k.id === "en" ? "Englisch" : k.name;
+      b.addEventListener("click", function () { kastenWechseln(k.id, i > aktivI ? "links" : "rechts"); });
+      leiste.appendChild(b);
+      var pk = document.createElement("i");
+      if (k.id === KASTEN.id) pk.className = "an";
+      punkte.appendChild(pk);
+    });
+    var plus = document.createElement("button");
+    plus.type = "button"; plus.className = "kasten-reiter plus"; plus.textContent = "+";
+    plus.setAttribute("aria-label", "Neuen Kasten anlegen"); plus.title = "Neuen Kasten anlegen";
+    plus.addEventListener("click", kastenNeuFragen);
+    leiste.appendChild(plus);
+    var pp = document.createElement("i"); pp.className = "plus"; punkte.appendChild(pp);
+    punkte.hidden = KAESTEN.liste.length < 2;
+    var an = leiste.querySelector(".an");
+    if (an && an.scrollIntoView) an.scrollIntoView({ inline: "center", block: "nearest" });
+  }
+  // Neuer Kasten: nur das Thema wird gefragt - der Rest ist wie gewohnt
+  function kastenNeuFragen() {
+    var ov = document.getElementById("kasten-dialog");
+    ov.hidden = false;
+    var inp = document.getElementById("kasten-name");
+    inp.value = "";
+    setTimeout(function () { inp.focus(); }, 50);
+  }
+  function kastenAnlegen(name) {
+    name = String(name || "").trim().replace(/\s+/g, " ").slice(0, 30);
+    if (!name) return;
+    var genutzt = KAESTEN.liste.map(function (k) { return k.farbe; }), farbe = 1;
+    while (genutzt.indexOf(farbe) > -1 && farbe < KASTEN_FARBEN.length - 1) farbe++;
+    var k = { id: "k" + Date.now().toString(36), name: name, farbe: farbe, art: "wissen" };
+    KAESTEN.liste.push(k);
+    kastenWechseln(k.id, "links");
+  }
+  document.getElementById("kasten-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    kastenAnlegen(document.getElementById("kasten-name").value);
+  });
+  document.getElementById("kasten-abbruch").addEventListener("click", function () { document.getElementById("kasten-dialog").hidden = true; });
+  // Wischen auf der Startseite: links = nächster Kasten (am Ende „+“), rechts = vorheriger
+  (function () {
+    var st = document.getElementById("view-start"), start = null;
+    st.addEventListener("pointerdown", function (e) {
+      if (e.target.closest("input, textarea, select, .kasten-leiste")) { start = null; return; }
+      start = { x: e.clientX, y: e.clientY, t: Date.now() };
+    });
+    st.addEventListener("pointerup", function (e) {
+      if (!start) return;
+      var dx = e.clientX - start.x, dy = e.clientY - start.y, dt = Date.now() - start.t;
+      start = null;
+      if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5 || dt > 800) return;
+      var i = 0;
+      KAESTEN.liste.forEach(function (k, j) { if (k.id === KASTEN.id) i = j; });
+      if (dx < 0) { if (i + 1 < KAESTEN.liste.length) kastenWechseln(KAESTEN.liste[i + 1].id, "links"); else kastenNeuFragen(); }
+      else if (i > 0) kastenWechseln(KAESTEN.liste[i - 1].id, "rechts");
+    });
+    st.addEventListener("pointercancel", function () { start = null; });
+    // nach dem Wechsel: neue Seite gleitet herein
+    try {
+      var rein = sessionStorage.getItem("vk-kasten-rein");
+      if (rein) {
+        sessionStorage.removeItem("vk-kasten-rein");
+        st.classList.add(rein === "rechts" ? "rein-rechts" : "rein-links");
+        setTimeout(function () { st.classList.remove("rein-rechts", "rein-links"); }, 400);
+      }
+    } catch (e) {}
+  })();
+  // Einstellungen: Kasten umbenennen oder löschen (Englisch bleibt immer)
+  function kastenVerwaltenZeichnen() {
+    var box = document.getElementById("kasten-verwalten");
+    if (!box) return;
+    box.textContent = "";
+    KAESTEN.liste.forEach(function (k) {
+      var z = document.createElement("div"); z.className = "kv-zeile";
+      var n = document.createElement("span"); n.className = "kv-name"; n.style.setProperty("--k", KASTEN_FARBEN[k.farbe % KASTEN_FARBEN.length]);
+      n.textContent = kastenTitel(k) + (k.id === KASTEN.id ? " (offen)" : "");
+      z.appendChild(n);
+      if (k.id !== "en") {
+        var um = document.createElement("button"); um.type = "button"; um.className = "ghost"; um.textContent = "Umbenennen";
+        um.addEventListener("click", function () {
+          var neu = prompt("Neuer Name für den Kasten:", k.name);
+          if (!neu || !neu.trim()) return;
+          k.name = neu.trim().slice(0, 30); kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen(); kastenTexte(); kopfZeigen();
+        });
+        var lo = document.createElement("button"); lo.type = "button"; lo.className = "ghost kv-weg"; lo.textContent = "Löschen";
+        lo.addEventListener("click", function () {
+          if (!confirm("„" + kastenTitel(k) + "“ mit allen Karten löschen? Das lässt sich nur mit einer Sicherungsdatei rückgängig machen.")) return;
+          try { window.localStorage.removeItem(kastenKey(k.id)); } catch (e) {}
+          KAESTEN.liste = KAESTEN.liste.filter(function (x) { return x.id !== k.id; });
+          if (KAESTEN.aktiv === k.id) { KAESTEN.aktiv = "en"; kaestenSichern(); location.reload(); return; }
+          kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen();
+        });
+        z.appendChild(um); z.appendChild(lo);
+      }
+      box.appendChild(z);
+    });
+  }
+
   /* ---------- Start ---------- */
+  kastenTexte();
+  kastenLeisteZeichnen();
+  kastenVerwaltenZeichnen();
   fuelleSelects();
   laden();
   document.getElementById("sel-paket").value = String(paket);
