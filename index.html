@@ -1501,6 +1501,86 @@
   html[data-vintage] .du-halb .du-pname, html[data-vintage] .du-zustand, html[data-vintage] .du-lb { font-family: var(--f-mono); }
   html[data-vintage] .du-halb .du-punkte, html[data-vintage] .du-wort { font-family: var(--f-brand); }
   @media (prefers-reduced-motion: reduce) { .du-plus.pop, .du-card.richtig, .du-card.hoert .du-zustand::before { animation: none; } }
+
+  /* ---------- Klar: modernes, minimalistisches Design (2026-09) ----------
+     Wie in BLOC: ruhige Fläche, flach statt Schatten, Schrift führt, Tinte als Hauptfarbe.
+     Die Signalfarbe ist die Farbe des Kastens (--kasten) - sparsam: Antworten, Fortschritt, gewähltes Fach.
+     Folgt Hell/Dunkel des Systems. Allgemeine Regeln über :where(), damit gezielte Regeln der App vorgehen. */
+  html[data-thema="klar"] {
+    color-scheme: light;
+    --ink: #141517; --ink-soft: #6d6e72; --paper: #f4f4f1; --card: #ffffff; --rule: #e3e3de; --tab: #ecece8;
+    --indigo: color-mix(in srgb, var(--kasten, #ef7b17) 78%, #000);
+    --moss: #1f8a5b; --clay: #c9582a; --mark: #b7791f; --auf-ink: #ffffff;
+    --merk-bg: #fbf3e4; --merk-rule: #ead7b3; --alarm-bg: #fbe9e4; --alarm-rule: #eec2b4; --alarm-ink: #a3321f;
+    --f-ui: "Inter", "SF Pro Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --tint: color-mix(in srgb, var(--kasten, #ef7b17) 11%, var(--card));
+  }
+  @media (prefers-color-scheme: dark) {
+    html[data-thema="klar"] {
+      color-scheme: dark;
+      --ink: #f3f3f0; --ink-soft: #9a9ba0; --paper: #0e0f11; --card: #17181b; --rule: #2a2b30; --tab: #212226;
+      --indigo: color-mix(in srgb, var(--kasten, #ef7b17) 72%, #fff);
+      --moss: #3fbf85; --clay: #ef8a5c; --mark: #e0b057; --auf-ink: #0e0f11;
+      --merk-bg: #2a2418; --merk-rule: #4a3f28; --alarm-bg: #33221c; --alarm-rule: #5c3a2e; --alarm-ink: #f0a591;
+      --tint: color-mix(in srgb, var(--kasten, #ef7b17) 16%, var(--card));
+    }
+  }
+  html[data-thema="klar"] body { font-family: var(--f-ui); -webkit-font-smoothing: antialiased; letter-spacing: -.006em; }
+  html[data-thema="klar"] .serif { font-family: var(--f-ui); }
+  /* Kopf: ohne Linie, großer Titel */
+  html[data-thema="klar"] header { border-bottom: none; padding-top: 18px; }
+  html[data-thema="klar"] header h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; }
+  html[data-thema="klar"] .kopf-einst { box-shadow: none; border-radius: 16px; width: 48px; height: 48px; }
+  html[data-thema="klar"] .st-gruss { font-size: 15px; }
+  /* Knöpfe, Felder */
+  :where(html[data-thema="klar"]) button { border-radius: 14px; font-weight: 600; letter-spacing: -.01em; }
+  :where(html[data-thema="klar"]) input[type=text], :where(html[data-thema="klar"]) input[type=search],
+  :where(html[data-thema="klar"]) select, :where(html[data-thema="klar"]) textarea,
+  html[data-thema="klar"] #sn-de, html[data-thema="klar"] #sn-bsp { border-radius: 12px; }
+  html[data-thema="klar"] input:focus, html[data-thema="klar"] #sn-de:focus, html[data-thema="klar"] #sn-bsp:focus,
+  html[data-thema="klar"] select:focus-visible { outline: 2px solid var(--ink); outline-offset: -1px; border-color: var(--ink); }
+  html[data-thema="klar"] button.known { background: var(--moss); border-color: var(--moss); border-radius: 999px; }
+  html[data-thema="klar"] button.again { background: var(--card); border-color: var(--rule); color: var(--ink); border-radius: 999px; }
+  /* Kästen-Leiste: Tinte für den offenen Kasten, die Kastenfarbe als Punkt */
+  html[data-thema="klar"] .kasten-reiter { border-color: var(--rule); display: inline-flex; align-items: center; gap: 7px; }
+  html[data-thema="klar"] .kasten-reiter:not(.plus)::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--k); flex: none; }
+  html[data-thema="klar"] .kasten-reiter.an { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  html[data-thema="klar"] .kasten-reiter.plus { justify-content: center; }
+  /* Große Karte der Startseite: flach, leicht in der Kastenfarbe getönt, Zahl in Tinte */
+  html[data-thema="klar"] .st-hero { background: var(--tint) !important; color: var(--ink); box-shadow: none !important;
+    border: 1px solid color-mix(in srgb, var(--kasten, #ef7b17) 22%, var(--rule)); border-radius: 24px; padding: 20px; }
+  html[data-thema="klar"] .st-hero .st-ico-hell { background: color-mix(in srgb, var(--kasten, #ef7b17) 18%, transparent); color: var(--indigo); }
+  html[data-thema="klar"] .st-hero-titel b { font-size: 18px; letter-spacing: -.015em; }
+  html[data-thema="klar"] .st-hero-titel small { color: var(--ink-soft); opacity: 1; }
+  html[data-thema="klar"] .st-hero-zahl strong { font-size: 64px; font-weight: 700; letter-spacing: -.045em; }
+  html[data-thema="klar"] .st-hero-zahl span { color: var(--ink-soft); opacity: 1; font-weight: 500; }
+  html[data-thema="klar"] .st-ziel { color: var(--ink-soft); }
+  html[data-thema="klar"] .st-ziel-balken { background: color-mix(in srgb, var(--kasten, #ef7b17) 16%, var(--rule)); height: 6px; }
+  html[data-thema="klar"] .st-ziel-balken i { background: var(--kasten, #ef7b17); }
+  html[data-thema="klar"] .st-cta { background: var(--ink) !important; color: var(--paper) !important; box-shadow: none; padding: 13px 20px 13px 22px; }
+  /* Flächen: flach mit feiner Linie */
+  html[data-thema="klar"] .st-schnell, html[data-thema="klar"] .st-kachel, html[data-thema="klar"] .st-liste,
+  html[data-thema="klar"] .abschnitt, html[data-thema="klar"] .schnell, html[data-thema="klar"] .hilfe { box-shadow: none; border-radius: 20px; }
+  html[data-thema="klar"] .abschnitt summary, html[data-thema="klar"] a.ab-link { padding-top: 15px; padding-bottom: 15px; }
+  html[data-thema="klar"] .st-kachel .st-ico, html[data-thema="klar"] .st-zeile .st-ico { background: var(--tab); color: var(--ink); }
+  html[data-thema="klar"] .st-kachel b { font-weight: 700; letter-spacing: -.015em; }
+  html[data-thema="klar"] .st-abschnitt { text-transform: none; letter-spacing: -.01em; font-size: 15px; color: var(--ink); margin: 26px 2px 10px; }
+  html[data-thema="klar"] #sn-los { border-radius: 14px; }
+  /* Lernkarte: große, ruhige Karte - Antwort in der Kastenfarbe */
+  html[data-thema="klar"] .card { border-radius: 26px; box-shadow: 0 1px 0 var(--rule); min-height: 270px; }
+  html[data-thema="klar"] .card .front { font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+  html[data-thema="klar"] .card .back { font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
+  html[data-thema="klar"] .card .divider { width: 32px; height: 2px; border-radius: 2px; background: var(--kasten, #ef7b17); opacity: .6; }
+  html[data-thema="klar"] .stempel { border-radius: 10px; }
+  /* Fächer als Segmente, gefüllte bekommen einen Strich in der Kastenfarbe */
+  html[data-thema="klar"] .boxes { gap: 6px; }
+  html[data-thema="klar"] .box { border-radius: 12px; border: none; background: var(--tab); padding: 7px 2px 6px; }
+  html[data-thema="klar"] .box.filled { box-shadow: inset 0 -3px 0 var(--kasten, #ef7b17); }
+  html[data-thema="klar"] .box.gewaehlt { background: var(--ink); color: var(--paper); box-shadow: none; }
+  html[data-thema="klar"] .box.gewaehlt b { color: var(--paper); }
+  /* Design- und Moduswahl: Pillen, gewählt = Tinte */
+  html[data-thema="klar"] .themawahl button { border-radius: 12px; }
+  html[data-thema="klar"] .themawahl button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 </style>
 </head>
 <body>
@@ -1928,6 +2008,9 @@
           <button type="button" data-thema="retro">Retro</button>
           <button type="button" data-thema="kodak">C60</button>
           <button type="button" data-thema="tapedeck">Tapedeck</button>
+        </div>
+        <div class="themawahl klar-wahl">
+          <button type="button" data-thema="klar">Klar · neu</button>
         </div>
       </div>
 
@@ -3700,7 +3783,8 @@
     var farbe = THEMAFARBE[neu];
     if (!farbe) {
       var dunkel = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      farbe = dunkel ? THEMAFARBE.dunkel : THEMAFARBE.hell;
+      if (neu === "klar") farbe = dunkel ? "#0e0f11" : "#f4f4f1";   // Klar folgt Hell/Dunkel des Systems
+      else farbe = dunkel ? THEMAFARBE.dunkel : THEMAFARBE.hell;
     }
     var m = document.getElementById("theme-color");
     if (m) m.setAttribute("content", farbe);
@@ -4927,7 +5011,7 @@
 
   if (window.matchMedia) {
     var mq = window.matchMedia("(prefers-color-scheme: dark)");
-    var folgen = function () { if (thema === "auto") setzeThema("auto"); };
+    var folgen = function () { if (thema === "auto" || thema === "klar") setzeThema(thema); };
     if (mq.addEventListener) mq.addEventListener("change", folgen);
     else if (mq.addListener) mq.addListener(folgen);
   }
@@ -6932,7 +7016,8 @@
       void st.offsetWidth;
       st.style.transition = "transform .36s cubic-bezier(.16,1,.3,1), opacity .3s ease-out";
       st.style.transform = ""; st.style.opacity = "";
-      setTimeout(function () { st.style.transition = ""; wechselLaeuft = false; }, 420);
+      wechselLaeuft = false;   // der neue Kasten ist da - ab jetzt darf schon weitergewechselt werden
+      setTimeout(function () { if (!wechselLaeuft) st.style.transition = ""; }, 420);
     }, dauer);
   }
   function kastenLeisteZeichnen() {
