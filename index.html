@@ -262,14 +262,10 @@
   .st-hero { background: linear-gradient(145deg, color-mix(in srgb, var(--kasten, #ef7b17) 78%, #fff) 0%, var(--kasten, #ef7b17) 50%, color-mix(in srgb, var(--kasten, #ef7b17) 85%, #000) 100%) !important;
     box-shadow: 0 10px 26px color-mix(in srgb, var(--kasten, #ef7b17) 28%, transparent), 0 2px 6px color-mix(in srgb, var(--kasten, #ef7b17) 18%, transparent) !important; }
   .st-cta { color: var(--kasten, #d4580a) !important; }
-  #view-start.raus-links { transform: translateX(-40px); opacity: 0; transition: transform .17s ease, opacity .17s ease; }
-  #view-start.raus-rechts { transform: translateX(40px); opacity: 0; transition: transform .17s ease, opacity .17s ease; }
-  #view-start.rein-links { animation: reinL .3s ease; }
-  #view-start.rein-rechts { animation: reinR .3s ease; }
-  @keyframes reinL { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @keyframes reinR { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @media (prefers-reduced-motion: reduce) { #view-start.rein-links, #view-start.rein-rechts { animation: none; } }
-  #view-start { touch-action: pan-y; }
+  /* Wischen zwischen Kästen: die Startseite folgt dem Finger (Bewegung per JS), ohne seitliches Scrollen */
+  #view-start { touch-action: pan-y; will-change: transform; }
+  main { overflow-x: clip; }
+  @media (prefers-reduced-motion: reduce) { #view-start { transition: none !important; } }
   .kasten-dialog { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
   .kasten-dialog[hidden] { display: none; }
   .kasten-karte { width: 100%; max-width: 560px; background: var(--card); color: var(--ink); border-radius: 20px 20px 0 0;
@@ -6844,9 +6840,12 @@
     KAESTEN.aktiv = id;
     kaestenSichern();
     try { sessionStorage.setItem("vk-kasten-rein", weg || "links"); } catch (e) {}
+    // Seite gleitet ganz hinaus (aus der aktuellen Wischposition weiter), dann kommt der neue Kasten
     var st = document.getElementById("view-start");
-    st.classList.add(weg === "rechts" ? "raus-rechts" : "raus-links");
-    setTimeout(function () { location.reload(); }, 170);
+    st.style.transition = "transform .24s cubic-bezier(.4,0,1,1), opacity .24s ease-in";
+    st.style.transform = "translateX(" + (weg === "rechts" ? "" : "-") + "100%)";
+    st.style.opacity = "0";
+    setTimeout(function () { location.reload(); }, 230);
   }
   function kastenLeisteZeichnen() {
     var leiste = document.getElementById("kasten-leiste"), punkte = document.getElementById("kasten-punkte");
@@ -6897,30 +6896,61 @@
   });
   document.getElementById("kasten-abbruch").addEventListener("click", function () { document.getElementById("kasten-dialog").hidden = true; });
   // Wischen auf der Startseite: links = nächster Kasten, rechts = vorheriger (am Ende passiert nichts - neu nur über „+“)
+  /* Die Seite folgt dem Finger. Loslassen weit genug (oder schnell genug) -> sie gleitet ganz hinaus und
+     der Nachbarkasten gleitet herein; sonst federt sie zurück. Am Rand (kein Nachbar) gibt sie nur leicht nach. */
   (function () {
-    var st = document.getElementById("view-start"), start = null;
+    var st = document.getElementById("view-start"), start = null, zieht = false;
+    function index() { var i = 0; KAESTEN.liste.forEach(function (k, j) { if (k.id === KASTEN.id) i = j; }); return i; }
+    var fertigUhr = null;
+    function setze(x, animiert) {
+      clearTimeout(fertigUhr);
+      st.style.transition = animiert ? "transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease-out" : "none";
+      st.style.transform = x ? "translateX(" + x + "px)" : "";
+      st.style.opacity = x ? String(Math.max(.35, 1 - Math.abs(x) / (st.offsetWidth * 1.6))) : "";
+      // Absicherung: danach steht die Seite garantiert an ihrem Platz, auch falls ein Übergang hängen bleibt
+      if (animiert) fertigUhr = setTimeout(function () { st.style.transition = ""; }, 320);
+    }
     st.addEventListener("pointerdown", function (e) {
-      if (e.target.closest("input, textarea, select, .kasten-leiste")) { start = null; return; }
-      start = { x: e.clientX, y: e.clientY, t: Date.now() };
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (e.target.closest("input, textarea, select, .kasten-leiste, .kasten-dialog")) { start = null; return; }
+      start = { x: e.clientX, y: e.clientY, t: Date.now() }; zieht = false;
     });
-    st.addEventListener("pointerup", function (e) {
+    st.addEventListener("pointermove", function (e) {
       if (!start) return;
-      var dx = e.clientX - start.x, dy = e.clientY - start.y, dt = Date.now() - start.t;
-      start = null;
-      if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5 || dt > 800) return;
-      var i = 0;
-      KAESTEN.liste.forEach(function (k, j) { if (k.id === KASTEN.id) i = j; });
-      if (dx < 0) { if (i + 1 < KAESTEN.liste.length) kastenWechseln(KAESTEN.liste[i + 1].id, "links"); }
-      else if (i > 0) kastenWechseln(KAESTEN.liste[i - 1].id, "rechts");
+      var dx = e.clientX - start.x, dy = e.clientY - start.y;
+      if (!zieht) {
+        if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { start = null; return; }   // senkrecht = Scrollen
+        if (Math.abs(dx) < 12) return;
+        zieht = true;
+      }
+      var i = index(), nachbar = dx < 0 ? i + 1 < KAESTEN.liste.length : i > 0;
+      setze(nachbar ? dx : dx * .25, false);   // ohne Nachbarn nur leichtes Nachgeben
     });
-    st.addEventListener("pointercancel", function () { start = null; });
-    // nach dem Wechsel: neue Seite gleitet herein
+    function ende(e) {
+      if (!start) return;
+      var s = start; start = null;
+      if (!zieht) return;
+      var dx = e.clientX - s.x, dt = Math.max(1, Date.now() - s.t), i = index();
+      var weit = Math.abs(dx) > st.offsetWidth * .28 || (Math.abs(dx) > 40 && Math.abs(dx) / dt > .5);
+      if (weit && dx < 0 && i + 1 < KAESTEN.liste.length) { kastenWechseln(KAESTEN.liste[i + 1].id, "links"); return; }
+      if (weit && dx > 0 && i > 0) { kastenWechseln(KAESTEN.liste[i - 1].id, "rechts"); return; }
+      setze(0, true);
+    }
+    st.addEventListener("pointerup", ende);
+    st.addEventListener("pointercancel", function (e) { if (start) { start = null; setze(0, true); } });
+    // nach einem Wisch kein versehentlicher Tipp auf Karten oder Knöpfe
+    st.addEventListener("click", function (e) { if (zieht) { e.stopPropagation(); e.preventDefault(); zieht = false; } }, true);
+    // nach dem Wechsel: neuer Kasten gleitet von der Seite herein
     try {
       var rein = sessionStorage.getItem("vk-kasten-rein");
-      if (rein) {
+      if (rein && document.visibilityState !== "visible") sessionStorage.removeItem("vk-kasten-rein");   // unsichtbar: ohne Animation
+      else if (rein) {
         sessionStorage.removeItem("vk-kasten-rein");
-        st.classList.add(rein === "rechts" ? "rein-rechts" : "rein-links");
-        setTimeout(function () { st.classList.remove("rein-rechts", "rein-links"); }, 400);
+        st.style.transition = "none";
+        st.style.transform = "translateX(" + (rein === "rechts" ? "-" : "") + "60%)";
+        st.style.opacity = "0";
+        void st.offsetWidth;   // Startlage festschreiben, dann sofort hineingleiten (ohne auf ein Bildsignal zu warten)
+        setze(0, true);
       }
     } catch (e) {}
   })();
