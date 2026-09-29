@@ -248,6 +248,91 @@
       pruefe(JSON.parse(W.localStorage.getItem(KEY)).cards.length === enKarten, "Englisch-Kasten nach dem Löschen verändert");
       pruefe(W.__ohneNeuladen === true, "Seite wurde beim Löschen neu geladen");
     }],
+    ["Datei im offenen Kasten einlesen: landet dort, kein dritter Kasten", async function () {
+      klick(await bis(function () { return $(".kasten-reiter.plus"); }, 3000, "„+“ für neuen Kasten"));
+      id("kasten-name").value = "Gardena";
+      id("kasten-form").requestSubmit();
+      await bis(function () { return id("st-hero-name").textContent === "Gardenakasten"; }, 3000, "Wechsel in den Gardenakasten");
+      var reg = JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")), gid = reg.aktiv, kaesten = reg.liste.length;
+      var enVorher = W.localStorage.getItem(KEY);
+      function karten() { return JSON.parse(W.localStorage.getItem("vokabelkasten.kasten." + gid)).cards; }
+      function datei(inhalt) {
+        var dt = new W.DataTransfer(); dt.items.add(new W.File([JSON.stringify(inhalt)], "liste.json", { type: "" }));
+        id("file").files = dt.files; id("file").dispatchEvent(new W.Event("change", { bubbles: true }));
+      }
+      async function antwort(nr, text) {
+        await bis(function () { return !id("blatt").hidden && $$("#blatt-knoepfe button").length === 2; }, 3000, "Frage „wohin?“");
+        var b = $$("#blatt-knoepfe button")[nr];
+        pruefe(text.test(b.textContent), "Knopf heißt: " + b.textContent);
+        klick(b);
+      }
+      W.alert = function () {};
+      // 1. Datei mit einem anderen Kastennamen: auf Wunsch in den offenen Kasten, kein neuer Kasten
+      datei({ v: 2, cards: [], kaesten: [{ id: "kfremd", name: "Gardena Vokabeln" }], kastenDaten: { kfremd: { cards: [{ front: "GHI", back: "Eins", kat: 0 }] } } });
+      await antwort(0, /offenen Gardenakasten/);
+      await bis(function () { return karten().length === 1; }, 3000, "Karte im offenen Kasten");
+      pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")).liste.length === kaesten, "es wurde trotzdem ein Kasten angelegt");
+      // 2. Nur Karten oben (Format des Englisch-Kastens): ebenfalls in den offenen Kasten, Englisch bleibt unverändert
+      datei({ cards: [{ front: "JKL", back: "Zwei" }] });
+      await antwort(0, /offenen Gardenakasten/);
+      await bis(function () { return karten().length === 2; }, 3000, "zweite Karte im offenen Kasten");
+      pruefe(W.localStorage.getItem(KEY) === enVorher, "Englisch-Kasten wurde verändert");
+      // 3. „Wie in der Datei“ legt wie bisher einen eigenen Kasten an
+      datei({ v: 2, cards: [], kaesten: [{ id: "kfremd", name: "Gardena Vokabeln" }], kastenDaten: { kfremd: { cards: [{ front: "MNO", back: "Drei", kat: 0 }] } } });
+      await antwort(1, /neuen Gardena Vokabelnkasten/);
+      await bis(function () { return JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")).liste.length === kaesten + 1; }, 3000, "Kasten wie in der Datei");
+      pruefe(karten().length === 2, "Karte ist trotzdem im offenen Kasten gelandet");
+      // 4. Datei für genau den offenen Kasten: keine Frage
+      datei({ v: 2, cards: [], kaesten: [{ id: gid, name: "Gardena" }], kastenDaten: (function () { var o = {}; o[gid] = { cards: [{ front: "PQR", back: "Vier", kat: 0 }] }; return o; })() });
+      await bis(function () { return karten().length === 3; }, 3000, "Karte ohne Rückfrage im offenen Kasten");
+      pruefe(id("blatt").hidden, "unnötige Rückfrage beim eigenen Kasten");
+      klick($$(".kasten-reiter")[0]);
+      await bis(function () { return id("st-hero-name").textContent === "Vokabelkasten"; }, 3000, "zurück im Englisch-Kasten");
+    }],
+    ["Liste einfügen: – und : als Trennzeichen, Spalten tauschen, Foto-Feld", async function () {
+      W.alert = function () {};
+      klick('[data-view="neu"]');
+      await bis(function () { return aktiv("neu"); }, 2000, "Ansicht Neu");
+      pruefe(id("foto-hilfe").hidden && W.getComputedStyle(id("foto-hilfe")).display === "none", "Foto-Feld ist schon vor dem Foto sichtbar");
+      eingeben(id("einfuegen"), "• Testhaus – testhouse\n2. Testbaum - testtree\nTest-Mail: testmail\ntestlaufen — to testrun – Wir testen.");
+      var v = function () { return id("vorschau").textContent; };
+      await bis(function () { return /4 neue Vokabeln/.test(v()); }, 2000, "vier Zeilen erkannt: " + v());
+      pruefe(/Deutsch „Testhaus“, Englisch „testhouse“/.test(v()), "Vorschau: " + v());
+      klick("#imp-tausch");
+      pruefe(/Deutsch „testhouse“, Englisch „Testhaus“/.test(v()), "Spalten tauschen wirkt nicht: " + v());
+      klick("#imp-tausch");
+      klick("#btn-import-text");
+      var en = JSON.parse(W.localStorage.getItem(KEY)).cards;
+      var l = en.filter(function (c) { return c.front === "testlaufen"; })[0];
+      pruefe(l && l.back === "to testrun" && l.bsp === "Wir testen.", "Beispiel nicht erkannt: " + JSON.stringify(l));
+      pruefe(en.some(function (c) { return c.front === "Test-Mail" && c.back === "testmail"; }), "„Test-Mail: testmail“ falsch geteilt");
+      pruefe(en.some(function (c) { return c.front === "Testbaum" && c.back === "testtree"; }), "Nummer oder „ - “ nicht erkannt");
+      // Foto einer Liste: Feld mit Bild und Anleitung, Schließen räumt auf
+      var dt = new W.DataTransfer(); dt.items.add(new W.File([new Uint8Array([255, 216, 255])], "liste.jpg", { type: "image/jpeg" }));
+      id("foto-datei").files = dt.files; id("foto-datei").dispatchEvent(new W.Event("change", { bubbles: true }));
+      await bis(function () { return !id("foto-hilfe").hidden; }, 2000, "Foto-Feld");
+      pruefe(/^blob:/.test(id("foto-bild").src), "Foto wird nicht gezeigt");
+      pruefe($$("#foto-schritte li").length === 3, "Anleitung fehlt");
+      klick("#btn-foto-zu");
+      pruefe(id("foto-hilfe").hidden && !id("foto-bild").getAttribute("src"), "Schließen räumt nicht auf");
+    }],
+    ["Geteilt aus einer anderen App (Android): Liste und einzelnes Wort", async function () {
+      await new Promise(function (ok) {
+        iframe.onload = function () { binden(); setTimeout(ok, 500); };
+        iframe.src = "index.html?text=" + encodeURIComponent("Testsonne – testsun\nTestmond – testmoon");
+      });
+      await bis(function () { return aktiv("neu"); }, 3000, "geteilte Liste öffnet „Ganze Liste einfügen“");
+      pruefe(id("einfuegen").value.split("\n").length === 2, "Liste nicht im Feld: " + id("einfuegen").value);
+      pruefe(/2 neue Vokabeln/.test(id("vorschau").textContent), "Vorschau: " + id("vorschau").textContent);
+      pruefe(!/text=/.test(W.location.search), "Adresse enthält noch den geteilten Text");
+      await new Promise(function (ok) {
+        iframe.onload = function () { binden(); setTimeout(ok, 500); };
+        iframe.src = "index.html?text=" + encodeURIComponent("serendipity");
+      });
+      await bis(function () { return aktiv("start") && id("sn-en").value === "serendipity"; }, 3000, "einzelnes Wort im Schnell-Anlegen");
+      pruefe(id("sn-scan").hidden && W.getComputedStyle(id("sn-scan")).display === "none", "Scan-Knopf ist am Computer sichtbar");
+      pruefe(id("sn-scan-feld").hidden && W.getComputedStyle(id("sn-scan-feld")).display === "none", "Scan-Feld ist ohne Foto sichtbar");
+    }],
     ["Lernstand übersteht Neustart auch mit Teilen-Funktion (wie am Handy)", async function () {
       var vorher = W.localStorage.getItem(KEY);
       var faecher = JSON.parse(vorher).cards.filter(function (c) { return c.aktiv; }).length;

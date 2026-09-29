@@ -578,6 +578,14 @@
   .ablage-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
   .ablage-knoepfe button { margin: 0; padding: 10px 14px; font-size: 14px; }
   @media (hover: none) { .ablage-text { display: none; } }   /* am Handy gibt es kein Hineinziehen */
+  /* Foto einer Liste mit kurzer Anleitung; im Bild muss Text markierbar bleiben (Live Text auf dem iPhone) */
+  .foto-hilfe { display: flex; flex-direction: column; gap: 10px; margin: -4px 0 14px; padding: 12px;
+    border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+  .foto-hilfe img { display: block; width: 100%; max-height: 55vh; object-fit: contain; border-radius: 8px; background: var(--rule);
+    -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; }
+  .foto-hilfe ol { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+  .foto-hilfe li + li { margin-top: 4px; }
+  .foto-hilfe[hidden], .foto-hilfe button[hidden] { display: none; }
   #einfuegen {
     width: 100%; min-height: 120px; margin-bottom: 8px;
     font-family: ui-monospace, Menlo, monospace; font-size: 12px;
@@ -1365,6 +1373,17 @@
   html[data-vintage] #sn-de, html[data-vintage] #sn-bsp { background: var(--field, var(--card)); border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,.1); }
   #sn-vorschlag { flex: 0 0 auto; white-space: nowrap; align-self: stretch; }
   #sn-los { flex: 0 0 auto; width: 50px; padding: 0; font-size: 26px; line-height: 1; border-radius: 12px; }
+  /* Wort scannen: eigenes Symbol (📷 ist schon „Foto für die Rückseite“) */
+  #sn-scan { flex: 0 0 auto; width: 46px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+  #sn-scan svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #sn-scan[hidden] { display: none; }
+  .sn-scan-feld { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; }
+  .sn-scan-feld[hidden] { display: none; }
+  .sn-scan-feld img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; flex: 0 0 auto; background: var(--rule); }
+  .sn-scan-feld p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.4; color: var(--ink); }
+  .sn-scan-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sn-scan-knoepfe button { margin: 0; padding: 9px 12px; font-size: 14px; }
+  .sn-scan-knoepfe button[hidden] { display: none; }
   .sn-mehr { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
   .sn-mehr > input[type=text] { margin: 0; }
   .sn-fuss { display: flex; gap: 8px; align-items: center; }
@@ -1653,7 +1672,22 @@
       <div class="sn-zeile">
         <input type="text" id="sn-en" placeholder="Neues Wort (English)" aria-label="Neues Wort auf Englisch"
                autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
+        <!-- Wort mit der Kamera erfassen (nur Handy): iPhone „Text scannen“, Android Foto → Google Lens → Teilen -->
+        <button type="button" class="ghost" id="sn-scan" aria-label="Wort mit der Kamera erfassen" title="Wort mit der Kamera erfassen" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M8 10h8M8 14h5"/></svg>
+        </button>
         <button type="submit" id="sn-los" aria-label="In den Kasten legen" title="In den Kasten legen">+</button>
+      </div>
+      <input type="file" id="sn-scan-datei" accept="image/*" capture="environment" hidden>
+      <div class="sn-scan-feld" id="sn-scan-feld" hidden>
+        <img id="sn-scan-bild" alt="Foto mit dem Wort">
+        <div>
+          <p id="sn-scan-hinweis"></p>
+          <div class="sn-scan-knoepfe">
+            <button type="button" id="sn-scan-teilen">An Google Lens übergeben</button>
+            <button type="button" class="ghost" id="sn-scan-zu">Abbrechen</button>
+          </div>
+        </div>
       </div>
       <div class="sn-mehr" id="sn-mehr" hidden>
         <textarea id="sn-de" rows="1" placeholder="Deutsch" aria-label="Übersetzung auf Deutsch" enterkeyhint="done"></textarea>
@@ -1874,18 +1908,32 @@
     <p class="note">Neue Karten starten in Fach 1.</p>
 
     <h2 class="spaced">Ganze Liste einfügen</h2>
-    <p class="note" id="einf-hilfe">Eine Zeile pro Karte: <b>Deutsch · English · Beispiel</b>, getrennt durch Tab, | oder ; – aus Excel einfach kopieren.</p>
-    <!-- Datei hineinziehen, auswählen oder aus der Zwischenablage holen -->
+    <p class="note" id="einf-hilfe">Eine Zeile pro Karte: <b>Deutsch · English · Beispiel</b>, getrennt durch Tab, |, ;, „ – “ oder „: “ – aus Excel einfach kopieren.</p>
+    <!-- Datei hineinziehen, auswählen, aus der Zwischenablage holen oder eine Liste abfotografieren -->
     <div class="ablage" id="ablage">
       <span class="ablage-text">Datei hierher ziehen (CSV, TXT oder Sicherung)</span>
       <div class="ablage-knoepfe">
+        <button type="button" class="ghost" id="btn-foto">📷 Liste fotografieren</button>
         <button type="button" class="ghost" id="btn-datei">📄 Datei wählen</button>
         <button type="button" class="ghost" id="btn-clip">📋 Aus Zwischenablage</button>
       </div>
       <input type="file" id="liste-datei" hidden><!-- ohne accept: Android kennt .json oft nicht und graut sie sonst aus; geprüft wird der Inhalt -->
+      <input type="file" id="foto-datei" accept="image/*" capture="environment" hidden>
+    </div>
+    <!-- Foto einer Liste: den Text liest das Handy (Google Lens / Live Text). Die App behält das Foto nur,
+         solange dieses Feld offen ist - sie speichert und sendet es nicht. Weitergeben nur über „Teilen“. -->
+    <div class="foto-hilfe" id="foto-hilfe" hidden>
+      <img id="foto-bild" alt="Foto der Liste">
+      <ol id="foto-schritte"></ol>
+      <div class="ablage-knoepfe">
+        <button type="button" id="btn-foto-teilen">An Google Lens übergeben</button>
+        <button type="button" class="ghost" id="btn-foto-clip">📋 Aus Zwischenablage</button>
+        <button type="button" class="ghost" id="btn-foto-zu">Schließen</button>
+      </div>
     </div>
     <label for="einfuegen">Zeilen einfügen</label>
     <textarea id="einfuegen" placeholder="dennoch&#9;nevertheless&#9;It was raining; nevertheless, we went for a walk."></textarea>
+    <label class="zeile-check"><input type="checkbox" id="imp-tausch"> <span id="imp-tausch-text">Englisch steht vorn (Spalten tauschen)</span></label>
     <p class="note" id="vorschau"></p>
     <label for="imp-kat">Kategorie für alle</label>
     <select id="imp-kat"></select>
@@ -3926,28 +3974,46 @@
   /* ---------- Einfuegen aus der Zwischenablage ---------- */
 
   // Zerlegt eingefuegten Text in Zeilen mit zwei bis drei Spalten.
-  function zerlege(text) {
+  /* Eine Zeile in Vorder- und Rückseite (und Beispiel) teilen. Tab und | wie aus Excel; sonst gewinnt das erste
+     der Zeichen „ = “, „;“, „ – “ (auch - und —, nur mit Leerzeichen, damit „E-Mail“ ganz bleibt) und „: “ -
+     so wird „Haus – house; home“ zu Haus | house; home. tauschen: die Liste steht andersherum (Englisch vorn). */
+  function zerlege(text, tauschen) {
     var zeilen = String(text).replace(/\r/g, "").split("\n");
     var ergebnis = { karten: [], uebersprungen: 0 };
     zeilen.forEach(function (z, i) {
+      z = z.replace(/^\s*(?:[•·▪◦*]|-(?=\s)|\d{1,3}[.)])\s+/, "");   // Aufzählungszeichen und Nummern aus Fotos/Listen
       if (!z.trim()) return;
       var teile;
       if (z.indexOf("\t") > -1) teile = z.split("\t");
       else if (z.indexOf("|") > -1) teile = z.split("|");
-      else if (/^[^=]{1,60}\s=\s/.test(z)) { var gl = z.indexOf(" = "); teile = [z.slice(0, gl), z.slice(gl + 3)]; }   // „OGS = Original GARDENA System“
-      else if (z.indexOf(";") > -1) teile = z.split(";");
-      else if (/\s{2,}/.test(z)) teile = z.split(/\s{2,}/);
-      else { ergebnis.uebersprungen++; return; }
+      else {
+        // einmal: nur am ersten Vorkommen teilen (Erklärungen dürfen selbst „=“ oder „:“ enthalten); vorne: höchstens 60 Zeichen davor
+        var trenner = [
+          { re: /\s=\s/, einmal: true, vorne: /^[^=]{1,60}\s=\s/ },   // „OGS = Original GARDENA System“
+          { re: /;/ },
+          { re: /\s[–—-]\s/ },
+          { re: /:\s/, einmal: true, vorne: /^[^:]{1,60}:\s/ }
+        ].map(function (t) {
+          if (t.vorne && !t.vorne.test(z)) return null;
+          var m = t.re.exec(z);
+          return m ? { t: t, pos: m.index, len: m[0].length } : null;
+        }).filter(Boolean).sort(function (a, b) { return a.pos - b.pos; })[0];
+        if (trenner) teile = trenner.t.einmal ? [z.slice(0, trenner.pos), z.slice(trenner.pos + trenner.len)]
+                                              : z.split(new RegExp(trenner.t.re.source, "g"));
+        else if (/\s{2,}/.test(z)) teile = z.split(/\s{2,}/);
+        else { ergebnis.uebersprungen++; return; }
+      }
 
       teile = teile.map(function (s) { return s.trim(); }).filter(function (s) { return s; });
       if (teile.length < 2) { ergebnis.uebersprungen++; return; }
 
-      // Eine Ueberschriftenzeile ganz oben ignorieren
-      if (i === 0 && /^(deutsch|german|begriff)$/i.test(teile[0]) && /^(english|englisch|bedeutung|erklärung)$/i.test(teile[1])) return;
+      // Eine Ueberschriftenzeile ganz oben ignorieren (in beiden Reihenfolgen)
+      var kopf = /^(deutsch|german|begriff|english|englisch|bedeutung|erklärung)$/i;
+      if (i === 0 && kopf.test(teile[0]) && kopf.test(teile[1])) return;
 
       ergebnis.karten.push({
-        de: teile[0],
-        en: teile[1],
+        de: tauschen ? teile[1] : teile[0],
+        en: tauschen ? teile[0] : teile[1],
         bsp: teile.length > 2 ? teile.slice(2).join(" ").trim() : ""
       });
     });
@@ -3963,7 +4029,7 @@
       knopf.disabled = true;
       return;
     }
-    var r = zerlege(txt);
+    var r = zerlege(txt, document.getElementById("imp-tausch").checked);
     var vorhanden = {};
     daten.cards.forEach(function (c) { vorhanden[c.front.toLowerCase() + "\u0000" + c.back.toLowerCase()] = true; });
     var neu = 0, doppelt = 0, gesehen = {};
@@ -3976,11 +4042,12 @@
     knopf.textContent = neu ? "Einlesen (" + neu + ")" : "Einlesen";
 
     var teile = [];
-    teile.push(neu + (neu === 1 ? " neue Vokabel erkannt" : " neue Vokabeln erkannt"));
+    teile.push(neu + (WISSEN ? (neu === 1 ? " neuer Begriff erkannt" : " neue Begriffe erkannt") : (neu === 1 ? " neue Vokabel erkannt" : " neue Vokabeln erkannt")));
     if (doppelt) teile.push(doppelt + " schon vorhanden");
     if (r.uebersprungen) teile.push(r.uebersprungen + " Zeilen ohne erkennbare Trennung");
-    if (r.karten.length) {
-      teile.push("erste: " + r.karten[0].de + " / " + r.karten[0].en);
+    if (r.karten.length) {   // mit Seitennamen, damit man sieht, ob die Spalten richtig herum stehen
+      var k0 = r.karten[0];
+      teile.push("erste Karte: " + (WISSEN ? "Begriff" : "Deutsch") + " „" + k0.de + "“, " + (WISSEN ? "Bedeutung" : "Englisch") + " „" + k0.en + "“");
     }
     v.textContent = teile.join(" \u00b7 ");
   }
@@ -4045,7 +4112,9 @@
       gruss.appendChild(b);
     }
     // große Karte: was heute ansteht
-    document.getElementById("st-hero-sub").textContent = k ? k + " Karten im Kasten" : "Dein Kasten ist noch leer";
+    var start = Math.min(paket, daten.cards.length);
+    document.getElementById("st-hero-sub").textContent = k ? k + " Karten im Kasten"
+      : start ? "Start mit den ersten " + start + (WISSEN ? " Karten" : " Vokabeln") : "Dein Kasten ist noch leer";
     document.getElementById("st-faellig").textContent = String(k ? f : daten.cards.length);
     document.getElementById("st-faellig-txt").textContent = k ? (f === 1 ? "Karte heute fällig" : "Karten heute fällig") : (WISSEN ? (daten.cards.length ? "Karten warten auf dich" : "Leg unten die ersten Begriffe an") : "Vokabeln warten auf dich");
     document.getElementById("st-ziel-fuell").style.width = Math.min(100, Math.round(h / ziel * 100)) + "%";
@@ -4061,6 +4130,8 @@
       var z = b.dataset.ziel;
       if (z === "karten" || z === "hoeren") {
         setzeModus(z);
+        // Erster Start: „Loslegen“ legt gleich das erste Paket in den leeren Kasten, statt auf eine leere Seite zu führen
+        if (z === "karten" && b.classList.contains("st-hero") && !imKasten().length) aufnehmen(naechsteOffene(paket));
         sichern();
         wechsle("ueben");
         if (z === "karten") zeichneUeben();
@@ -4291,6 +4362,10 @@
      freien Wörterbuch Wiktionary. Übersetzung: automatisch nach dem Eintippen (Wiktionary, sonst MyMemory).
      Dabei geht jeweils nur das englische Wort übers Netz, siehe Datenschutz. */
   var sn = { vorschlaege: [], nr: 0, fuer: "" };
+  // Handy-Art für Kamera-Wege: iPhone erkennt Text selbst (Live Text, „Text scannen“), Android über Google Lens
+  var GERAET_UA = navigator.userAgent || "";
+  var IST_IOS = /iPhone|iPad|iPod/.test(GERAET_UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var IST_ANDROID = /Android/i.test(GERAET_UA);
   function snEl(x) { return document.getElementById("sn-" + x); }
   function snNorm(t) { return String(t || "").toLowerCase().replace(/^to\s+/, "").replace(/\s+/g, " ").trim(); }
   function snVorhanden(en) {
@@ -4510,6 +4585,55 @@
   snEl("foto").addEventListener("click", function () {
     bildWaehlen(function (blob) { sn.bild = blob; snEl("foto").textContent = "📷 ✓"; snInfo("Foto kommt auf die Rückseite."); });
   });
+  /* Wort mit der Kamera erfassen. iPhone: die Tastatur kann das selbst („Text scannen“) - Feld öffnen und kurz erklären.
+     Android: Foto aufnehmen und über „Teilen“ an Google Lens geben; dort Wort antippen → Teilen → Vokabelkasten,
+     dann steht es hier im Feld (siehe „Geteilt aus einer anderen App“ unten) samt Übersetzungsvorschlag.
+     Das Foto bleibt nur, solange das kleine Feld offen ist. Am Computer gibt es den Knopf nicht. */
+  (function () {
+    var knopf = snEl("scan"), eingabe = snEl("scan-datei"), feld = snEl("scan-feld"), bild = snEl("scan-bild"), teilen = snEl("scan-teilen");
+    var foto = null, adresse = "";
+    knopf.hidden = !(IST_IOS || IST_ANDROID);
+    function zu() {
+      feld.hidden = true;
+      if (adresse) URL.revokeObjectURL(adresse);
+      adresse = ""; foto = null; bild.removeAttribute("src");
+    }
+    knopf.addEventListener("click", function () {
+      if (IST_IOS) {
+        snEl("en").focus();
+        snInfo("nochmal ins Feld tippen, „Text scannen“ wählen, die Kamera aufs Wort halten und „Einsetzen“ – " +
+          (WISSEN ? "eine Erklärung sucht die App dann selbst." : "die Übersetzung schlägt die App dann vor."), "Wort scannen:");
+        return;
+      }
+      eingabe.click();
+    });
+    eingabe.addEventListener("change", function () {
+      var f = eingabe.files && eingabe.files[0];
+      eingabe.value = "";
+      if (!f) return;
+      zu();
+      foto = f; adresse = URL.createObjectURL(f); bild.src = adresse;
+      var kannTeilen = false;
+      try { kannTeilen = !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) {}
+      teilen.hidden = !kannTeilen;
+      snEl("scan-hinweis").innerHTML = kannTeilen
+        ? "Im Teilen-Menü <b>Google Lens</b> wählen, das Wort antippen, dann <b>Teilen → Vokabelkasten</b>. Es landet hier mit " + (WISSEN ? "Erklärungsvorschlag." : "Übersetzungsvorschlag.")
+        : "Dieser Browser kann das Foto nicht weitergeben. Öffne Google Lens direkt, markiere das Wort, <b>Kopieren</b> – und füge es oben ein.";
+      feld.hidden = false;
+    });
+    teilen.addEventListener("click", function () {
+      if (!foto) return;
+      navigator.share({ files: [foto] }).then(zu).catch(function () {});   // abgebrochen: Feld bleibt offen
+    });
+    snEl("scan-zu").addEventListener("click", zu);
+  })();
+  // Ein ganzes Wort auf einmal (gescannt, eingefügt, aus der Vorschlagsleiste): gleich übersetzen, nicht erst beim Verlassen des Feldes
+  snEl("en").addEventListener("input", function (e) {
+    if (e.inputType === "insertFromPaste" || e.inputType === "insertReplacementText" || (e.data && e.data.length > 1)) {
+      clearTimeout(sn.uhr);
+      sn.uhr = setTimeout(snAutoUebersetzen, 300);
+    }
+  });
   snEl("de").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("schnell").requestSubmit(); } });
   snEl("bsp").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); document.getElementById("schnell").requestSubmit(); } });
   document.getElementById("schnell").addEventListener("submit", function (e) {
@@ -4538,11 +4662,24 @@
     snInfo("liegt im Kasten (Fach 1) und kommt heute noch dran.", "„" + en + "“ = „" + kurz(de) + "“");
     snEl("en").focus();
   });
-  // Geteilt aus einer anderen App (Android: Text markieren → Teilen → Vokabelkasten): Wort vorausfüllen
+  // Geteilt aus einer anderen App (Android: Text markieren → Teilen → Vokabelkasten): ein Wort wird vorausgefüllt,
+  // mehrere Zeilen (z. B. eine Liste aus Google Lens) landen unter „Ganze Liste einfügen“ mit Vorschau
   (function () {
     try {
       var q = new URLSearchParams(location.search), t = q.get("text") || q.get("title") || "";
       if (!t) return;
+      var zeilen = t.split(/\r?\n/).filter(function (z) { return z.trim(); });
+      if (zeilen.length > 1) {
+        history.replaceState(null, "", location.pathname);
+        setTimeout(function () {
+          wechsle("neu");
+          var ta = document.getElementById("einfuegen");
+          ta.value = zeilen.join("\n");
+          zeichneVorschau();
+          ta.scrollIntoView({ block: "center" });
+        }, 0);
+        return;
+      }
       t = t.split(/\r?\n/)[0].replace(/https?:\/\/\S+/g, "").replace(/^["'“„‚‘\s]+|["'”“‘’\s.,;:!?]+$/g, "").trim().slice(0, 80);
       history.replaceState(null, "", location.pathname);
       if (!t) return;
@@ -4578,6 +4715,60 @@
   });
   document.getElementById("suche").addEventListener("input", zeichneListe);
   document.getElementById("einfuegen").addEventListener("input", zeichneVorschau);
+  document.getElementById("imp-tausch").addEventListener("change", zeichneVorschau);
+
+  /* Liste abfotografieren: Kamera auf, Foto groß zeigen, kurze Anleitung. Den Text erkennt das Handy selbst
+     (Android: Google Lens über „Teilen“, iPhone: Live Text - lange auf den Text im Foto drücken).
+     Das Foto bleibt nur im Speicher, solange das Feld offen ist; die App sendet es nirgendwohin. */
+  (function () {
+    var eingabe = document.getElementById("foto-datei"), feld = document.getElementById("foto-hilfe");
+    var bild = document.getElementById("foto-bild"), teilen = document.getElementById("btn-foto-teilen");
+    var foto = null, adresse = "", ios = IST_IOS, android = IST_ANDROID;
+    function schritte(kannTeilen) {
+      var s = android && kannTeilen ? [
+        "„An Google Lens übergeben“ tippen und im Teilen-Menü <b>Google Lens</b> wählen.",
+        "In Lens die Zeilen markieren, dann <b>Teilen → Vokabelkasten</b> – oder <b>Kopieren</b> und hier „Aus Zwischenablage“.",
+        "Unten die Vorschau prüfen, bei Bedarf „Spalten tauschen“, dann <b>Einlesen</b>."
+      ] : ios ? [
+        "Lange auf den Text im Foto drücken, dann <b>Alles auswählen → Kopieren</b>." +
+          (kannTeilen ? " Klappt das nicht: „Foto teilen …“ → <b>Bild sichern</b> und den Text in der Fotos-App kopieren." : ""),
+        "„Aus Zwischenablage“ tippen.",
+        "Unten die Vorschau prüfen, bei Bedarf „Spalten tauschen“, dann <b>Einlesen</b>."
+      ] : [
+        "Den Text im Foto markieren und kopieren, z. B. mit Google Lens.",
+        "„Aus Zwischenablage“ tippen.",
+        "Unten die Vorschau prüfen, bei Bedarf „Spalten tauschen“, dann <b>Einlesen</b>."
+      ];
+      document.getElementById("foto-schritte").innerHTML = s.map(function (x) { return "<li>" + x + "</li>"; }).join("");
+    }
+    function zu() {
+      feld.hidden = true;
+      if (adresse) URL.revokeObjectURL(adresse);
+      adresse = ""; foto = null; bild.removeAttribute("src");
+    }
+    document.getElementById("btn-foto").addEventListener("click", function () { eingabe.click(); });
+    eingabe.addEventListener("change", function () {
+      var f = eingabe.files && eingabe.files[0];
+      eingabe.value = "";
+      if (!f) return;
+      zu();
+      foto = f; adresse = URL.createObjectURL(f); bild.src = adresse;
+      // Übergeben geht nur, wo der Browser Dateien teilen kann (Android Chrome, iPhone Safari)
+      var kannTeilen = false;
+      try { kannTeilen = !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) {}
+      schritte(kannTeilen);
+      teilen.hidden = !kannTeilen;
+      teilen.textContent = android ? "An Google Lens übergeben" : "Foto teilen …";
+      feld.hidden = false;
+      feld.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    teilen.addEventListener("click", function () {
+      if (!foto) return;
+      navigator.share({ files: [foto] }).catch(function () {});   // abgebrochen: nichts zu tun
+    });
+    document.getElementById("btn-foto-clip").addEventListener("click", function () { document.getElementById("btn-clip").click(); });
+    document.getElementById("btn-foto-zu").addEventListener("click", zu);
+  })();
 
   /* Ablage: Datei hineinziehen, wählen oder Text aus der Zwischenablage holen.
      CSV (Excel speichert mit ; oder ,) wird in Tab-getrennte Zeilen umgewandelt; eine Sicherungsdatei (.json)
@@ -4608,7 +4799,7 @@
     if (/\.json$/i.test(name || "") || /^\s*\{/.test(text)) {
       var p = null;
       try { p = JSON.parse(text); } catch (e) {}
-      if (p && Array.isArray(p.cards)) { sicherungEinlesen(p); return; }
+      if (p && Array.isArray(p.cards)) { dateiEinlesen(p); return; }
     }
     if (/\.xlsx?$/i.test(name || "")) { alert("Excel-Dateien kann der Browser nicht lesen. In Excel „Speichern unter → CSV“ wählen oder die Zellen kopieren und hier einfügen."); return; }
     var neu = /\.csv$/i.test(name || "") ? csvZeilen(text) : String(text).replace(/\r/g, "");
@@ -4654,7 +4845,7 @@
 
   document.getElementById("btn-import-text").addEventListener("click", function () {
     var feld = document.getElementById("einfuegen");
-    var r = zerlege(feld.value);
+    var r = zerlege(feld.value, document.getElementById("imp-tausch").checked);
     var kat = Number(document.getElementById("imp-kat").value) || 0;
     var rein = document.getElementById("imp-aktiv").checked;
     var vorhanden = {};
@@ -4675,7 +4866,7 @@
     feld.value = "";
     zeichneVorschau();
     zeichneListe();
-    alert(neu + (neu === 1 ? " Vokabel angelegt" : " Vokabeln angelegt") +
+    alert(neu + (WISSEN ? (neu === 1 ? " Begriff angelegt" : " Begriffe angelegt") : (neu === 1 ? " Vokabel angelegt" : " Vokabeln angelegt")) +
       (uebersprungen ? ", " + uebersprungen + " doppelte übersprungen" : "") +
       (rein ? " und in den Kasten gelegt." : ". Sie warten in der Liste auf dein Häkchen."));
   });
@@ -5204,6 +5395,60 @@
     if (id === KASTEN.id) { sichern(); return; }
     try { window.localStorage.setItem(kastenKey(id), JSON.stringify(d)); } catch (e) {}
   }
+  // Fotos aus der Datei nachladen (nur wo die Karte noch keins hat)
+  function fotosLaden(fotos) {
+    fotos.forEach(function (f) {
+      (f[3] ? bildHolen(f[1], f[0]) : Promise.resolve(null)).then(function (da) {
+        if (da) return;
+        return fetch(f[2]).then(function (x) { return x.blob(); }).then(function (b) { return bildSetzen(f[1], b, f[0]); });
+      }).catch(function () {});
+    });
+  }
+  /* Welche Kästen füllt eine Datei? Karten oben = Englisch, dazu jeder Kasten aus kaesten/kastenDaten mit Karten. */
+  function dateiKaesten(p) {
+    var l = [];
+    if (p.cards.length) l.push({ id: "en", karten: p.cards });
+    (Array.isArray(p.kaesten) ? p.kaesten : []).forEach(function (k) {
+      var kd = k && k.id && k.id !== "en" && p.kastenDaten && p.kastenDaten[k.id];
+      if (kd && Array.isArray(kd.cards) && kd.cards.length) l.push({ id: String(k.id), k: k, karten: kd.cards });
+    });
+    return l;
+  }
+  // Kasten auf diesem Gerät, in den ein Kasten aus der Datei gehört: gleiche Kennung (auch im Papierkorb) oder gleicher Name
+  function passenderKasten(k) {
+    var gleich = KAESTEN.liste.concat(papierkorb()).filter(function (x) { return x.id === k.id; })[0];
+    if (gleich) return gleich;
+    var titel = kastenTitel({ id: k.id, name: k.name }).toLowerCase();
+    return KAESTEN.liste.filter(function (x) { return x.id !== "en" && kastenTitel(x).toLowerCase() === titel; })[0] || null;
+  }
+  /* Eine Datei für nur einen Kasten (z. B. eine Wortliste), aber gerade ist ein anderer offen: erst fragen, wohin.
+     Vorausgewählt ist der offene Kasten - so landet eine Liste, die man im Gardenakasten einliest, auch dort
+     und nicht in einem neuen dritten Kasten. Vollständige Sicherungen (mehrere Kästen) gehen ohne Frage Kasten für Kasten zurück. */
+  function dateiEinlesen(p) {
+    var ziele = dateiKaesten(p);
+    if (ziele.length === 1) {
+      var z = ziele[0], ziel = z.id === "en" ? KAESTEN.liste[0] : passenderKasten(z.k);
+      if (!ziel || ziel.id !== KASTEN.id) {
+        var wieDatei = ziel ? "In den " + kastenTitel(ziel) : "In einen neuen " + kastenTitel({ id: z.id, name: z.k.name });
+        blattAuf(z.karten.length + (z.karten.length === 1 ? " Karte" : " Karten") + " einlesen – wohin?", [
+          { text: "In den offenen " + kastenTitel(KASTEN), tun: function () { inOffenenKasten(z, p.bilder); } },
+          { text: wieDatei + " (wie in der Datei)", tun: function () { sicherungEinlesen(p); } }
+        ]);
+        return;
+      }
+    }
+    sicherungEinlesen(p);
+  }
+  function inOffenenKasten(z, bilder) {
+    var fotos = [];
+    var r = kartenMischen(daten, z.karten, KATS.length, KASTEN.id, bilder, fotos, z.id);
+    sichern();
+    kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
+    zeichneListe();
+    if (ansicht === "start") zeichneKacheln();
+    fotosLaden(fotos);
+    alert(r.neu + " neu im " + kastenTitel(KASTEN) + (r.akt ? ", " + r.akt + " Lernstände aktualisiert." : "."));
+  }
   function sicherungEinlesen(p) {
     var gesamt = { neu: 0, akt: 0 }, dazu = [], fotos = [];
     // Englisch (oben in der Datei)
@@ -5239,12 +5484,8 @@
     kaestenSichern();
     kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
     zeichneListe();
-    fotos.forEach(function (f) {
-      (f[3] ? bildHolen(f[1], f[0]) : Promise.resolve(null)).then(function (da) {
-        if (da) return;
-        return fetch(f[2]).then(function (x) { return x.blob(); }).then(function (b) { return bildSetzen(f[1], b, f[0]); });
-      }).catch(function () {});
-    });
+    if (ansicht === "start") zeichneKacheln();
+    fotosLaden(fotos);
     alert(gesamt.neu + " neu, " + gesamt.akt + " Lernstände aktualisiert." + (dazu.length ? " Neue Kästen: " + dazu.join(", ") + "." : ""));
   }
 
@@ -5256,7 +5497,7 @@
       var p;
       try { p = JSON.parse(String(r.result)); } catch (err) { p = null; }
       if (!p || !Array.isArray(p.cards)) { alert("Das ist keine Sicherungsdatei dieser App."); return; }
-      sicherungEinlesen(p);
+      dateiEinlesen(p);
     };
     r.readAsText(f);
     e.target.value = "";
@@ -6989,7 +7230,8 @@
     setze(de, "@aria-label", "Bedeutung");
     txt('label[for="in-vorne"]', "Begriff"); txt('label[for="in-hinten"]', "Bedeutung");
     txt("#view-neu h2", "Neuer Begriff"); txt("#btn-add", "Begriff speichern");
-    setze(document.getElementById("einf-hilfe"), "innerHTML", "Eine Zeile pro Karte: <b>Begriff · Bedeutung</b>, getrennt durch Tab, |, ; oder „ = “.");
+    setze(document.getElementById("einf-hilfe"), "innerHTML", "Eine Zeile pro Karte: <b>Begriff · Bedeutung</b>, getrennt durch Tab, |, ;, „ = “, „ – “ oder „: “.");
+    txt("#imp-tausch-text", "Bedeutung steht vorn (Spalten tauschen)");
     setze(document.getElementById("einfuegen"), "placeholder", "Leitzins = Zinssatz, zu dem sich Banken bei der Zentralbank Geld leihen");
     opt("#sel-richtung", "de", "Begriff zuerst"); opt("#sel-richtung", "en", "Bedeutung zuerst");
     ["#uw-richtung", "#du-richtung"].forEach(function (sel) { opt(sel, "de", "Begriff → Bedeutung"); opt(sel, "en", "Bedeutung → Begriff"); });
