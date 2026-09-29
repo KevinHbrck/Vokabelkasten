@@ -351,6 +351,14 @@
       pruefe($$("#foto-schritte li").length === 3, "Anleitung fehlt");
       klick("#btn-foto-zu");
       pruefe(id("foto-hilfe").hidden && !id("foto-bild").getAttribute("src"), "Schließen räumt nicht auf");
+      // Begriff und Bedeutung je in einer eigenen Zeile (wie aus PDFs und Google Lens): immer zwei Zeilen = eine Karte
+      eingeben(id("einfuegen"), "Tensible Modules \nZugmodul\n\nTensible Stress\nZugspannung: Kraft pro Fläche\nOhne Partner");
+      pruefe(/2 neue Vokabeln/.test(v()) && /je zwei Zeilen/.test(v()) && /letzte Zeile ohne Partner/.test(v()), "Zeilenpaare nicht erkannt: " + v());
+      pruefe(/Deutsch „Tensible Modules“, Englisch „Zugmodul“/.test(v()), "Zeilenpaar falsch zugeordnet: " + v());
+      klick("#imp-tausch");
+      pruefe(/Deutsch „Zugmodul“, Englisch „Tensible Modules“/.test(v()), "Tauschen wirkt bei Zeilenpaaren nicht: " + v());
+      klick("#imp-tausch");
+      eingeben(id("einfuegen"), "");
     }],
     ["Geteilt aus einer anderen App (Android): Liste und einzelnes Wort", async function () {
       await new Promise(function (ok) {

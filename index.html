@@ -113,21 +113,7 @@
     --stripe-left: 8px;
     --tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .27 0 0 0 0 .18 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
   }
-  html[data-thema="retro"] {
-    color-scheme: light;
-    --ink: #1f1d1a; --ink-soft: #5f594e; --paper: #f3efe5; --card: #faf7f0; --rule: #dcd4c3;
-    --indigo: #28537f; --moss: #2f6b4f; --clay: #c7332b; --mark: #b87a12; --tab: #efeadf; --auf-ink: #ffffff;
-    --merk-bg: #fbf1dd; --merk-rule: #e3cc9f;
-    --alarm-bg: #f8e1da; --alarm-rule: #dba797; --alarm-ink: #a12a20;
-    --accent: #28537f; --accent-ink: #28537f; --title-color: #1f1d1a; --section-color: #c7332b;
-    --line-1: #c7332b; --line-2: #28537f;
-    --again-bg: #c7332b; --again-ink: #ffffff; --known-bg: #28537f; --known-ink: #ffffff;
-    --tc-face: #f8f4eb;
-    --stripes-w: 25px;
-    /* leicht abgenutzte Lackstreifen */
-    --stripes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='140'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .97 0 0 0 0 .95 0 0 0 0 .9 0 0 0 10 -6.6'/%3E%3C/filter%3E%3Crect width='90' height='140' filter='url(%23s)'/%3E%3C/svg%3E"),
-      linear-gradient(90deg, #cf3a30 0 9px, transparent 9px 16px, #2b5b8c 16px 25px);
-  }
+  
   html[data-thema="kodak"] {
     color-scheme: light;
     --ink: #1d1b18; --ink-soft: #6b6558; --paper: #f5f2ea; --card: #fbf9f4; --rule: #e1dacb;
@@ -144,41 +130,7 @@
   }
   /* Tapedeck: glattes schwarzes Gehäuse, gebürstete Frontplatten, Rack-Leiste mit
      Schraublöchern, bernsteinfarben beleuchtetes Zählwerk */
-  html[data-thema="tapedeck"] {
-    color-scheme: dark;
-    --ink: #e8e6e1; --ink-soft: #9d9a93; --paper: #17181a; --card: #222326; --rule: #36383c;
-    --indigo: #ffb547; --moss: #4fe39a; --clay: #ff6a5c; --mark: #ffb547; --tab: #1a1b1d; --auf-ink: #1d1305;
-    --merk-bg: #2c2414; --merk-rule: #4d3e22;
-    --alarm-bg: #37221d; --alarm-rule: #5e3a30; --alarm-ink: #ff8f7d;
-    --accent: #ffa928; --accent-ink: #ffb547; --on-accent: #1d1305; --title-color: #e9e7e2; --section-color: #ffb547;
-    --line-1: #ffa928; --line-2: #6d7075;
-    --again-bg: #ff5d4f; --again-ink: #2a0804; --known-bg: #4fe39a; --known-ink: #05261a;
-    --raised: linear-gradient(180deg, #2f3135, #1e1f22);
-    --btn-shine: rgba(255,255,255,.09);
-    --btn-shadow: 0 2px 5px rgba(0,0,0,.55);
-    --field: #111214; --text-sub: #b3b0a8;
-    --housing-top: #0f0f10; --housing-bot: #050506;
-    --housing-border: transparent;
-    --housing-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.25);
-    --window-frame: transparent;
-    --sel-label: var(--accent);
-    --tc-face: #141414; --tc-text: #ffb547; --tc-edge: #050505; --box-label: #9d9a93;
-    --btn-lift: 0 2px 4px rgba(0,0,0,.4);
-    /* hinterleuchtete Walzen: kräftige Wölbung wie bisher */
-    --walze-woelbung: linear-gradient(180deg,
-      rgba(12,9,5,.8) 0%, rgba(12,9,5,.36) 13%, rgba(12,9,5,.06) 27%,
-      rgba(255,255,255,.16) 38%, rgba(255,255,255,.04) 48%, rgba(12,9,5,0) 58%,
-      rgba(12,9,5,.1) 71%, rgba(12,9,5,.42) 87%, rgba(12,9,5,.84) 100%);
-    --walze-rand: inset 0 1px 2px rgba(0,0,0,.6), inset 0 -1px 2px rgba(0,0,0,.5),
-      inset 2px 0 3px -2px rgba(0,0,0,.55), inset -2px 0 3px -2px rgba(0,0,0,.55);
-    --glas: linear-gradient(162deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.05) 38%, rgba(255,255,255,0) 39%);
-    /* keine Leiste am linken Rand */
-    --stripe-left: 0px;
-    --tex: none;
-    --brushed: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='160'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004 .9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='300' height='160' filter='url(%23b)'/%3E%3C/svg%3E");
-    --stripes-w: 0px;
-    --stripes: none;
-  }
+  
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
   body {
@@ -771,8 +723,8 @@
   .meldung.liste-meldung { margin: 0 0 10px; }
 
   /* Tapedeck ohne Leiste links: normaler Seitenrand */
-  html[data-thema="tapedeck"] main { padding-left: 20px; }
-  html[data-thema="tapedeck"] header { padding-left: 20px; }
+  
+  
 
   /* ---------- Unterwegs-Modus ---------- */
   #unterwegs {
@@ -815,7 +767,7 @@
   html[data-vintage] .uw-hinten { font-family: var(--f-label); font-weight: 700; }
   html[data-vintage] .uw-hinten { color: var(--accent-ink); }
   html[data-vintage] .uw-phase { font-family: var(--f-mono); color: var(--section-color); }
-  html[data-thema="tapedeck"] .uw-hinten { text-shadow: 0 0 14px rgba(255,170,50,.45); }
+  
 
   [hidden] { display: none !important; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -963,17 +915,10 @@
   }
   html[data-thema="kodak"] .card.offen::after { content: "B"; }
   /* Tapedeck: gebürstete Frontplatte mit leuchtender Seitenanzeige */
-  html[data-thema="tapedeck"] .card {
-    background-image: var(--brushed);
-    box-shadow: 0 1px 1px rgba(0,0,0,.5), 4px 4px 0 -1px var(--card), 4px 4px 0 var(--rule), 0 8px 20px rgba(0,0,0,.45);
-  }
-  html[data-thema="tapedeck"] .card::after {
-    content: "SIDE A"; position: absolute; left: 14px; bottom: 16px; padding-left: 14px;
-    font-family: var(--f-body); font-weight: 600; font-size: 10px; letter-spacing: .24em; color: var(--ink-soft);
-    background: radial-gradient(circle, #ffb13b 0 3px, rgba(255,177,59,.35) 4px, rgba(255,177,59,0) 6px) left center / 12px 12px no-repeat;
-  }
-  html[data-thema="tapedeck"] .card.offen::after { content: "SIDE B"; }
-  html[data-thema="tapedeck"] .card .back { text-shadow: 0 0 12px rgba(255,170,50,.45); }
+  
+  
+  
+  
 
   /* Bewertung: „Nochmal“ und „Gewusst“ */
   html[data-vintage] .grade button {
@@ -1080,30 +1025,17 @@
   }
 
   /* Tapedeck: Beschriftung wie auf der Frontplatte, Leuchtanzeigen */
-  html[data-thema="tapedeck"] header h1 {
-    font-family: var(--f-body); font-style: normal; font-weight: 600; font-size: 22px; letter-spacing: .16em;
-    padding-bottom: 9px;
-    background:
-      linear-gradient(var(--line-1), var(--line-1)) left 0 bottom 5px / 100% 2px no-repeat,
-      linear-gradient(var(--line-2), var(--line-2)) left 0 bottom 0 / 100% 2px no-repeat;
-  }
-  html[data-thema="tapedeck"] header h1::before {
-    content: "Stereo Cassette Deck"; display: block; margin-bottom: 7px;
-    font-family: var(--f-body); font-weight: 500; font-size: 10px; letter-spacing: .32em; color: var(--ink-soft);
-  }
-  html[data-thema="tapedeck"] h2 { font-family: var(--f-body); font-style: normal; font-weight: 600; letter-spacing: .14em; }
-  html[data-thema="tapedeck"] .abschnitt,
-  html[data-thema="tapedeck"] .hilfe,
-  html[data-thema="tapedeck"] .applekasten { background-image: var(--brushed); }
+  
+  
+  
+  
   /* hinterleuchtetes Zählwerk: bernsteinfarben glimmende Ziffern auf schwarzen Walzen */
-  html[data-thema="tapedeck"] .zw-face { text-shadow: 0 0 .06em rgba(255,176,60,.9), 0 0 .22em rgba(255,140,20,.45); }
-  html[data-thema="tapedeck"] .box.gewaehlt { color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 0 14px rgba(255,169,40,.35); }
-  html[data-thema="tapedeck"] button:not([class]),
-  html[data-thema="tapedeck"] nav button[data-view][aria-current="page"],
-  html[data-thema="tapedeck"] .themawahl button[data-thema][aria-pressed="true"] { box-shadow: 0 0 14px rgba(255,169,40,.35), inset 0 1px 0 rgba(255,255,255,.3); }
-  html[data-thema="tapedeck"] button.again { box-shadow: 0 0 14px rgba(255,93,79,.35), inset 0 1px 0 rgba(255,255,255,.3); }
-  html[data-thema="tapedeck"] button.known { box-shadow: 0 0 14px rgba(79,227,154,.3), inset 0 1px 0 rgba(255,255,255,.3); }
-  html[data-thema="tapedeck"] .star.on { text-shadow: 0 0 8px rgba(255,181,71,.7); }
+  
+  
+  
+  
+  
+  
   /* Klick-Rückmeldung: Knöpfe wirken beim Antippen eingedrückt */
   button { transition: transform .09s ease, box-shadow .09s ease, filter .09s ease; }
   button.gedrueckt:not(:disabled),
@@ -1112,8 +1044,7 @@
     box-shadow: inset 0 2px 4px rgba(0,0,0,.22) !important;
     filter: brightness(.93);
   }
-  html[data-thema="tapedeck"] button.gedrueckt:not(:disabled),
-  html[data-thema="tapedeck"] button:not(:disabled):active { box-shadow: inset 0 2px 5px rgba(0,0,0,.6) !important; filter: brightness(.85); }
+  
   /* ---------- Tagesziel und Lernserie (oben auf „Üben“) ---------- */
   button.tagesziel {
     display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 8px; padding: 7px 12px;
@@ -1561,81 +1492,59 @@
      Wie in BLOC: ruhige Fläche, flach statt Schatten, Schrift führt, Tinte als Hauptfarbe.
      Die Signalfarbe ist die Farbe des Kastens (--kasten) - sparsam: Antworten, Fortschritt, gewähltes Fach.
      Folgt Hell/Dunkel des Systems. Allgemeine Regeln über :where(), damit gezielte Regeln der App vorgehen. */
-  html[data-thema="klar"] {
-    color-scheme: light;
-    --ink: #141517; --ink-soft: #6d6e72; --paper: #f4f4f1; --card: #ffffff; --rule: #e3e3de; --tab: #ecece8;
-    --indigo: color-mix(in srgb, var(--kasten, #ef7b17) 78%, #000);
-    --moss: #1f8a5b; --clay: #c9582a; --mark: #b7791f; --auf-ink: #ffffff;
-    --merk-bg: #fbf3e4; --merk-rule: #ead7b3; --alarm-bg: #fbe9e4; --alarm-rule: #eec2b4; --alarm-ink: #a3321f;
-    --f-ui: "Inter", "SF Pro Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --tint: color-mix(in srgb, var(--kasten, #ef7b17) 11%, var(--card));
-  }
-  @media (prefers-color-scheme: dark) {
-    html[data-thema="klar"] {
-      color-scheme: dark;
-      --ink: #f3f3f0; --ink-soft: #9a9ba0; --paper: #0e0f11; --card: #17181b; --rule: #2a2b30; --tab: #212226;
-      --indigo: color-mix(in srgb, var(--kasten, #ef7b17) 72%, #fff);
-      --moss: #3fbf85; --clay: #ef8a5c; --mark: #e0b057; --auf-ink: #0e0f11;
-      --merk-bg: #2a2418; --merk-rule: #4a3f28; --alarm-bg: #33221c; --alarm-rule: #5c3a2e; --alarm-ink: #f0a591;
-      --tint: color-mix(in srgb, var(--kasten, #ef7b17) 16%, var(--card));
-    }
-  }
-  html[data-thema="klar"] body { font-family: var(--f-ui); -webkit-font-smoothing: antialiased; letter-spacing: -.006em; }
-  html[data-thema="klar"] .serif { font-family: var(--f-ui); }
+  
+  
+  
+  
   /* Kopf: ohne Linie, großer Titel */
-  html[data-thema="klar"] header { border-bottom: none; padding-top: 18px; }
-  html[data-thema="klar"] header h1 { font-size: 24px; font-weight: 700; letter-spacing: -.025em; }
-  html[data-thema="klar"] .kopf-einst { box-shadow: none; border-radius: 16px; width: 48px; height: 48px; }
-  html[data-thema="klar"] .st-gruss { font-size: 15px; }
+  
+  
+  
+  
   /* Knöpfe, Felder */
-  :where(html[data-thema="klar"]) button { border-radius: 14px; font-weight: 600; letter-spacing: -.01em; }
-  :where(html[data-thema="klar"]) input[type=text], :where(html[data-thema="klar"]) input[type=search],
-  :where(html[data-thema="klar"]) select, :where(html[data-thema="klar"]) textarea,
-  html[data-thema="klar"] #sn-de, html[data-thema="klar"] #sn-bsp { border-radius: 12px; }
-  html[data-thema="klar"] input:focus, html[data-thema="klar"] #sn-de:focus, html[data-thema="klar"] #sn-bsp:focus,
-  html[data-thema="klar"] select:focus-visible { outline: 2px solid var(--ink); outline-offset: -1px; border-color: var(--ink); }
-  html[data-thema="klar"] button.known { background: var(--moss); border-color: var(--moss); border-radius: 999px; }
-  html[data-thema="klar"] button.again { background: var(--card); border-color: var(--rule); color: var(--ink); border-radius: 999px; }
+  
+  
+  
+  
+  
   /* Kästen-Leiste: Tinte für den offenen Kasten, die Kastenfarbe als Punkt */
-  html[data-thema="klar"] .kasten-reiter { border-color: var(--rule); display: inline-flex; align-items: center; gap: 7px; }
-  html[data-thema="klar"] .kasten-reiter:not(.plus)::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--k); flex: none; }
-  html[data-thema="klar"] .kasten-reiter.an { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-  html[data-thema="klar"] .kasten-reiter.plus { justify-content: center; }
+  
+  
+  
+  
   /* Große Karte der Startseite: flach, leicht in der Kastenfarbe getönt, Zahl in Tinte */
-  html[data-thema="klar"] .st-hero { background: var(--tint) !important; color: var(--ink); box-shadow: none !important;
-    border: 1px solid color-mix(in srgb, var(--kasten, #ef7b17) 22%, var(--rule)); border-radius: 24px; padding: 20px; }
-  html[data-thema="klar"] .st-hero .st-ico-hell { background: color-mix(in srgb, var(--kasten, #ef7b17) 18%, transparent); color: var(--indigo); }
-  html[data-thema="klar"] .st-hero-titel b { font-size: 18px; letter-spacing: -.015em; }
-  html[data-thema="klar"] .st-hero-titel small { color: var(--ink-soft); opacity: 1; }
-  html[data-thema="klar"] .st-hero-zahl strong { font-size: 64px; font-weight: 700; letter-spacing: -.045em; }
-  html[data-thema="klar"] .st-hero-zahl span { color: var(--ink-soft); opacity: 1; font-weight: 500; }
-  html[data-thema="klar"] .st-ziel { color: var(--ink-soft); }
-  html[data-thema="klar"] .st-ziel-balken { background: color-mix(in srgb, var(--kasten, #ef7b17) 16%, var(--rule)); height: 6px; }
-  html[data-thema="klar"] .st-ziel-balken i { background: var(--kasten, #ef7b17); }
-  html[data-thema="klar"] .st-cta { background: var(--ink) !important; color: var(--paper) !important; box-shadow: none; padding: 13px 20px 13px 22px; }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   /* Flächen: flach mit feiner Linie */
-  html[data-thema="klar"] .st-schnell, html[data-thema="klar"] .st-kachel, html[data-thema="klar"] .st-liste,
-  html[data-thema="klar"] .abschnitt, html[data-thema="klar"] .schnell, html[data-thema="klar"] .hilfe { box-shadow: none; border-radius: 20px; }
-  html[data-thema="klar"] .abschnitt summary, html[data-thema="klar"] a.ab-link { padding-top: 15px; padding-bottom: 15px; }
-  html[data-thema="klar"] .st-kachel .st-ico, html[data-thema="klar"] .st-zeile .st-ico { background: var(--tab); color: var(--ink); }
-  html[data-thema="klar"] .st-kachel b { font-weight: 700; letter-spacing: -.015em; }
-  html[data-thema="klar"] .st-abschnitt { text-transform: none; letter-spacing: -.01em; font-size: 15px; color: var(--ink); margin: 26px 2px 10px; }
-  html[data-thema="klar"] #sn-los { border-radius: 14px; }
+  
+  
+  
+  
+  
+  
   /* Lernkarte: große, ruhige Karte - Antwort in der Kastenfarbe */
-  html[data-thema="klar"] .card { border-radius: 26px; box-shadow: 0 1px 0 var(--rule); min-height: 270px; }
-  html[data-thema="klar"] .card .front { font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
-  html[data-thema="klar"] .card .back { font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
-  html[data-thema="klar"] .card .divider { width: 32px; height: 2px; border-radius: 2px; background: var(--kasten, #ef7b17); opacity: .6; }
-  html[data-thema="klar"] .stempel { border-radius: 10px; }
+  
+  
+  
+  
+  
   /* Fächer als Segmente, gefüllte bekommen einen Strich in der Kastenfarbe */
-  html[data-thema="klar"] .boxes { gap: 6px; }
-  html[data-thema="klar"] .box { border-radius: 12px; border: none; background: var(--tab); padding: 7px 2px 6px; }
-  html[data-thema="klar"] .box.filled { box-shadow: inset 0 -3px 0 var(--kasten, #ef7b17); }
-  html[data-thema="klar"] .box.gewaehlt { background: var(--ink); color: var(--paper); box-shadow: none; }
-  html[data-thema="klar"] .box.gewaehlt b { color: var(--paper); }
+  
+  
+  
+  
+  
   /* Design- und Moduswahl: Pillen, gewählt = Tinte */
-  html[data-thema="klar"] .themawahl button { border-radius: 12px; }
-  html[data-thema="klar"] .themawahl button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  
+  
 
   /* ---------- Führung (Mockup „BLOC & Vokabelkasten Führung“) ---------- */
   /* Startseite: Kästen unter „Verwalten“ */
@@ -2143,12 +2052,7 @@
           <button type="button" data-thema="nacht">Nacht</button>
         </div>
         <div class="themawahl vintage">
-          <button type="button" data-thema="retro">Retro</button>
           <button type="button" data-thema="kodak">C60</button>
-          <button type="button" data-thema="tapedeck">Tapedeck</button>
-        </div>
-        <div class="themawahl klar-wahl">
-          <button type="button" data-thema="klar">Klar · neu</button>
         </div>
       </div>
 
@@ -2552,6 +2456,7 @@
     if (typeof daten.abdeck === "string") abdeck = daten.abdeck;
     if (typeof daten.saetze === "boolean") saetze = daten.saetze;
     if (typeof daten.thema === "string") thema = daten.thema;
+    if (["retro", "tapedeck", "klar"].indexOf(thema) > -1) thema = "auto";   // diese Designs gibt es nicht mehr (2026-09)
     if (typeof daten.listKat === "string") listKat = daten.listKat;
     if (["nr", "de", "en"].indexOf(daten.listSort) > -1) listSort = daten.listSort;
     if (Array.isArray(daten.abstaende) && daten.abstaende.length === 4) {
@@ -3928,10 +3833,10 @@
 
   var THEMAFARBE = {
     hell: "#e9ebee", dunkel: "#15181c", nacht: "#17120e",
-    retro: "#f3efe5", kodak: "#f5f2ea", tapedeck: "#17181a"
+    kodak: "#f5f2ea"
   };
   // Diese Designs teilen sich Streifen, Tasten, Zählwerk usw. (CSS: html[data-vintage])
-  var VINTAGE = ["retro", "kodak", "tapedeck"];
+  var VINTAGE = ["kodak"];
 
   function setzeThema(neu) {
     thema = neu;
@@ -3941,8 +3846,7 @@
     var farbe = THEMAFARBE[neu];
     if (!farbe) {
       var dunkel = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (neu === "klar") farbe = dunkel ? "#0e0f11" : "#f4f4f1";   // Klar folgt Hell/Dunkel des Systems
-      else farbe = dunkel ? THEMAFARBE.dunkel : THEMAFARBE.hell;
+      farbe = dunkel ? THEMAFARBE.dunkel : THEMAFARBE.hell;
     }
     var m = document.getElementById("theme-color");
     if (m) m.setAttribute("content", farbe);
@@ -4064,12 +3968,7 @@
   /* Eine Zeile in Vorder- und Rückseite (und Beispiel) teilen. Tab und | wie aus Excel; sonst gewinnt das erste
      der Zeichen „ = “, „;“, „ – “ (auch - und —, nur mit Leerzeichen, damit „E-Mail“ ganz bleibt) und „: “ -
      so wird „Haus – house; home“ zu Haus | house; home. tauschen: die Liste steht andersherum (Englisch vorn). */
-  function zerlege(text, tauschen) {
-    var zeilen = String(text).replace(/\r/g, "").split("\n");
-    var ergebnis = { karten: [], uebersprungen: 0 };
-    zeilen.forEach(function (z, i) {
-      z = z.replace(/^\s*(?:[•·▪◦*]|-(?=\s)|\d{1,3}[.)])\s+/, "");   // Aufzählungszeichen und Nummern aus Fotos/Listen
-      if (!z.trim()) return;
+  function trennen(z) {   // Teile einer Zeile oder null, wenn kein Trennzeichen darin steht
       var teile;
       if (z.indexOf("\t") > -1) teile = z.split("\t");
       else if (z.indexOf("|") > -1) teile = z.split("|");
@@ -4088,21 +3987,40 @@
         if (trenner) teile = trenner.t.einmal ? [z.slice(0, trenner.pos), z.slice(trenner.pos + trenner.len)]
                                               : z.split(new RegExp(trenner.t.re.source, "g"));
         else if (/\s{2,}/.test(z)) teile = z.split(/\s{2,}/);
-        else { ergebnis.uebersprungen++; return; }
+        else return null;
       }
-
       teile = teile.map(function (s) { return s.trim(); }).filter(function (s) { return s; });
-      if (teile.length < 2) { ergebnis.uebersprungen++; return; }
-
-      // Eine Ueberschriftenzeile ganz oben ignorieren (in beiden Reihenfolgen)
-      var kopf = /^(deutsch|german|begriff|english|englisch|bedeutung|erklärung)$/i;
-      if (i === 0 && kopf.test(teile[0]) && kopf.test(teile[1])) return;
-
+      return teile.length >= 2 ? teile : null;
+  }
+  /* Zwei Formate: „Begriff – Bedeutung“ in einer Zeile (siehe trennen) oder – wie oft aus Fotos, PDFs und Google Lens –
+     Begriff und Bedeutung je in einer eigenen Zeile. Hat höchstens die Hälfte der Zeilen ein Trennzeichen,
+     liest die App immer zwei Zeilen als eine Karte (Erklärungen mit „:“ oder „–“ darin stören dann nicht). */
+  function zerlege(text, tauschen) {
+    var kopf = /^(deutsch|german|begriff|english|englisch|bedeutung|erklärung)$/i;
+    var zeilen = String(text).replace(/\r/g, "").split("\n").map(function (z) {
+      return z.replace(/^\s*(?:[•·▪◦*]|-(?=\s)|\d{1,3}[.)])\s+/, "").trim();   // Aufzählungszeichen und Nummern aus Fotos/Listen
+    }).filter(function (z) { return z; });
+    var ergebnis = { karten: [], uebersprungen: 0, paarweise: false };
+    function karte(teile) {
       ergebnis.karten.push({
         de: tauschen ? teile[1] : teile[0],
         en: tauschen ? teile[0] : teile[1],
         bsp: teile.length > 2 ? teile.slice(2).join(" ").trim() : ""
       });
+    }
+    var geteilt = zeilen.map(trennen);
+    var mitTrenner = geteilt.filter(Boolean).length;
+    if (zeilen.length >= 2 && mitTrenner * 2 <= zeilen.length) {
+      ergebnis.paarweise = true;
+      var start = kopf.test(zeilen[0]) && kopf.test(zeilen[1]) ? 2 : 0;   // Überschrift „Begriff / Bedeutung“ ganz oben
+      for (var k = start; k + 1 < zeilen.length; k += 2) karte([zeilen[k], zeilen[k + 1]]);
+      if ((zeilen.length - start) % 2) ergebnis.uebersprungen++;   // letzte Zeile ohne Partner
+      return ergebnis;
+    }
+    geteilt.forEach(function (teile, i) {
+      if (!teile) { ergebnis.uebersprungen++; return; }
+      if (i === 0 && kopf.test(teile[0]) && kopf.test(teile[1])) return;   // Überschriftenzeile (in beiden Reihenfolgen)
+      karte(teile);
     });
     return ergebnis;
   }
@@ -4131,7 +4049,8 @@
     var teile = [];
     teile.push(neu + (WISSEN ? (neu === 1 ? " neuer Begriff erkannt" : " neue Begriffe erkannt") : (neu === 1 ? " neue Vokabel erkannt" : " neue Vokabeln erkannt")));
     if (doppelt) teile.push(doppelt + " schon vorhanden");
-    if (r.uebersprungen) teile.push(r.uebersprungen + " Zeilen ohne erkennbare Trennung");
+    if (r.paarweise) teile.push("je zwei Zeilen = eine Karte");
+    if (r.uebersprungen) teile.push(r.paarweise ? "letzte Zeile ohne Partner" : r.uebersprungen + " Zeilen ohne erkennbare Trennung");
     if (r.karten.length) {   // mit Seitennamen, damit man sieht, ob die Spalten richtig herum stehen
       var k0 = r.karten[0];
       teile.push("erste Karte: " + (WISSEN ? "Begriff" : "Deutsch") + " „" + k0.de + "“, " + (WISSEN ? "Bedeutung" : "Englisch") + " „" + k0.en + "“");
@@ -5425,7 +5344,7 @@
 
   if (window.matchMedia) {
     var mq = window.matchMedia("(prefers-color-scheme: dark)");
-    var folgen = function () { if (thema === "auto" || thema === "klar") setzeThema(thema); };
+    var folgen = function () { if (thema === "auto") setzeThema(thema); };
     if (mq.addEventListener) mq.addEventListener("change", folgen);
     else if (mq.addListener) mq.addListener(folgen);
   }
