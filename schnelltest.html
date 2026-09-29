@@ -98,6 +98,9 @@
       await laden();
       await bis(function () { return $('[data-ziel="karten"]'); }, 5000, "Startseite");
       pruefe($$("[data-view]").length >= 5, "Navigation unten fehlt");
+      var ziele = $$("nav button").map(function (b) { return b.dataset.view; }).join(" ");
+      pruefe(W.getComputedStyle($("nav")).display !== "none" && ziele === "start ueben liste neu sichern", "Leiste unten: " + ziele);
+      pruefe($('nav [data-view="start"]').getAttribute("aria-current") === "page", "Start ist in der Leiste nicht markiert");
     }],
     ["Einführung: nur beim ersten Start, fünf Seiten, danach in den Einstellungen", async function () {
       await bis(function () { return !id("einf").hidden; }, 3000, "Einführung beim ersten Start");   // der Test startet ohne Daten
@@ -183,7 +186,11 @@
     }],
     ["Statistik öffnen", async function () {
       klick('[data-view="ueben"]');
-      klick("#tagesziel");
+      // Tagesziel steht beim Üben oben rechts, „x offen“ vorn in der Auswahlzeile
+      pruefe(!id("kopf-ziel").hidden && /Heute \d+ \/ \d+/.test(id("kopf-ziel").textContent), "Tagesziel oben rechts fehlt: " + id("kopf-ziel").textContent);
+      pruefe(/offen|im Kasten|Auswahl/.test($("#auswahl .aw-l").textContent), "Auswahlzeile zeigt nicht, was offen ist: " + $("#auswahl .aw-l").textContent);
+      pruefe($(".st-liste").previousElementSibling === id("kasten-leiste"), "Kästen stehen nicht unter „Verwalten“");
+      klick("#kopf-ziel");
       await bis(function () { return aktiv("statistik"); }, 3000, "Statistik");
     }],
     ["Sicherung: Knöpfe vorhanden", async function () {
