@@ -1589,6 +1589,18 @@
   #view-start .st-kachel .st-ico svg { width: 28px; height: 28px; }
   #view-start .st-kachel b { font-size: 19px; margin-top: 12px; }
   #view-start .st-kachel small { font-size: 14px; }
+  /* Einblend-Meldung */
+  .meldung-leiste { position: fixed; left: 16px; right: 16px; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); z-index: 90;
+    max-width: 30rem; margin: 0 auto; display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px; border-radius: 14px;
+    background: var(--ink); color: var(--paper); font-size: 15px; line-height: 1.4; box-shadow: 0 10px 28px rgba(0,0,0,.28);
+    opacity: 0; transform: translateY(10px); transition: opacity .2s ease, transform .2s ease; cursor: pointer; }
+  .meldung-leiste.an { opacity: 1; transform: none; }
+  .meldung-leiste[hidden] { display: none; }
+  .meldung-leiste b { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px;
+    background: var(--alarm-ink, #e07a5f); color: var(--ink); }
+  .meldung-leiste.ok b { background: var(--moss); color: var(--paper); }
+  @media (prefers-reduced-motion: reduce) { .meldung-leiste { transition: none; } }
+  #vorschau.fertig { color: var(--moss); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -2250,6 +2262,8 @@
     <div class="einf-knoepfe"><button type="button" class="ghost" id="einf-zurueck">Zurück</button><button type="button" id="einf-weiter">Weiter</button></div>
   </div>
 </div>
+<!-- Einblend-Meldung (melde): unten über der Leiste, liest der Screenreader vor -->
+<div id="meldung-leiste" class="meldung-leiste" role="status" aria-live="polite" hidden></div>
 <div id="blatt" hidden>
   <div class="blatt-hinter" data-blattzu></div>
   <div class="blatt-inhalt" role="dialog" aria-modal="true" aria-labelledby="blatt-titel">
@@ -2345,6 +2359,27 @@
 <script>
 (function () {
   "use strict";
+  /* Eigene Einblend-Meldung unten über der Leiste (statt alert: der wird in installierten Web-Apps teils gar nicht gezeigt).
+     Bleibt einige Sekunden stehen, antippen schließt sie. art: "ok" mit Häkchen, sonst Hinweis. */
+  var meldeUhr = null;
+  function melde(text, art) {
+    var el = document.getElementById("meldung-leiste");
+    if (!el) return;
+    el.className = "meldung-leiste an" + (art === "ok" ? " ok" : "");
+    el.innerHTML = "";
+    var ico = document.createElement("b"); ico.textContent = art === "ok" ? "✓" : "!"; ico.setAttribute("aria-hidden", "true");
+    var t = document.createElement("span"); t.textContent = text;
+    el.appendChild(ico); el.appendChild(t);
+    el.hidden = false;
+    clearTimeout(meldeUhr);
+    meldeUhr = setTimeout(function () { el.classList.remove("an"); setTimeout(function () { if (!el.classList.contains("an")) el.hidden = true; }, 250); },
+                          Math.max(3500, Math.min(8000, text.length * 70)));
+  }
+  function meldeOk(text) { melde(text, "ok"); }
+  document.addEventListener("click", function (e) {
+    var el = document.getElementById("meldung-leiste");
+    if (el && e.target.closest && e.target.closest("#meldung-leiste")) { el.classList.remove("an"); el.hidden = true; }
+  });
 
   /* Inhaltsdaten (Startliste, Änderungen, Vorlagen) stehen in daten.js - hier unter den gewohnten Namen */
   var VK_DATEN = window.VK_DATEN;
@@ -3772,7 +3807,7 @@
       if (!snap || !snap.daten || !Array.isArray(snap.daten.cards)) return;
       if (!confirm("Lernstand vom " + snapDatum(snap.zeit) + " wiederherstellen? Dein aktueller Stand auf diesem Gerät wird dabei ersetzt.")) return;
       try { window.localStorage.setItem(KEY, JSON.stringify(snap.daten)); }
-      catch (e) { alert("Das hat nicht geklappt: Der Speicher dieses Browsers ist voll oder gesperrt."); return; }
+      catch (e) { melde("Das hat nicht geklappt: Der Speicher dieses Browsers ist voll oder gesperrt."); return; }
       daten = { v: 2, seeded: false, cards: [] };
       laden();
       document.getElementById("sel-paket").value = String(paket);
@@ -4028,6 +4063,7 @@
   function zeichneVorschau() {
     var txt = document.getElementById("einfuegen").value;
     var v = document.getElementById("vorschau");
+    v.classList.remove("fertig");
     var knopf = document.getElementById("btn-import-text");
     if (!txt.trim()) {
       v.textContent = "";
@@ -4814,7 +4850,7 @@
       try { p = JSON.parse(text); } catch (e) {}
       if (p && Array.isArray(p.cards)) { dateiEinlesen(p); return; }
     }
-    if (/\.xlsx?$/i.test(name || "")) { alert("Excel-Dateien kann der Browser nicht lesen. In Excel „Speichern unter → CSV“ wählen oder die Zellen kopieren und hier einfügen."); return; }
+    if (/\.xlsx?$/i.test(name || "")) { melde("Excel-Dateien kann der Browser nicht lesen. In Excel „Speichern unter → CSV“ wählen oder die Zellen kopieren und hier einfügen."); return; }
     var neu = /\.csv$/i.test(name || "") ? csvZeilen(text) : String(text).replace(/\r/g, "");
     ta.value = (ta.value.trim() ? ta.value.replace(/\s*$/, "\n") : "") + neu.trim();
     zeichneVorschau();
@@ -4832,15 +4868,15 @@
     document.getElementById("btn-clip").addEventListener("click", function () {
       if (!navigator.clipboard || !navigator.clipboard.readText) {
         document.getElementById("einfuegen").focus();
-        alert("Der Browser erlaubt das Auslesen nicht. Tippe lang ins Feld und wähle „Einfügen“.");
+        melde("Der Browser erlaubt das Auslesen nicht. Tippe lang ins Feld und wähle „Einfügen“.");
         return;
       }
       navigator.clipboard.readText().then(function (t) {
         if (t && t.trim()) ablageText(t);
-        else alert("Die Zwischenablage ist leer.");
+        else melde("Die Zwischenablage ist leer.");
       }).catch(function () {
         document.getElementById("einfuegen").focus();
-        alert("Kein Zugriff auf die Zwischenablage. Tippe lang ins Feld und wähle „Einfügen“.");
+        melde("Kein Zugriff auf die Zwischenablage. Tippe lang ins Feld und wähle „Einfügen“.");
       });
     });
     [ablage, document.getElementById("einfuegen")].forEach(function (el) {
@@ -4879,9 +4915,13 @@
     feld.value = "";
     zeichneVorschau();
     zeichneListe();
-    alert(neu + (WISSEN ? (neu === 1 ? " Begriff angelegt" : " Begriffe angelegt") : (neu === 1 ? " Vokabel angelegt" : " Vokabeln angelegt")) +
+    var fertigText = (neu + (WISSEN ? (neu === 1 ? " Begriff angelegt" : " Begriffe angelegt") : (neu === 1 ? " Vokabel angelegt" : " Vokabeln angelegt")) +
       (uebersprungen ? ", " + uebersprungen + " doppelte übersprungen" : "") +
       (rein ? " und in den Kasten gelegt." : ". Sie warten in der Liste auf dein Häkchen."));
+    meldeOk(fertigText);
+    var v = document.getElementById("vorschau");   // auch direkt unter dem Feld, dort schaut man gerade hin
+    v.textContent = "✓ " + fertigText;
+    v.classList.add("fertig");
   });
 
   document.getElementById("btn-installieren").addEventListener("click", function () {
@@ -5554,7 +5594,7 @@
     zeichneListe();
     if (ansicht === "start") zeichneKacheln();
     fotosLaden(fotos);
-    alert(r.neu + " neu im " + kastenTitel(KASTEN) + (r.akt ? ", " + r.akt + " Lernstände aktualisiert." : "."));
+    meldeOk(r.neu + " neu im " + kastenTitel(KASTEN) + (r.akt ? ", " + r.akt + " Lernstände aktualisiert." : "."));
   }
   function sicherungEinlesen(p) {
     var gesamt = { neu: 0, akt: 0 }, dazu = [], fotos = [];
@@ -5593,7 +5633,7 @@
     zeichneListe();
     if (ansicht === "start") zeichneKacheln();
     fotosLaden(fotos);
-    alert(gesamt.neu + " neu, " + gesamt.akt + " Lernstände aktualisiert." + (dazu.length ? " Neue Kästen: " + dazu.join(", ") + "." : ""));
+    meldeOk(gesamt.neu + " neu, " + gesamt.akt + " Lernstände aktualisiert." + (dazu.length ? " Neue Kästen: " + dazu.join(", ") + "." : ""));
   }
 
   document.getElementById("file").addEventListener("change", function (e) {
@@ -5603,7 +5643,7 @@
     r.onload = function () {
       var p;
       try { p = JSON.parse(String(r.result)); } catch (err) { p = null; }
-      if (!p || !Array.isArray(p.cards)) { alert("Das ist keine Sicherungsdatei dieser App."); return; }
+      if (!p || !Array.isArray(p.cards)) { melde("Das ist keine Sicherungsdatei dieser App."); return; }
       dateiEinlesen(p);
     };
     r.readAsText(f);
@@ -6107,7 +6147,7 @@
   }
   // ohne Angabe gelten die Einstellungen im Anhören-Bereich; die Liste reicht ihre Treffer herein
   function uwStarten(eigene, fortsetzen) {
-    if (!sprache) { alert("Dieser Browser kann leider nicht vorlesen."); return; }
+    if (!sprache) { melde("Dieser Browser kann leider nicht vorlesen."); return; }
     var reihe, karten;
     if (fortsetzen) {
       uw = { karten: fortsetzen.karten, reihe: fortsetzen.reihe, i: fortsetzen.i, lauf: 0, pausiert: false, fertig: false, neu: {} };
@@ -6694,7 +6734,7 @@
 
   /* ---------- Spielablauf ---------- */
   function duStarten(nochmal) {
-    if (!sprache) { alert("Dieser Browser kann leider nicht vorlesen."); return; }
+    if (!sprache) { melde("Dieser Browser kann leider nicht vorlesen."); return; }
     duEinstellungenMerken();
     var e = duEinstellungen();
     var karten = nochmal && du ? du.alleKarten : duKarten(e.auswahl);
@@ -6720,7 +6760,7 @@
      zuhören, prüfen) und mit bewerten() gewertet - Fächer, Termine und Zusatzrunde für Sternkarten wie beim Üben.
      Antwortzeit, Aussprache, Signalton, Beispielsätze und Knopf-Modus kommen aus den Quiz-Einstellungen. */
   function duAlleinStarten(e) {
-    if (!sprache) { alert("Dieser Browser kann leider nicht vorlesen."); return; }
+    if (!sprache) { melde("Dieser Browser kann leider nicht vorlesen."); return; }
     e = e || duEinstellungen();
     if (!aktuell) rundeStarten(false);
     if (!aktuell) return;
@@ -7284,7 +7324,7 @@
     inp.addEventListener("change", function () {
       var f = inp.files && inp.files[0];
       if (!f) return;
-      bildVerkleinern(f).then(fertig).catch(function () { alert("Das Foto ließ sich nicht lesen."); });
+      bildVerkleinern(f).then(fertig).catch(function () { melde("Das Foto ließ sich nicht lesen."); });
     });
     inp.click();
   }

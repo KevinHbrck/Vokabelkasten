@@ -338,6 +338,9 @@
       pruefe(/Deutsch „testhouse“, Englisch „Testhaus“/.test(v()), "Spalten tauschen wirkt nicht: " + v());
       klick("#imp-tausch");
       klick("#btn-import-text");
+      // Rückmeldung: Einblend-Meldung unten und Bestätigung direkt unter dem Feld (kein System-Dialog)
+      pruefe(!id("meldung-leiste").hidden && /4 Vokabeln angelegt/.test(id("meldung-leiste").textContent), "keine Meldung nach dem Einlesen: " + id("meldung-leiste").textContent);
+      pruefe(/^✓ 4 Vokabeln angelegt/.test(id("vorschau").textContent), "keine Bestätigung unter dem Feld: " + id("vorschau").textContent);
       var en = JSON.parse(W.localStorage.getItem(KEY)).cards;
       var l = en.filter(function (c) { return c.front === "testlaufen"; })[0];
       pruefe(l && l.back === "to testrun" && l.bsp === "Wir testen.", "Beispiel nicht erkannt: " + JSON.stringify(l));
