@@ -1,0 +1,1618 @@
+/* Vokabelkasten - Gestaltung (ausgelagert aus index.html, 2026-09-29). Designs über :root[data-theme] bzw. html[data-thema]. */
+  :root {
+    --ink: #17202b;
+    --ink-soft: #5a6674;
+    --paper: #e9ebee;
+    --card: #ffffff;
+    --rule: #c8cdd4;
+    --indigo: #3d4f8f;
+    --moss: #2f6b4f;
+    --clay: #9c6b45;
+    --mark: #a8741a;
+    --tab: #d7dbe0;
+    --auf-ink: #ffffff;
+    --merk-bg: #fdf3e7;
+    --merk-rule: #e0c9a6;
+    --alarm-bg: #f8e3dc;
+    --alarm-rule: #d9a898;
+    --alarm-ink: #8d2f20;
+  }
+
+  /* Dunkel: kühl und kontrastarm genug fürs Abendlicht */
+  html[data-thema="dunkel"] {
+    --ink: #e4e7ea;
+    --ink-soft: #949ea9;
+    --paper: #15181c;
+    --card: #1e2228;
+    --rule: #343b44;
+    --indigo: #93a6dc;
+    --moss: #6cbc91;
+    --clay: #c58f68;
+    --mark: #d6a85e;
+    --tab: #262b32;
+    --auf-ink: #15181c;
+    --merk-bg: #2a2418;
+    --merk-rule: #4a3f28;
+    --alarm-bg: #33221c;
+    --alarm-rule: #5c3a2e;
+    --alarm-ink: #f0a591;
+  }
+
+  /* Nacht: warme Töne, so wenig Blau wie möglich */
+  html[data-thema="nacht"] {
+    --ink: #eee0cb;
+    --ink-soft: #b3a189;
+    --paper: #17120e;
+    --card: #211a14;
+    --rule: #3b3026;
+    --indigo: #d9a441;
+    --moss: #a8b06a;
+    --clay: #cf9061;
+    --mark: #e0b057;
+    --tab: #2a2118;
+    --auf-ink: #17120e;
+    --merk-bg: #2c2114;
+    --merk-rule: #4d3a22;
+    --alarm-bg: #36211a;
+    --alarm-rule: #5e3a2c;
+    --alarm-ink: #f2ab8a;
+  }
+  @media (prefers-color-scheme: dark) {
+    html[data-thema="auto"] {
+      --ink: #e4e7ea; --ink-soft: #949ea9; --paper: #15181c; --card: #1e2228;
+      --rule: #343b44; --indigo: #93a6dc; --moss: #6cbc91; --clay: #c58f68;
+      --mark: #d6a85e; --tab: #262b32; --auf-ink: #15181c;
+      --merk-bg: #2a2418; --merk-rule: #4a3f28;
+      --alarm-bg: #33221c; --alarm-rule: #5c3a2e; --alarm-ink: #f0a591;
+    }
+  }
+
+  /* Vintage-Designs wie im Sport Timer: „Retro“ (rot-blaue Zierstreifen), „C60“
+     (Kassetten-Look) und „Tapedeck“ (dunkles Hi-Fi-Deck). Bewusst nur mit Systemschriften:
+     die App lädt nach dem Start nichts von außen, auch keine Schriftarten. */
+  html[data-vintage] {
+    --f-head: "Avenir Next Condensed", "Roboto Condensed", "sans-serif-condensed", "Bahnschrift Condensed", "Arial Narrow", sans-serif;
+    --f-body: "Avenir Next Condensed", "Roboto Condensed", "sans-serif-condensed", "Bahnschrift SemiCondensed", "Arial Narrow", system-ui, sans-serif;
+    /* keine Schreibmaschinenschrift mehr: normale, klare Grotesk (der Name --f-mono bleibt, damit alle Stellen sie weiter nutzen) */
+    --f-mono: "Helvetica Neue", Helvetica, Roboto, "Segoe UI", Arial, sans-serif;
+    --f-label: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+    --f-brand: "Helvetica Neue", "Arial Black", Roboto, Arial, sans-serif;
+    /* ruhig gehalten: flache Tasten, leichte Schatten (das Tapedeck setzt unten eigene Werte) */
+    --raised: #faf7f0;
+    --btn-shine: rgba(255,255,255,0);
+    --btn-shadow: 0 1px 1px rgba(60,48,30,.08);
+    --btn-lift: 0 1px 2px rgba(0,0,0,.12);
+    --field: #fdfbf7;
+    --text-sub: #4f4a41;
+    --on-accent: #ffffff;
+    /* Zählwerk-Gehäuse: bei Retro und C60 hell wie eine Instrumententafel, die Fenster
+       dunkel eingefasst; das Tapedeck setzt unten ein schwarzes Gehäuse */
+    --housing-top: #efeae0; --housing-bot: #efeae0;
+    --housing-border: rgba(60,48,30,.14);
+    --housing-shadow: 0 1px 2px rgba(60,48,30,.08);
+    --window-frame: rgba(40,32,20,.25);
+    --sel-label: var(--accent-ink);
+    --tc-text: #1f1d1a; --tc-edge: #d8cfbb; --box-label: #5f594e;
+    /* Walzen: sanfte Wölbung statt tiefer Schatten */
+    --walze-woelbung: linear-gradient(180deg,
+      rgba(40,30,15,.32) 0%, rgba(40,30,15,.1) 16%, rgba(40,30,15,0) 32%,
+      rgba(40,30,15,0) 68%, rgba(40,30,15,.1) 84%, rgba(40,30,15,.34) 100%);
+    --walze-rand: inset 0 1px 1px rgba(0,0,0,.18), inset 0 -1px 1px rgba(0,0,0,.14);
+    --glas: linear-gradient(162deg, rgba(255,255,255,.1) 0%, rgba(255,255,255,0) 38%);
+    --stripe-left: 8px;
+    --tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .27 0 0 0 0 .18 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
+  }
+  
+  html[data-thema="kodak"] {
+    color-scheme: light;
+    --ink: #1d1b18; --ink-soft: #6b6558; --paper: #f5f2ea; --card: #fbf9f4; --rule: #e1dacb;
+    --indigo: #d45a12; --moss: #2f6b4f; --clay: #e1251b; --mark: #d9820f; --tab: #f0ece2; --auf-ink: #ffffff;
+    --merk-bg: #fdf1dc; --merk-rule: #efcf98;
+    --alarm-bg: #fbe2dc; --alarm-rule: #eba99a; --alarm-ink: #b3170f;
+    --accent: #ef7b17; --accent-ink: #d45a12; --title-color: #e1251b; --section-color: #e1251b;
+    --line-1: #e1251b; --line-2: #f6b01e;
+    --again-bg: #e1251b; --again-ink: #ffffff; --known-bg: #f6b01e; --known-ink: #2a1a00;
+    --tc-face: #f7efdc; --tc-edge: #d9ccb0;
+    --housing-top: #f3ecdd; --housing-bot: #f3ecdd; --box-label: #5a4d38;
+    --stripes-w: 27px;
+    --stripes: linear-gradient(90deg, #e1251b 0 9px, #f07c16 9px 18px, #f8b31c 18px 27px);
+  }
+  /* Tapedeck: glattes schwarzes Gehäuse, gebürstete Frontplatten, Rack-Leiste mit
+     Schraublöchern, bernsteinfarben beleuchtetes Zählwerk */
+  
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+
+  header {
+    padding: 14px 20px 10px;
+    border-bottom: 1px solid var(--rule);
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  }
+  header h1 { font-size: 19px; margin: 0; font-weight: 600; }
+  #status { font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+
+  main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 20px 28px; }
+  .view { display: none; max-width: 34rem; margin: 0 auto; }
+  .view.active { display: block; }
+
+  .controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  #sel-fach { flex: none; }
+  select {
+    font: inherit; font-size: 14px;
+    padding: 8px 10px;
+    border: 1px solid var(--rule); border-radius: 3px;
+    background: var(--card); color: var(--ink);
+    max-width: 100%;
+  }
+  #sel-kat { flex: 1; min-width: 0; }
+  select:focus-visible { outline: 2px solid var(--indigo); outline-offset: 1px; }
+
+  .boxes { display: flex; gap: 4px; margin-bottom: 14px; }
+  .box {
+    flex: 1; text-align: center; padding: 5px 2px 4px;
+    background: var(--tab); border-radius: 3px 3px 0 0;
+    border-bottom: 3px solid var(--rule);
+    font-size: 11px; color: var(--ink-soft);
+  }
+  .box.filled { border-bottom-color: var(--indigo); color: var(--ink); }
+  .box { cursor: pointer; font-family: inherit; }
+  .box.gewaehlt {
+    background: var(--card); color: var(--ink);
+    border-bottom-color: var(--ink); border-bottom-width: 3px;
+    box-shadow: inset 0 1px 0 var(--rule), inset 1px 0 0 var(--rule), inset -1px 0 0 var(--rule);
+  }
+  .box b { display: block; font-size: 16px; font-weight: 600; }
+
+  .meldung {
+    text-align: center; font-size: 13px; color: var(--ink-soft);
+    margin: -4px 0 12px; min-height: 1.2em;
+  }
+  .meldung-wann { white-space: nowrap; }
+  /* Fotos */
+  .k-bild { display: block; max-width: 100%; max-height: 38vh; margin: 12px auto 4px; border-radius: 10px; object-fit: contain; }
+  .k-bild[hidden] { display: none; }
+  .ed-bild { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 12px; }
+  .ed-bild img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--rule); }
+  .ed-bild img[hidden], .ed-bild button[hidden] { display: none; }
+  .ed-bild button { margin: 0; padding: 9px 12px; font-size: 14px; }
+  #sn-foto { flex: 0 0 auto; padding-left: 14px; padding-right: 14px; }
+  /* Kästen */
+  .kasten-leiste { display: flex; gap: 8px; overflow-x: auto; margin: 0 -2px 12px; padding: 2px; scrollbar-width: none; }
+  .kasten-leiste::-webkit-scrollbar { display: none; }
+  .kasten-reiter { flex: 0 0 auto; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--rule); background: var(--card); color: var(--ink);
+    font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .kasten-reiter.an { background: var(--k); border-color: var(--k); color: #fff; }
+  .kasten-reiter.plus { width: 40px; padding: 8px 0; font-size: 18px; line-height: 1; color: var(--ink-soft); }
+  .kasten-punkte { display: flex; justify-content: center; gap: 7px; margin: 10px 0 0; }
+  .kasten-punkte[hidden] { display: none; }
+  .kasten-punkte i { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); }
+  .kasten-punkte i.an { background: var(--kasten); transform: scale(1.3); }
+  .kasten-punkte i.plus { background: none; box-shadow: inset 0 0 0 1.5px var(--rule); }
+  .st-hero { background: linear-gradient(145deg, color-mix(in srgb, var(--kasten, #ef7b17) 78%, #fff) 0%, var(--kasten, #ef7b17) 50%, color-mix(in srgb, var(--kasten, #ef7b17) 85%, #000) 100%) !important;
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--kasten, #ef7b17) 28%, transparent), 0 2px 6px color-mix(in srgb, var(--kasten, #ef7b17) 18%, transparent) !important; }
+  .st-cta { color: var(--kasten, #d4580a) !important; }
+  /* Wischen zwischen Kästen: die Startseite folgt dem Finger (Bewegung per JS), ohne seitliches Scrollen */
+  #view-start { touch-action: pan-y; will-change: transform; }
+  main { overflow-x: clip; }
+  @media (prefers-reduced-motion: reduce) { #view-start { transition: none !important; } }
+  .kasten-dialog { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
+  .kasten-dialog[hidden] { display: none; }
+  .kasten-karte { width: 100%; max-width: 560px; background: var(--card); color: var(--ink); border-radius: 20px 20px 0 0;
+    padding: 20px 18px calc(18px + env(safe-area-inset-bottom)); }
+  .kasten-karte h2 { margin: 0 0 12px; }
+  .kasten-knoepfe { display: flex; gap: 10px; margin-top: 6px; }
+  .kasten-knoepfe button { flex: 1; }
+  .kasten-reiter { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .kasten-karte .note { margin: -6px 0 14px; }
+  .km-knoepfe { display: flex; flex-direction: column; gap: 10px; }
+  .km-knoepfe button { min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
+  .km-knoepfe svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .km-knoepfe .km-weg { color: var(--alarm-ink); border-color: var(--alarm-rule); }
+  .km-reihe { display: flex; gap: 10px; }
+  .km-reihe button { flex: 1; }
+  .km-knoepfe button:disabled { opacity: .4; }
+  .kv-korb { margin: 14px 0 2px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  .kv-zeile { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--rule); }
+  .kv-zeile:first-child { border-top: 0; }
+  .kv-name { flex: 1; font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .kv-name::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--k); flex: none; }
+  .kv-zeile button { padding: 7px 10px; font-size: 13px; margin: 0; }
+  /* Wissenskasten: nur der englische Beispielsatz-Vorschlag passt nicht. Quiz-Duell und Sprechen gibt es in jedem Kasten
+     (per langem Drücken lässt sich die Kachel verkleinern) */
+  html[data-wissen] #sn-vorschlag { display: none !important; }
+  html[data-wissen] .zelle.en { font-style: normal; }
+  /* Eintippen (nur wenn in den Einstellungen gewählt) */
+  .eingabe { display: flex; gap: 8px; margin: 14px 0 0; }
+  .eingabe input[type=text] { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 17px; }
+  .eingabe button { flex: 0 0 auto; }
+  .eingabe-ergebnis { margin: 10px 2px 0; font-size: 14px; line-height: 1.4; text-align: center; }
+  .eingabe-ergebnis.ok b { color: var(--moss); }
+  .eingabe-ergebnis.falsch b { color: var(--clay); }
+  .eingabe-ergebnis q { font-style: italic; }
+  .grade button.vorschlag { box-shadow: 0 0 0 3px var(--accent, var(--ink)); }
+  .bsp b { font-weight: 700; font-style: normal; color: var(--ink); }
+  .meldung b { font-weight: 600; color: var(--ink); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--rule); border-radius: 4px;
+    box-shadow: 0 1px 0 var(--rule), 3px 3px 0 -1px var(--card), 3px 3px 0 var(--rule);
+    padding: 34px 22px; min-height: 240px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; cursor: pointer; width: 100%; font: inherit; color: inherit;
+  }
+  .card:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; }
+  .card .kat { font-size: 12px; color: var(--ink-soft); margin-bottom: 18px; }
+  .card .front { font-size: 27px; line-height: 1.25; }
+  .card .divider { width: 46px; height: 1px; background: var(--rule); margin: 20px 0; }
+  .card .back { font-size: 23px; color: var(--indigo); line-height: 1.3; }
+  .card .bsp { font-size: 15px; color: var(--ink-soft); margin-top: 16px; font-style: italic; line-height: 1.45; }
+  .card .hint { font-size: 13px; color: var(--ink-soft); margin-top: 24px; }
+  /* Wischen: Karte folgt dem Finger, Stempel zeigt die Bewertung */
+  .card { position: relative; }
+  #trainer.wischbar .card.offen { touch-action: pan-y; }
+  .card.zieht { transition: none !important; }
+  .card.fliegt { transition: transform .22s ease-in, opacity .22s ease-in; }
+  .card.zurueck { transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+  .card.rein { animation: karteRein .22s ease-out; }
+  @keyframes karteRein { from { transform: scale(.95); opacity: .3; } to { transform: none; opacity: 1; } }
+  .stempel {
+    position: absolute; top: 16px; padding: 4px 10px; border: 3px solid currentColor; border-radius: 6px;
+    font-size: 18px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    opacity: 0; pointer-events: none;
+  }
+  .stempel.gewusst { left: 16px; color: var(--moss); transform: rotate(-12deg); }
+  .stempel.nochmal { right: 16px; color: var(--clay); transform: rotate(12deg); }
+  html[data-vintage] .stempel { font-family: var(--f-mono); }
+
+  .grade { display: flex; gap: 10px; margin-top: 16px; }
+  .grade button { flex: 1; line-height: 1.25; }
+  .haupt { display: block; }
+  .neben { display: block; font-size: 11px; opacity: .8; margin-top: 3px; }
+
+  button {
+    font: inherit; padding: 13px 16px; border-radius: 3px;
+    border: 1px solid var(--ink); background: var(--ink); color: var(--auf-ink); cursor: pointer;
+  }
+  button.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+  button.again { background: var(--clay); border-color: var(--clay); color: #fff; }
+  button.known { background: var(--moss); border-color: var(--moss); color: #fff; }
+  button:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+
+  .empty { text-align: center; padding: 34px 10px; color: var(--ink-soft); }
+  .empty p { margin: 0 0 18px; }
+
+  label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 5px; }
+  input[type=text], input[type=search] {
+    width: 100%; font: inherit; padding: 11px 12px;
+    border: 1px solid var(--rule); border-radius: 3px;
+    background: var(--card); color: var(--ink); margin-bottom: 14px;
+  }
+  input:focus { outline: 2px solid var(--indigo); outline-offset: -1px; border-color: var(--indigo); }
+  #neu-kat { width: 100%; margin-bottom: 16px; }
+
+  ol.list { list-style: none; padding: 0; margin: 4px 0 0; }
+  ol.list li {
+    display: grid;
+    grid-template-columns: 1.7em 1fr 1.15fr auto;
+    column-gap: 8px; row-gap: 3px;
+    align-items: baseline;
+    padding: 10px 0; border-bottom: 1px solid var(--rule);
+  }
+  .zelle { min-width: 0; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; }
+  .zelle.de { grid-column: 2; }
+  .zelle.en {
+    grid-column: 3; font-size: 15px; color: var(--ink-soft);
+    border-left: 1px solid var(--rule); padding-left: 9px;
+    -webkit-hyphens: manual; hyphens: manual;   /* englische Wörter nicht nach deutschen Regeln trennen */
+  }
+  .steuer { grid-column: 4; grid-row: 1; display: flex; align-items: center; gap: 1px; }
+  .bsp-zeile {
+    grid-column: 2 / 5;
+    margin-top: 2px; font-size: 13px; color: var(--ink-soft);
+    font-style: italic; line-height: 1.4;
+  }
+  .zelle.verdeckt {
+    background: var(--tab); border-radius: 2px;
+    color: transparent; cursor: pointer;
+  }
+  .zelle.verdeckt.auf { background: none; color: inherit; }
+  .zelle.en.verdeckt { color: transparent; }
+  /* Englisch anhören: Tipp aufs Wort, das kleine Symbol dahinter zeigt es an */
+  .zelle.en.hoerbar { cursor: pointer; }
+  .hoer-mini { display: inline-block; width: 14px; height: 14px; margin-left: 5px; vertical-align: -2px; color: var(--ink-soft); opacity: .6; }
+  .hoer-mini svg { display: block; width: 100%; height: 100%; }
+  .zelle.en.verdeckt:not(.auf) .hoer-mini { visibility: hidden; }
+  .zelle.en.spricht, .zelle.en.spricht .hoer-mini { color: var(--indigo); opacity: 1; }
+  html[data-vintage] .zelle.en.spricht, html[data-vintage] .zelle.en.spricht .hoer-mini { color: var(--accent-ink); }
+  .zelle.en.hoerbar:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+  .zelle.en.verdeckt.auf { color: var(--ink-soft); }
+  .num {
+    grid-column: 1; grid-row: 1;
+    font-size: 12px; color: var(--ink-soft);
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .fach { font-size: 11px; color: var(--ink-soft); white-space: nowrap; min-width: 1.4em; }
+  .fachsel {
+    flex: none; font-size: 11px; padding: 3px 1px 3px 3px;
+    border: 1px solid var(--rule); border-radius: 2px;
+    background: var(--card); color: var(--ink-soft);
+  }
+  .edit-btn { background: none; border: none; color: var(--ink-soft); padding: 3px 2px 3px 3px; line-height: 0; flex: none; }
+  .edit-btn svg { display: block; }
+  /* Zeile im Bearbeiten-Modus: klappt zu einem kleinen Formular auf */
+  ol.list li.bearbeiten { display: block; padding: 12px 0 16px; }
+  .edit-kopf { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  li.bearbeiten input[type=text] { margin-bottom: 10px; }
+  li.bearbeiten select { width: 100%; margin-bottom: 14px; }
+  .edit-knoepfe { display: flex; gap: 8px; }
+  .edit-knoepfe button { flex: 1; }
+  li.bearbeiten .note { margin: 10px 0 0; }
+  li.bearbeiten .rauszeile { margin-top: 4px; }
+  /* frisch gespeicherte Zeile leuchtet kurz auf */
+  ol.list li.frisch { animation: frisch 1.6s ease-out; }
+  @keyframes frisch { from { background: var(--merk-bg); } to { background: transparent; } }
+  .star {
+    background: none; border: none; color: var(--rule);
+    padding: 3px 2px; font-size: 18px; line-height: 1; flex: none;
+  }
+  .star.on { color: var(--mark); }
+  .merkzeile {
+    display: flex; justify-content: center; gap: 10px; margin-top: 14px;
+  }
+  button.pille {
+    background: var(--card); color: var(--ink-soft);
+    border: 1px solid var(--rule); border-radius: 999px;
+    font-size: 14px; padding: 11px 18px; min-height: 44px;
+  }
+  button.pille.on {
+    color: var(--mark); border-color: var(--mark);
+    background: var(--merk-bg);
+  }
+  .merkzeile.zweite { margin-top: 9px; }
+  button.pille.schmal { padding: 11px 13px; }
+  /* Kasten per Sprache abfragen (Ablauf wie im Quiz, gewertet wie beim Üben) */
+  /* So antwortest du: Aufdecken | Schreiben | Sprechen */
+  .antwortwahl { margin: 12px 0 0; }
+  .antwortwahl button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 0; }
+  .antwortwahl svg { width: 17px; height: 17px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* Einführung */
+  #einf { position: fixed; inset: 0; z-index: 75; display: flex; align-items: flex-end; justify-content: center; }
+  #einf[hidden], #einf [hidden] { display: none; }
+  .einf-inhalt { min-height: min(540px, 82vh); gap: 0; }
+  .einf-kopf { display: flex; justify-content: space-between; align-items: center; min-height: 36px; }
+  .einf-punkte { display: flex; gap: 6px; align-items: center; }
+  .einf-punkte i { width: 7px; height: 7px; border-radius: 4px; background: var(--rule); transition: width .2s ease, background .2s ease; }
+  .einf-punkte i.an { width: 20px; background: var(--kasten, #ef7b17); }
+  button.einf-weg { background: none; border: none; box-shadow: none; color: var(--ink-soft); font-size: 14px; padding: 8px 2px; min-height: 0; margin: 0; }
+  .einf-seite { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 12px 6px 22px; }
+  .einf-ico { width: 88px; height: 88px; border-radius: 26px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
+    background: color-mix(in srgb, var(--kasten, #ef7b17) 16%, transparent); color: var(--kasten, #ef7b17); }
+  .einf-ico svg { width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .einf-seite h2 { margin: 0 0 12px; font-size: 24px; line-height: 1.2; }
+  .einf-seite p { margin: 0; max-width: 34ch; font-size: 15.5px; line-height: 1.55; color: var(--ink); }
+  .einf-seite .einf-notiz { margin-top: 16px; font-size: 13.5px; color: var(--ink-soft); }
+  .einf-knoepfe { display: flex; gap: 10px; }
+  .einf-knoepfe button { margin: 0; min-height: 50px; }
+  #einf-weiter { flex: 1; }
+  button.pille:disabled { opacity: .4; }
+  .rauszeile { text-align: center; margin-top: 18px; }
+  button.leise {
+    background: none; border: none; color: var(--ink-soft);
+    font-size: 13px; padding: 8px 10px;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .listkopf { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+  .listkopf input[type=search] { margin-bottom: 0; }
+  button.filt {
+    flex: none; background: none; color: var(--ink-soft);
+    border: 1px solid var(--rule); padding: 11px 13px; font-size: 16px;
+  }
+  button.filt.on { color: var(--mark); border-color: var(--mark); }
+  #btn-nurkasten.on { color: var(--moss); border-color: var(--moss); }
+  .bulk { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 6px; }
+  .bulk button { padding: 9px 12px; font-size: 14px; }
+  .bulk select { padding: 9px 8px; }
+  .haken {
+    flex: none; width: 20px; height: 20px; margin: 0 1px;
+    accent-color: var(--moss); cursor: pointer;
+  }
+  li.ruht .zelle.de, li.ruht .num { opacity: .55; }
+  .anzeige { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 8px; }
+  .anzeige select, .anzeige button { padding: 8px 10px; font-size: 14px; }
+  .anzeige select { flex: 1 1 0; min-width: 0; max-width: 190px; }
+  .anzeige button { white-space: nowrap; }
+  /* Listenkopf: alle Felder im gleichen Raster, gleich hoch und gleich breit */
+  .listraster { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 6px; }
+  .listraster > select, .listraster > button {
+    width: 100%; min-width: 0; height: 42px; margin: 0; padding: 0 10px;
+    font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .listraster > select { padding-right: 4px; }
+  .listraster > .voll { grid-column: 1 / -1; }
+  .listraster > [hidden] { display: none; }
+  /* Listenkopf, feiner gegliedert: Suche mit Lupe, zwei schlanke Zeilen, darunter „In den Kasten“ als eigene Karte */
+  .listkopf input[type=search] {
+    padding-left: 36px;
+    background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8f98' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5l5 5'/%3E%3C/svg%3E") no-repeat 12px 50% / 17px;
+  }
+  .lw-zeile { display: flex; gap: 8px; margin: 8px 0 0; }
+  .lw-zeile > select, .lw-zeile > button {
+    flex: 1 1 0; min-width: 0; height: 38px; margin: 0; padding: 0 10px;
+    font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lw-zeile > select { padding-right: 4px; }
+  .lw-zeile > button.lw-klein { flex: 0 0 auto; }
+  .lw-zeile > [hidden] { display: none; }
+  .lw-kasten { margin: 12px 0 2px; padding: 11px 12px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); }
+  .lw-kasten:not(:has(button:not([hidden]))) { display: none; }
+  .lw-kasten-titel { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft); }
+  .lw-kasten-zeile { display: flex; gap: 8px; }
+  .lw-kasten-zeile > button { flex: 1 1 auto; min-width: 0; height: 44px; margin: 0; padding: 0 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lw-kasten-zeile > select { flex: 0 0 auto; height: 44px; margin: 0; }
+  .lw-kasten-zeile > [hidden] { display: none; }
+  .lw-kasten-zeile:not(:has(> :not([hidden]))) { display: none; }
+  .lw-kasten-weitere { margin: 8px 0 0; }
+  .lw-kasten-weitere > button { height: 38px; }
+  .lw-kasten-zeile:not(:has(> :not([hidden]))) + .lw-kasten-weitere { margin-top: 0; }
+
+  h2 { font-size: 15px; font-weight: 600; margin: 0 0 14px; }
+
+  .abschnitt {
+    border: 1px solid var(--rule); border-radius: 3px;
+    background: var(--card); margin-bottom: 8px;
+  }
+  .abschnitt summary {
+    list-style: none; cursor: pointer;
+    padding: 13px 40px 13px 15px; position: relative;
+  }
+  .abschnitt summary::-webkit-details-marker { display: none; }
+  .abschnitt summary::after {
+    content: "";
+    position: absolute; right: 17px; top: 50%;
+    width: 8px; height: 8px; margin-top: -6px;
+    border-right: 2px solid var(--ink-soft);
+    border-bottom: 2px solid var(--ink-soft);
+    transform: rotate(45deg);
+    transition: transform .15s ease;
+  }
+  .abschnitt[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+  .abschnitt summary:focus-visible { outline: 2px solid var(--indigo); outline-offset: -2px; }
+  .ab-titel { display: block; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .ab-unter { display: block; font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+  .ab-inhalt { padding: 2px 15px 16px; border-top: 1px solid var(--rule); padding-top: 14px; }
+  .ab-inhalt > *:last-child { margin-bottom: 0 !important; }
+  .abschnitt.warnt { border-color: var(--alarm-ink); border-width: 2px; }
+  /* Zeile, die eine andere Seite öffnet (Datenschutz) - sieht aus wie ein Abschnitt, Pfeil nach rechts */
+  a.ab-link { display: block; position: relative; padding: 13px 40px 13px 15px; text-decoration: none; color: inherit; }
+  a.ab-link::after {
+    content: ""; position: absolute; right: 18px; top: 50%;
+    width: 8px; height: 8px; margin-top: -4px;
+    border-right: 2px solid var(--ink-soft); border-bottom: 2px solid var(--ink-soft);
+    transform: rotate(-45deg);
+  }
+  a.ab-link:focus-visible { outline: 2px solid var(--indigo); outline-offset: -2px; }
+  .du-ds { margin: 6px 0 12px; }
+  .du-ds a { color: var(--ink-soft); }
+  .abschnitt.warnt .ab-titel { color: var(--alarm-ink); }
+  @media (prefers-reduced-motion: reduce) {
+    .abschnitt summary::after { transition: none; }
+  }
+  h2.spaced { margin-top: 32px; }
+  .note { font-size: 13px; color: var(--ink-soft); margin: 10px 0 20px; }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+
+  nav { display: flex; border-top: 1px solid var(--rule); background: var(--card); }
+  nav button {
+    flex: 1; background: none; border: none; border-radius: 0;
+    color: var(--ink-soft); padding: 13px 2px 16px; font-size: 12.5px;
+    white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  }
+  @media (max-width: 380px) { nav button { font-size: 11px; letter-spacing: -.01em; } }
+  nav button[aria-current="page"] { color: var(--ink); box-shadow: inset 0 2px 0 var(--indigo); }
+
+  .hilfe {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: var(--ink-soft);
+  }
+  .hilfe p { margin: 0 0 8px; }
+  .hilfe p:last-child { margin-bottom: 0; }
+  .hilfe pre {
+    margin: 0 0 8px; padding: 8px 10px; background: var(--paper);
+    border-radius: 2px; font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px; color: var(--ink); overflow-x: auto;
+  }
+  /* Ablage zum Einfügen: Datei hineinziehen, wählen oder aus der Zwischenablage */
+  .ablage { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 4px 0 14px; padding: 16px 12px;
+    border: 2px dashed var(--rule); border-radius: 10px; text-align: center; color: var(--ink-soft); font-size: 14px; transition: border-color .15s, background .15s; }
+  .ablage.drueber { border-color: var(--indigo); background: color-mix(in srgb, var(--indigo) 8%, transparent); color: var(--ink); }
+  .ablage-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .ablage-knoepfe button { margin: 0; padding: 10px 14px; font-size: 14px; }
+  @media (hover: none) { .ablage-text { display: none; } }   /* am Handy gibt es kein Hineinziehen */
+  /* Foto einer Liste mit kurzer Anleitung; im Bild muss Text markierbar bleiben (Live Text auf dem iPhone) */
+  .foto-hilfe { display: flex; flex-direction: column; gap: 10px; margin: -4px 0 14px; padding: 12px;
+    border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+  .foto-hilfe img { display: block; width: 100%; max-height: 55vh; object-fit: contain; border-radius: 8px; background: var(--rule);
+    -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; }
+  .foto-hilfe ol { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+  .foto-hilfe li + li { margin-top: 4px; }
+  .foto-hilfe[hidden], .foto-hilfe button[hidden] { display: none; }
+  #einfuegen {
+    width: 100%; min-height: 120px; margin-bottom: 8px;
+    font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+    border: 1px solid var(--rule); border-radius: 3px; padding: 9px;
+    background: var(--card); color: var(--ink);
+  }
+  #einfuegen:focus { outline: 2px solid var(--indigo); outline-offset: -1px; }
+  .zeile-check {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; color: var(--ink); margin-bottom: 16px;
+  }
+  .zeile-check input { width: 18px; height: 18px; accent-color: var(--moss); }
+  #hinweisbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; font-size: 13px; line-height: 1.35;
+    background: var(--merk-bg); border-bottom: 1px solid var(--merk-rule);
+  }
+  #hinweisbar.rot {
+    background: var(--alarm-bg);
+    border-bottom: 1px solid var(--alarm-rule);
+    box-shadow: inset 0 3px 0 var(--alarm-ink);
+    color: var(--alarm-ink);
+  }
+  #hinweisbar.rot strong { display: block; }
+  #hinweisbar.rot button:not(.weg) {
+    background: var(--alarm-ink); border-color: var(--alarm-ink); color: #fff;
+  }
+  #hinweisbar.rot button.weg { color: var(--alarm-ink); }
+  #hinweisbar span { flex: 1; }
+  #hinweisbar button { padding: 7px 12px; font-size: 13px; flex: none; }
+  #hinweisbar button.weg {
+    background: none; border: none; color: var(--ink-soft);
+    font-size: 18px; padding: 2px 4px;
+  }
+  .themawahl { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .themawahl button {
+    flex: 1; min-width: 92px;
+    background: var(--card); color: var(--ink);
+    border: 1px solid var(--rule); padding: 11px 8px; font-size: 14px;
+  }
+  .themawahl:not(.vintage) button { min-width: 0; padding-left: 4px; padding-right: 4px; }
+  .themawahl button[aria-pressed="true"] {
+    background: var(--ink); color: var(--auf-ink); border-color: var(--ink);
+  }
+  #sel-tempo { width: 100%; margin-bottom: 12px; }
+  /* Einstellungen: Grundfunktionen offen auf einen Blick */
+  .schnell { border: 1px solid var(--rule); border-radius: 3px; background: var(--card); padding: 4px 15px; margin-bottom: 14px; }
+  .sk-block { padding: 14px 0; }
+  .sk-block + .sk-block { border-top: 1px solid var(--rule); }
+  .sk-block > :last-child { margin-bottom: 0 !important; }
+  .sk-titel { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .sk-block .modus { margin-bottom: 10px; }
+  .fassung-fuss { text-align: center; font-size: 12px; color: var(--ink-soft); margin: 18px 0 4px; }
+  .tempofelder { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tempofelder label {
+    flex: 1; font-size: 12px; color: var(--ink-soft);
+    display: flex; flex-direction: column; gap: 4px; margin: 0;
+  }
+  .tempofelder input {
+    width: 100%; font: inherit; font-size: 15px; padding: 9px 6px;
+    text-align: center; border: 1px solid var(--rule); border-radius: 3px;
+    background: var(--card); color: var(--ink);
+  }
+  .applekasten {
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 15px 16px; margin-bottom: 22px;
+    background: var(--card);
+  }
+  .applekasten.dringend {
+    border: 2px solid var(--alarm-ink);
+    background: var(--alarm-bg);
+  }
+  .applekasten p { margin: 0 0 11px; font-size: 14px; line-height: 1.5; }
+  .applekasten p:last-child { margin-bottom: 0; }
+  .plattform { margin-bottom: 18px; }
+  .plattform h3 {
+    font-size: 14px; margin: 0 0 9px;
+    padding-bottom: 5px; border-bottom: 1px solid var(--rule);
+  }
+  .plattform.hier h3 { color: var(--indigo); }
+  .plattform.hier h3::after {
+    content: " · dein Gerät"; font-weight: 400; font-size: 12px; color: var(--ink-soft);
+  }
+  .plattform.blass { opacity: .62; }
+  #btn-installieren { width: 100%; }
+  .applestatus { font-weight: 600; font-size: 15px !important; }
+  .applekasten.dringend .applestatus { color: var(--alarm-ink); }
+  .applekasten.erledigt .applestatus { color: var(--moss); }
+  .appleschritt-titel { font-weight: 600; margin-bottom: 10px !important; }
+  .dialogschritte { margin: 0 0 12px; padding-left: 20px; font-size: 14px; line-height: 1.5; }
+  .dialogschritte li { margin-bottom: 10px; display: flex; align-items: center; gap: 9px; }
+  .dialogschritte svg { flex: none; color: var(--indigo); }
+  .dialognote { font-size: 13px; color: var(--ink-soft); margin-bottom: 0 !important; }
+  .kasten-wichtig {
+    background: var(--merk-bg); border: 1px solid var(--merk-rule); border-radius: 3px;
+    padding: 14px 16px; margin-bottom: 20px;
+  }
+  .kasten-wichtig h3 { margin: 0 0 8px; font-size: 14px; }
+  .kasten-wichtig ol { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.5; }
+  .kasten-wichtig li { margin-bottom: 7px; }
+  .kasten-wichtig li:last-child { margin-bottom: 0; }
+  .kasten-wichtig li.offen { color: var(--alarm-ink); }
+  .kasten-wichtig.dringend {
+    background: var(--alarm-bg); border-color: var(--alarm-ink); border-width: 2px;
+  }
+  .warn {
+    background: var(--merk-bg); border: 1px solid var(--merk-rule); border-radius: 3px;
+    padding: 12px 14px; font-size: 14px; margin-bottom: 18px;
+  }
+  /* ---------- Lernart: Karteikasten oder Unterwegs/Anhören ---------- */
+  .modus {
+    display: flex; margin: 0 0 14px; padding: 3px;
+    background: var(--tab); border: 1px solid var(--rule); border-radius: 999px;
+  }
+  .modus button {
+    flex: 1; background: none; border: none; border-radius: 999px;
+    color: var(--ink-soft); padding: 9px 6px; font-size: 14px;
+  }
+  .modus button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  html[data-vintage] .modus { border-radius: 8px; background: var(--tab); }
+  html[data-vintage] .modus button[data-modus],
+  html[data-vintage] .modus button[data-eingabe],
+  html[data-vintage] .antwortwahl #btn-sprache,
+  html[data-vintage] .modus button[data-wischen] {
+    border-radius: 6px; background: none; border: none; box-shadow: none; color: var(--ink-soft);
+    font-family: var(--f-mono); font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+  }
+  html[data-vintage] .modus button[data-wischen][aria-pressed="true"],
+  html[data-vintage] .modus button[data-eingabe][aria-pressed="true"],
+  html[data-vintage] .modus button[data-modus][aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: var(--btn-lift); }
+  /* beim Anhören braucht es weder Fach noch Abfragerichtung der Karten */
+  #view-ueben.hoeren #sel-fach,
+  #view-ueben.hoeren #sel-richtung { display: none; }
+
+  .hoer-panel { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 18px 16px; }
+  .hoer-info { text-align: center; margin: 0 0 14px; color: var(--ink-soft); font-size: 15px; }
+  .hoer-info b { display: block; font-size: 34px; line-height: 1.1; color: var(--ink); font-weight: 600; }
+  .hoer-panel .uw-optionen { margin-top: 0; }
+  .hoer-panel .uw-optionen label:not(.zeile-check) { flex: 1 1 140px; }
+  .hoer-panel .uw-optionen select { width: 100%; }
+  .hoer-start {
+    width: 100%; min-height: 58px; margin-top: 14px; font-size: 17px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .hoer-start:disabled { opacity: .45; }
+  .hoer-panel .note { margin: 12px 0 0; }
+  #sk-stimme label { display: block; margin: 0 0 4px; }
+  #stimm-tipp { margin: 10px 0 0; }
+  .stimm-zeile { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stimm-zeile select { flex: 1; min-width: 0; }
+  .stimm-zeile select.tempo { flex: none; width: 78px; padding-left: 8px; padding-right: 4px; font-variant-numeric: tabular-nums; }
+  .stimm-zeile .probe { flex: none; padding: 8px 12px; font-size: 14px; white-space: nowrap; }
+  #uw-laut-wert { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  #uw-laut { width: 100%; margin: 4px 0 0; accent-color: var(--accent, var(--indigo)); height: 28px; }
+  html[data-vintage] .hoer-info b { font-family: var(--f-brand); font-weight: 800; }
+  html[data-vintage] button.hoer-start {
+    background: var(--accent); color: var(--on-accent); border-color: rgba(0,0,0,.2); border-radius: 7px;
+    font-family: var(--f-mono); font-weight: 600; letter-spacing: .04em; box-shadow: var(--btn-lift);
+  }
+
+  /* Rückmeldung in der Liste */
+  .meldung.liste-meldung { margin: 0 0 10px; }
+
+  /* Tapedeck ohne Leiste links: normaler Seitenrand */
+  
+  
+
+  /* ---------- Unterwegs-Modus ---------- */
+  #unterwegs {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; flex-direction: column; overflow-y: auto;
+    background-color: var(--paper); background-image: var(--tex, none);
+    padding: calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 18px);
+  }
+  #unterwegs[hidden] { display: none; }
+  .uw-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .uw-kopf h2 { margin: 0; }
+  #uw-stand { font-size: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .uw-karte {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; min-height: 240px; padding: 20px 4px;
+  }
+  .uw-karte p { margin: 0; }
+  .uw-phase { font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 18px !important; min-height: 1.4em; }
+  .uw-vorne { font-size: 34px; line-height: 1.2; font-weight: 600; }
+  .uw-hinten { font-size: 30px; line-height: 1.2; color: var(--indigo); margin-top: 18px !important; min-height: 1.2em; }
+  .uw-bsp { font-size: 17px; font-style: italic; color: var(--ink-soft); margin-top: 16px !important; line-height: 1.45; }
+  .uw-knoepfe { display: flex; gap: 10px; }
+  .uw-knoepfe button { flex: 1; min-width: 0; min-height: 66px; font-size: 16px; padding-left: 4px; padding-right: 4px; white-space: nowrap; }
+  .uw-extra { display: flex; gap: 8px; margin-bottom: 10px; }
+  .uw-extra button { flex: 1; min-width: 0; min-height: 52px; font-size: 14px; padding: 8px 4px; line-height: 1.2; white-space: nowrap; }
+  html[data-vintage] .uw-extra button { font-size: 12.5px; letter-spacing: .02em; }
+  .uw-extra button.on { color: var(--mark); border-color: var(--mark); }
+  .uw-extra button.drin { color: var(--moss); border-color: var(--moss); }
+  .uw-ende { width: 100%; min-height: 54px; margin-top: 10px; }
+  .uw-optionen { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; margin-top: 18px; }
+  .uw-optionen label:not(.zeile-check) { display: flex; flex-direction: column; gap: 4px; margin: 0; }
+  .uw-optionen .zeile-check { margin: 0 0 8px; }
+  #unterwegs .note { margin: 12px 0 0; }
+  html[data-vintage] #unterwegs { padding-left: calc(env(safe-area-inset-left) + var(--stripe-left) + var(--stripes-w) + 14px); }
+  html[data-vintage] #unterwegs::before {
+    content: ""; position: fixed; top: 0; bottom: 0; left: var(--stripe-left); width: var(--stripes-w);
+    background: var(--stripes); pointer-events: none;
+  }
+  html[data-vintage] .uw-vorne,
+  html[data-vintage] .uw-hinten { font-family: var(--f-label); font-weight: 700; }
+  html[data-vintage] .uw-hinten { color: var(--accent-ink); }
+  html[data-vintage] .uw-phase { font-family: var(--f-mono); color: var(--section-color); }
+  
+
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  /* ========== Vintage-Designs: Bauteile ========== */
+  html[data-vintage] body {
+    font-family: var(--f-body);
+    background-color: var(--paper); background-image: var(--tex);
+    padding-left: calc(env(safe-area-inset-left) + var(--stripe-left) + var(--stripes-w));
+  }
+  /* senkrechte Zierstreifen bzw. Rack-Leiste am linken Rand */
+  html[data-vintage] body::before {
+    content: ""; position: fixed; top: 0; bottom: 0; left: var(--stripe-left); width: var(--stripes-w);
+    background: var(--stripes); pointer-events: none; z-index: 1;
+  }
+
+  /* Kopfzeile: kursive Condensed-Überschrift mit doppelter Unterstreichung */
+  html[data-vintage] header { border-bottom: none; padding: 18px 16px 12px 14px; align-items: flex-end; }
+  /* Die Streifen halten schon Abstand zum Rand - links reicht weniger Innenabstand */
+  html[data-vintage] main { padding: 16px 16px 28px 14px; }
+  html[data-vintage] header h1 {
+    font-family: var(--f-head); font-style: italic; font-weight: 700; font-size: 27px; line-height: 1.05;
+    text-transform: uppercase; letter-spacing: .01em; color: var(--title-color);
+    padding-bottom: 10px;
+    background:
+      linear-gradient(var(--line-1), var(--line-1)) left 0 bottom 5px / 100% 3px no-repeat,
+      linear-gradient(var(--line-2), var(--line-2)) left 0 bottom 0 / 100% 3px no-repeat;
+  }
+  html[data-vintage] #status { font-family: var(--f-mono); font-size: 12px; letter-spacing: .03em; }
+
+  html[data-vintage] h2 {
+    font-family: var(--f-head); font-style: italic; font-weight: 700; font-size: 22px;
+    text-transform: uppercase; letter-spacing: .01em; color: var(--title-color);
+  }
+  html[data-vintage] label {
+    font-family: var(--f-mono); font-size: 11.5px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--section-color);
+  }
+  html[data-vintage] label.zeile-check {
+    font-family: var(--f-body); font-size: 15px; font-weight: 500; letter-spacing: 0;
+    text-transform: none; color: var(--ink);
+  }
+  html[data-vintage] .tempofelder label { color: var(--ink-soft); }
+  html[data-vintage] select,
+  html[data-vintage] input[type=text],
+  html[data-vintage] input[type=search],
+  html[data-vintage] .tempofelder input,
+  html[data-vintage] #einfuegen {
+    background: var(--field); border-color: var(--rule); border-radius: 6px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+  }
+  html[data-vintage] select { font-family: var(--f-body); font-size: 15px; font-weight: 500; }
+  /* Die Streifen kosten Breite: Kategorie in eigener Zeile, Fach und Richtung darunter */
+  html[data-vintage] #sel-kat { flex: 1 1 100%; }
+  html[data-vintage] #sel-fach,
+  html[data-vintage] #sel-richtung { flex: 1 1 0; min-width: 0; }
+  html[data-vintage] input[type=text],
+  html[data-vintage] input[type=search] { font-family: var(--f-label); }
+
+  /* Die fünf Fächer als Zählwerk im Gehäuse (hell bei Retro und C60, schwarz beim Tapedeck) */
+  html[data-vintage] .boxes { gap: 6px; }
+  html[data-vintage] .box {
+    background: linear-gradient(180deg, var(--housing-top), var(--housing-bot));
+    border: 1px solid var(--housing-border); border-radius: 8px; padding: 6px 4px 5px;
+    font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--box-label);
+    box-shadow: var(--housing-shadow);
+  }
+  /* Walzenzähler je Fach: jede Stelle ist eine 3D-Walze mit rundum aufgedruckten Ziffern.
+     Nur in den Vintage-Designs; sonst bleibt die schlichte Zahl. */
+  .zaehler { display: none; }
+  html[data-vintage] .box b.zahl { display: none; }
+  html[data-vintage] .zaehler {
+    position: relative; display: flex; justify-content: center; gap: 1px; margin: 0 auto 4px;
+    width: max-content; padding: 1px; border-radius: 3px; background: var(--window-frame);
+    font-family: var(--f-brand); font-weight: 800; font-size: min(21px, 5.2vw); line-height: 1;
+    transition: opacity .3s;
+  }
+  html[data-vintage] .box:not(.filled) .zaehler { opacity: .6; }
+  /* Glasscheibe vor dem Zählwerk: schräger, schwacher Lichtreflex */
+  html[data-vintage] .zaehler::after {
+    content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: 3px;
+    background: var(--glas);
+  }
+  /* Sichtfenster einer Walze: vorne die Ziffer, oben und unten ein Stück der Nachbarn */
+  .zw {
+    position: relative; display: block; width: .74em; height: 1.3em; overflow: hidden; border-radius: 2px;
+    perspective: 6em; background: var(--tc-edge);
+    /* schneidet die 3D-Walze auch in Safari zuverlässig am Fenster ab */
+    -webkit-mask-image: linear-gradient(#000, #000); mask-image: linear-gradient(#000, #000);
+  }
+  .zw-drum {
+    position: absolute; left: 0; right: 0; top: 50%; height: 0; z-index: 1;
+    transform-style: preserve-3d; will-change: transform;
+  }
+  .zw-face {
+    position: absolute; left: 0; right: 0; top: -.565em; height: 1.13em; line-height: 1.13em; text-align: center;
+    color: var(--tc-text); background: var(--tc-face);
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  }
+  /* Wölbung: oben und unten dunkel, knapp über der Mitte ein Glanzstreifen, Schlagschatten am Fensterrand */
+  .zw::after {
+    content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: var(--walze-woelbung);
+    box-shadow: var(--walze-rand);
+  }
+  /* Ein Fach, in das gerade eine Karte gewandert ist, leuchtet kurz auf */
+  html[data-vintage] .box.zugang { animation: zugang .9s ease-out; }
+  @keyframes zugang {
+    0% { box-shadow: 0 0 0 2px var(--accent), 0 0 16px var(--accent); }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0), 0 2px 4px rgba(0,0,0,.25); }
+  }
+  html[data-vintage] .box.gewaehlt {
+    background: linear-gradient(180deg, var(--housing-top), var(--housing-bot));
+    color: var(--sel-label); border: 1px solid var(--housing-border);
+    box-shadow: 0 0 0 2px var(--accent), 0 2px 6px rgba(0,0,0,.2);
+  }
+
+  /* Lernkarte */
+  html[data-vintage] .card {
+    position: relative; overflow: hidden;
+    background-color: var(--card); border: 1px solid var(--rule); border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(60,48,30,.06), 3px 3px 0 -1px var(--card), 3px 3px 0 var(--rule);
+    padding: 40px 36px;
+  }
+  html[data-vintage] .card .kat {
+    font-family: var(--f-mono); font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--section-color);
+  }
+  html[data-vintage] .card .front { font-family: var(--f-label); font-weight: 700; font-size: 27px; letter-spacing: -.005em; }
+  html[data-vintage] .card .back { font-family: var(--f-label); font-weight: 600; color: var(--accent-ink); }
+  html[data-vintage] .card .divider {
+    width: 56px; height: 7px;
+    background:
+      linear-gradient(var(--line-1), var(--line-1)) left top / 100% 2px no-repeat,
+      linear-gradient(var(--line-2), var(--line-2)) left bottom / 100% 2px no-repeat;
+  }
+  html[data-vintage] .card .bsp { font-family: var(--f-body); font-size: 16px; color: var(--text-sub); }
+  html[data-vintage] .card .hint { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  /* C60: Seitenkennung wie auf dem Kassetten-Etikett - Vorderseite = A, aufgedeckt = B
+     (unten links: oben sitzen Stern und ⋯, unten rechts der Lautsprecher) */
+  html[data-thema="kodak"] .card::after {
+    content: "A"; position: absolute; left: 16px; bottom: 14px;
+    font-family: var(--f-brand); font-weight: 900; font-size: 24px; line-height: 1; color: var(--ink);
+  }
+  html[data-thema="kodak"] .card.offen::after { content: "B"; }
+  /* Tapedeck: gebürstete Frontplatte mit leuchtender Seitenanzeige */
+  
+  
+  
+  
+
+  /* Bewertung: „Nochmal“ und „Gewusst“ */
+  html[data-vintage] .grade button {
+    border-radius: 8px; padding: 13px 10px;
+    font-family: var(--f-mono); font-weight: 700; font-size: 14px; letter-spacing: .06em; text-transform: uppercase;
+    box-shadow: var(--btn-lift);
+  }
+  html[data-vintage] .grade .neben { font-family: var(--f-body); font-weight: 500; font-size: 12.5px; letter-spacing: 0; text-transform: none; }
+  html[data-vintage] button.again { background: var(--again-bg); border-color: rgba(0,0,0,.2); color: var(--again-ink); }
+  html[data-vintage] button.known { background: var(--known-bg); border-color: rgba(0,0,0,.2); color: var(--known-ink); }
+
+  /* Tasten: Hauptknöpfe in der Akzentfarbe, übrige wie Kassettenrekorder-Tasten */
+  html[data-vintage] button:not([class]) {
+    background: var(--accent); color: var(--on-accent); border-color: rgba(0,0,0,.2); border-radius: 7px;
+    font-family: var(--f-mono); font-weight: 600; letter-spacing: .04em;
+    box-shadow: var(--btn-lift);
+  }
+  html[data-vintage] button.ghost,
+  html[data-vintage] button.filt {
+    background: var(--raised); color: var(--accent-ink); border: 1px solid var(--rule); border-radius: 7px;
+    font-family: var(--f-mono); font-weight: 600; letter-spacing: .04em;
+    box-shadow: var(--btn-shadow), inset 0 1px 0 var(--btn-shine);
+  }
+  html[data-vintage] button.filt { color: var(--ink-soft); }
+  html[data-vintage] button.filt.on { color: var(--mark); border-color: var(--mark); }
+  html[data-vintage] #btn-nurkasten.on { color: var(--moss); border-color: var(--moss); }
+  html[data-vintage] button.pille {
+    background: var(--raised); color: var(--ink); border: 1px solid var(--rule); border-radius: 7px;
+    font-family: var(--f-mono); font-size: 12.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    box-shadow: var(--btn-shadow), inset 0 1px 0 var(--btn-shine);
+  }
+  html[data-vintage] button.pille.on { color: var(--mark); border-color: var(--mark); background: var(--merk-bg); }
+  html[data-vintage] button.leise { font-family: var(--f-mono); font-size: 12px; letter-spacing: .04em; }
+  html[data-vintage] .themawahl button[data-thema] {
+    min-width: 0; padding: 11px 3px;
+    background: var(--raised); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px;
+    font-family: var(--f-body); font-weight: 600; font-size: 13px; letter-spacing: .02em; text-transform: uppercase;
+    box-shadow: var(--btn-shadow), inset 0 1px 0 var(--btn-shine);
+  }
+  html[data-vintage] .themawahl button[data-thema] { flex: 1 1 0; }
+  html[data-vintage] .themawahl button[data-thema="auto"] { flex-grow: 1.7; }
+  html[data-vintage] .themawahl.vintage button[data-thema] { color: var(--accent-ink); }
+  html[data-vintage] .themawahl button[data-thema][aria-pressed="true"] {
+    background: var(--accent); color: var(--on-accent); border-color: rgba(0,0,0,.2);
+    box-shadow: var(--btn-lift);
+  }
+  /* Untere Leiste als Tastenreihe; die aktive Taste ist gedrückt */
+  html[data-vintage] nav { gap: 6px; padding: 8px 10px 9px; background: transparent; border-top: 1px solid var(--rule); }
+  html[data-vintage] nav button[data-view] {
+    background: var(--raised); color: var(--ink); border: 1px solid var(--rule); border-radius: 7px;
+    padding: 11px 2px; font-family: var(--f-body); font-weight: 600; font-size: 14px;
+    box-shadow: var(--btn-shadow), inset 0 1px 0 var(--btn-shine);
+  }
+  html[data-vintage] nav button[data-view][aria-current="page"] {
+    background: var(--accent); color: var(--on-accent); border-color: rgba(0,0,0,.25);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.2);
+  }
+
+  /* Abschnitte, Hinweise und Listen */
+  html[data-vintage] .abschnitt,
+  html[data-vintage] .schnell,
+  html[data-vintage] .hilfe,
+  html[data-vintage] .applekasten { border-radius: 8px; box-shadow: 0 1px 2px rgba(60,48,30,.06); }
+  html[data-vintage] .sk-titel,
+  html[data-vintage] .ab-titel {
+    font-family: var(--f-mono); font-size: 13.5px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--section-color);
+  }
+  html[data-vintage] .abschnitt.warnt .ab-titel { color: var(--alarm-ink); }
+  html[data-vintage] .ab-unter { font-size: 14px; }
+  html[data-vintage] .plattform h3,
+  html[data-vintage] .kasten-wichtig h3 { font-family: var(--f-mono); font-size: 13px; letter-spacing: .05em; text-transform: uppercase; }
+  html[data-vintage] .note,
+  html[data-vintage] .meldung { font-size: 14px; }
+  html[data-vintage] #hinweisbar { font-size: 14px; }
+  /* deutsche Wörter sind meist länger: etwas mehr Platz für die deutsche Spalte */
+  html[data-vintage] ol.list li { grid-template-columns: 1.5em 1.15fr 1fr auto; column-gap: 7px; }
+  html[data-vintage] ol.list .zelle.de { font-family: var(--f-body); font-weight: 600; font-size: 16px; }
+  html[data-vintage] ol.list .zelle.en { font-size: 15.5px; }
+  html[data-vintage] .num,
+  html[data-vintage] .fachsel { font-family: var(--f-mono); }
+  html[data-vintage] .edit-kopf {
+    font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--section-color);
+  }
+  html[data-vintage] .bsp-zeile { font-size: 14px; }
+
+  /* C60 (intern weiter "kodak", damit gespeicherte Einstellungen gelten): roter Schriftzug
+     über dem Titel, daneben drei feine Linien - bewusst ohne fremde Marken */
+  html[data-thema="kodak"] header h1 {
+    background: none; padding-bottom: 0;
+    font-family: var(--f-brand); font-style: normal; font-weight: 800; font-size: 14px; letter-spacing: .02em; color: var(--ink);
+  }
+  html[data-thema="kodak"] header h1::before {
+    content: "C60"; display: block; margin-bottom: 3px;
+    font-family: var(--f-brand); font-weight: 900; font-size: 36px; line-height: .95; letter-spacing: -.035em;
+    text-transform: none; color: #e1251b;
+  }
+  html[data-thema="kodak"] header h1::after {
+    content: ""; display: inline-block; vertical-align: middle; width: 64px; height: 10px; margin-left: 10px;
+    background:
+      linear-gradient(#e1251b, #e1251b) left top / 100% 2px no-repeat,
+      linear-gradient(#f07c16, #f07c16) left center / 100% 2px no-repeat,
+      linear-gradient(#f8b31c, #f8b31c) left bottom / 100% 2px no-repeat;
+  }
+
+  /* Tapedeck: Beschriftung wie auf der Frontplatte, Leuchtanzeigen */
+  
+  
+  
+  
+  /* hinterleuchtetes Zählwerk: bernsteinfarben glimmende Ziffern auf schwarzen Walzen */
+  
+  
+  
+  
+  
+  
+  /* Klick-Rückmeldung: Knöpfe wirken beim Antippen eingedrückt */
+  button { transition: transform .09s ease, box-shadow .09s ease, filter .09s ease; }
+  button.gedrueckt:not(:disabled),
+  button:not(:disabled):active {
+    transform: translateY(1px) scale(.97);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.22) !important;
+    filter: brightness(.93);
+  }
+  
+  /* ---------- Tagesziel und Lernserie (oben auf „Üben“) ---------- */
+  button.tagesziel {
+    display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 8px; padding: 7px 12px;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 3px; color: var(--ink);
+    font-size: 13px; text-align: left; min-height: 36px;
+  }
+  .tz-balken { flex: 0 0 64px; height: 6px; border-radius: 3px; background: var(--tab); overflow: hidden; }
+  .tz-balken i { display: block; height: 100%; width: 0; background: var(--indigo); transition: width .4s ease; }
+  .tagesziel.erreicht .tz-balken i { background: var(--moss); }
+  .tz-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+  .tz-pfeil { flex: none; width: 7px; height: 7px; margin-right: 4px; border-right: 2px solid var(--ink-soft); border-bottom: 2px solid var(--ink-soft); transform: rotate(-45deg); }
+  html[data-vintage] button.tagesziel { font-family: var(--f-body); font-size: 14px; background: var(--raised); box-shadow: var(--btn-shadow); }
+  html[data-vintage] .tz-balken i { background: var(--accent); }
+
+  /* ---------- Auswahl (Kategorie, Richtung) zugeklappt ---------- */
+  .auswahl { border: 1px solid var(--rule); border-radius: 3px; background: var(--card); margin-bottom: 10px; }
+  .auswahl summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    padding: 7px 38px 7px 12px; position: relative; min-height: 36px; box-sizing: border-box;
+  }
+  .auswahl summary::-webkit-details-marker { display: none; }
+  .auswahl summary::after {
+    content: ""; position: absolute; right: 16px; top: 50%; width: 7px; height: 7px; margin-top: -6px;
+    border-right: 2px solid var(--ink-soft); border-bottom: 2px solid var(--ink-soft); transform: rotate(45deg);
+  }
+  .auswahl[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+  .aw-l { flex: none; font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
+  .aw-v { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .auswahl.gefiltert .aw-v { color: var(--indigo); }
+  .auswahl .controls { flex-direction: column; gap: 12px; margin: 0; padding: 12px; border-top: 1px solid var(--rule); }
+  .auswahl .controls label { display: flex; flex-direction: column; gap: 5px; margin: 0; }
+  .auswahl .controls select { width: 100%; }
+  #view-ueben.hoeren .nur-karten { display: none !important; }
+  html[data-vintage] .auswahl { background: var(--raised); }
+  html[data-vintage] .aw-l { font-family: var(--f-mono); }
+  html[data-vintage] .aw-v { font-family: var(--f-body); }
+
+  /* ---------- Stern und ⋯ in den Ecken der Karte ---------- */
+  .karten-rahmen { position: relative; }
+  button.karten-eck {
+    position: absolute; top: 6px; z-index: 2; width: 44px; height: 44px; padding: 0;
+    border: none !important; background: none !important; box-shadow: none !important;
+    color: var(--ink-soft); font-size: 23px; line-height: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  }
+  button.karten-eck.links { left: 6px; }
+  button.karten-eck.rechts { right: 6px; }
+  button.karten-eck.on { color: var(--mark); }
+  button.karten-eck.unten { top: auto; bottom: 6px; right: 6px; }
+  button.karten-eck.spricht { color: var(--indigo); }
+  html[data-vintage] button.karten-eck.spricht { color: var(--accent-ink); }
+  button.karten-eck[hidden] { display: none; }
+  .karten-rahmen:has(.card.zieht) .karten-eck,
+  .karten-rahmen:has(.card.fliegt) .karten-eck { opacity: 0; }
+  .merkzeile .pille { flex: 1; max-width: 12rem; }
+
+  /* ---------- Einblendfenster (⋯) ---------- */
+  #blatt { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; }
+  #blatt[hidden] { display: none; }
+  .blatt-hinter { position: absolute; inset: 0; background: rgba(0,0,0,.38); }
+  .blatt-inhalt {
+    position: relative; width: 100%; max-width: 34rem; box-sizing: border-box;
+    background-color: var(--paper); background-image: var(--tex, none);
+    border-top: 1px solid var(--rule); border-radius: 12px 12px 0 0;
+    padding: 18px 20px calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px;
+    animation: blattRein .18s ease-out;
+  }
+  @keyframes blattRein { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .blatt-inhalt h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+  #blatt-knoepfe { display: flex; flex-direction: column; gap: 8px; }
+  .blatt-knopf { width: 100%; text-align: left; min-height: 50px; }
+  button.blatt-knopf.leise-rot { color: var(--alarm-ink); border-color: var(--alarm-rule); }
+
+  /* ---------- Untere Leiste mit Symbolen ---------- */
+  nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px 11px; }
+  nav button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  html[data-vintage] nav button[data-view] { padding: 7px 2px 8px; }
+  html[data-vintage] nav button svg { width: 20px; height: 20px; }
+
+  /* ---------- Unterwegs: weiterhören ---------- */
+  .uw-weiter { margin-bottom: 10px; }
+  .hg-option { align-items: flex-start; }
+  .hg-option small { display: block; font-size: 12px; color: var(--ink-soft); line-height: 1.35; margin-top: 1px; }
+  .uw-weiter + .hoer-start { background: transparent; color: var(--ink); border-color: var(--rule); }
+  html[data-vintage] .uw-weiter + .hoer-start { background: var(--raised); color: var(--ink); border-color: var(--rule); }
+
+  /* ---------- Statistik ---------- */
+  .stat-kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .stat-kopf h2 { margin: 0; }
+  button.zurueck-knopf { width: 44px; height: 44px; padding: 0; font-size: 20px; flex: none; }
+  .stat-zahlen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .stat-kachel { background: var(--card); border: 1px solid var(--rule); border-radius: 3px; padding: 12px 6px; text-align: center; }
+  .stat-kachel b { display: block; font-size: 26px; font-weight: 700; line-height: 1.1; color: var(--indigo); font-variant-numeric: tabular-nums; }
+  .stat-kachel span { display: block; font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+  .stat-block { background: var(--card); border: 1px solid var(--rule); border-radius: 3px; padding: 12px; }
+  .stat-block .note { margin: 10px 0 0; }
+  .stat-block select { width: 100%; }
+  .stat-monat { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .stat-monat b { text-transform: capitalize; }
+  .stat-monat button { width: 42px; height: 42px; padding: 0; font-size: 22px; }
+  .kalender { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .kalender .wt { text-align: center; font-size: 11px; color: var(--ink-soft); padding-bottom: 2px; }
+  button.ktag {
+    aspect-ratio: 1; min-height: 34px; padding: 0; border: 1px solid transparent; border-radius: 4px;
+    background: var(--tab); color: var(--ink); font-size: 13px; font-variant-numeric: tabular-nums; box-shadow: none;
+  }
+  button.ktag.geuebt { background: color-mix(in srgb, var(--indigo) 45%, var(--card)); }
+  button.ktag.ziel { background: var(--indigo); color: var(--auf-ink); font-weight: 700; }
+  button.ktag.heute { border-color: var(--ink); }
+  button.ktag.gewaehlt { outline: 2px solid var(--mark); outline-offset: 1px; }
+  .wochen { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; align-items: end; }
+  .woche { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .woche small { font-size: 10.5px; color: var(--ink-soft); min-height: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .saeule { width: 100%; height: 80px; background: var(--tab); border-radius: 3px; display: flex; align-items: flex-end; overflow: hidden; }
+  .saeule i { display: block; width: 100%; background: var(--indigo); opacity: .55; }
+  .woche.jetzt .saeule i { opacity: 1; }
+  html[data-vintage] .stat-kachel b { font-family: var(--f-brand); color: var(--accent-ink); }
+  html[data-vintage] .stat-kachel span, html[data-vintage] .woche small { font-family: var(--f-mono); }
+  html[data-vintage] button.ktag.ziel, html[data-vintage] .saeule i { background: var(--accent); color: var(--on-accent); }
+  html[data-vintage] button.ktag.geuebt:not(.ziel) { background: color-mix(in srgb, var(--accent) 45%, var(--card)); }
+
+  /* ---------- App teilen ---------- */
+  .teil-url { font-size: 13px; color: var(--ink-soft); word-break: break-all; background: var(--card); border: 1px solid var(--rule); border-radius: 3px; padding: 9px 11px; margin: 0 0 10px; }
+  .teil-knoepfe { display: flex; gap: 8px; }
+  .teil-knoepfe button { flex: 1; }
+
+  /* ---------- Querformat (Handy gedreht) ---------- */
+  @media (orientation: landscape) and (max-height: 560px) {
+    header { padding-top: 6px; padding-bottom: 6px; }
+    html[data-vintage] header { padding-top: 8px; padding-bottom: 6px; }
+    main { padding-top: 10px; }
+    .view { max-width: 56rem; }
+    nav button { flex-direction: row; justify-content: center; gap: 7px; padding: 6px 2px 8px; }
+    nav button svg { width: 18px; height: 18px; }
+    html[data-vintage] nav { padding-top: 5px; padding-bottom: 6px; }
+    html[data-vintage] nav button[data-view] { padding: 6px 2px; }
+    .modus { margin-bottom: 8px; }
+    .boxes { margin-bottom: 10px; }
+    /* Karte links, Knöpfe rechts daneben */
+    #trainer:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: center; }
+    .card { min-height: 0; padding: 26px 18px; }
+    .card .front { font-size: 24px; }
+    .card .kat { margin-bottom: 10px; }
+    .card .divider { margin: 12px 0; }
+    .bedien .grade { margin-top: 0; flex-direction: column; }
+    .bedien .grade button { min-height: 58px; }
+    .bedien .merkzeile { margin-top: 10px; }
+    /* Unterwegs: Wort links, Tasten rechts */
+    #unterwegs { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-template-rows: auto 1fr auto auto; column-gap: 20px; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(env(safe-area-inset-bottom) + 10px); }
+    #unterwegs[hidden] { display: none; }
+    .uw-kopf { grid-column: 1 / -1; }
+    .uw-karte { grid-column: 1; grid-row: 2 / 5; margin: 8px 0 0 !important; }
+    .uw-vorne { font-size: 28px; }
+    .uw-hinten { font-size: 24px; }
+    .uw-extra { grid-column: 2; grid-row: 2; align-self: end; flex-wrap: wrap; }
+    .uw-knoepfe { grid-column: 2; grid-row: 3; }
+    .uw-knoepfe button { min-height: 54px; }
+    .uw-ende { grid-column: 2; grid-row: 4; min-height: 46px; }
+  }
+
+  /* ---------- Quiz / Vokabel-Duell ---------- */
+  .du-titel { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .du-titel h2 { margin: 0; }
+  .du-exp { font-size: 11px; letter-spacing: .03em; text-transform: uppercase; color: var(--mark); border: 1px solid var(--mark); border-radius: 3px; padding: 2px 6px; white-space: nowrap; }
+  .du-warn { margin: 0 0 12px; padding: 12px 14px; border-radius: 6px; font-size: 14.5px; line-height: 1.45;
+    background: var(--merk-bg); border: 1px solid var(--merk-rule); }
+  .du-regeln { margin: 0 0 14px; font-size: 15px; line-height: 1.5; }
+  .du-namen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .du-namen label { display: flex; flex-direction: column; gap: 4px; margin: 0; font-size: 13px; color: var(--ink-soft); }
+  .du-namen input { margin: 0; font-size: 17px; font-weight: 600; }
+  .du-optionen { margin-top: 0; }
+  .du-optionen label:not(.zeile-check) { flex: 1 1 140px; }
+  .du-optionen select { width: 100%; }
+  #view-quiz .hoer-info { margin: 14px 0 10px; }
+  .du-status { font-size: 14px; line-height: 1.45; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--rule); margin: 0 0 10px; }
+  .du-status b { display: block; margin-bottom: 2px; }
+  .du-status.gut b { color: var(--moss); }
+  .du-status.warn b { color: var(--mark); }
+  .du-test { width: 100%; min-height: 48px; font-size: 15px; }
+  .du-testergebnis { margin: 10px 0 0; padding: 10px 12px; border-radius: 6px; background: var(--tab); font-size: 14.5px; line-height: 1.45; white-space: pre-line; }
+
+  #duell {
+    position: fixed; inset: 0; z-index: 55;
+    display: flex; flex-direction: column; overflow-y: auto;
+    background-color: var(--paper); background-image: var(--tex, none);
+    padding: calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  }
+  #duell[hidden] { display: none; }
+  #du-spiel, #du-schluss { display: flex; flex-direction: column; flex: 1; position: relative; z-index: 1; }
+  #du-spiel[hidden], #du-schluss[hidden] { display: none; }
+  .du-tafel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .du-spieler { display: flex; flex-direction: column; align-items: center; padding: 10px 6px 8px; border-radius: 8px;
+    border: 2px solid var(--rule); background: var(--card); transition: border-color .2s, background .2s; }
+  .du-pname { font-size: 17px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .du-punkte { font-size: 46px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .du-spieler.dran { border-color: var(--indigo); background: var(--merk-bg); }
+  .du-spieler.plus { border-color: var(--moss); }
+  .du-kopf { margin-top: 10px; font-size: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .du-karte { min-height: 200px; padding: 12px 4px; }
+  .du-karte .uw-phase.hoert { color: var(--moss); font-weight: 700; }
+  .du-gehoert { font-size: 17px; color: var(--ink-soft); margin-top: 14px !important; min-height: 1.3em; line-height: 1.4; }
+  .du-diag { margin: 12px 0 0; padding: 8px 10px; max-width: 100%; text-align: left; font-size: 12px; line-height: 1.4;
+    white-space: pre-wrap; word-break: break-word; background: var(--tab); border-radius: 4px; color: var(--ink-soft); }
+  .du-entscheid { margin: 0 0 12px; }
+  .du-frage-wer { text-align: center; font-size: 16px; font-weight: 600; margin: 0 0 10px; }
+  .du-knoepfe { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .du-knoepfe button { min-height: 64px; font-size: 18px; font-weight: 700; padding: 6px; }
+  .du-knoepfe button.voll { grid-column: 1 / -1; }
+  .du-knoepfe button.plus { background: var(--moss); border-color: var(--moss); color: #fff; }
+  .du-knoepfe button.plus2 { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+  .du-tafel-gross { margin-top: 24px; }
+  .du-tafel-gross .du-punkte { font-size: 64px; }
+  .du-sieger { text-align: center; font-size: 26px; font-weight: 700; margin: 24px 0 8px; }
+  .du-bilanz { text-align: center; margin-bottom: 18px !important; }
+  html[data-vintage] #duell { padding-left: calc(env(safe-area-inset-left) + var(--stripe-left) + var(--stripes-w) + 12px); }
+  html[data-vintage] .du-punkte { font-family: var(--f-brand); }
+  html[data-vintage] .du-pname, html[data-vintage] .du-knoepfe button { font-family: var(--f-mono); letter-spacing: .03em; }
+  html[data-vintage] .du-spieler, html[data-vintage] .du-knoepfe button { border-radius: 6px; }
+
+  /* ---------- Startseite: Kacheln ---------- */
+  /* Leiste unten (wieder da, für Orientierung): Start, Üben, Liste, Neu, Einstellungen. Quiz-Duell ist ein Extra und bleibt Kachel auf der Startseite.
+     Die aktive Seite ist ruhig markiert (Linie oben), nicht in der Akzentfarbe. */
+  nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  header h1 { flex: 1; min-width: 0; }
+  .kopf-zurueck {
+    flex: none; align-self: center; width: 40px; height: 40px; margin: -6px 2px -6px -8px; padding: 0;
+    display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--ink);
+  }
+  .kopf-zurueck[hidden] { display: none; }
+  .kopf-einst {
+    flex: none; align-self: center; width: 46px; height: 46px; margin: -4px -6px -4px 0; padding: 0;
+    display: flex; align-items: center; justify-content: center; border-radius: 14px;
+    background: var(--card); border: 1px solid var(--rule); color: var(--ink); box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .kopf-einst[hidden] { display: none; }
+  .blatt-form label { display: block; margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  .blatt-form input, .blatt-form select { display: block; width: 100%; margin-top: 5px; font-size: 16px; }
+  .blatt-speichern { width: 100%; min-height: 50px; margin: 4px 0 2px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 600; }
+  .blatt-speichern svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .kopf-einst:active { transform: scale(.96); }
+  .kopf-einst svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  html[data-vintage] .kopf-einst { border-radius: 8px; }
+  .kopf-zurueck svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  /* Startseite: klare Rangordnung - groß das Lernen heute, dann die Lernarten, unten Verwalten */
+  #view-start { padding-bottom: 12px; }
+  .kachel { font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .12s ease, box-shadow .12s ease; }
+  .kachel:active { transform: scale(.985); }
+  .st-gruss { margin: 2px 2px 12px; font-size: 15px; color: var(--ink-soft); }
+  .st-gruss b { color: var(--ink); font-weight: 600; }
+  .st-ico { width: 44px; height: 44px; border-radius: 13px; flex: none; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--ton, var(--ink-soft)) 14%, transparent); color: var(--ton, var(--ink-soft)); }
+  .st-ico svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .st-ico-hell { background: rgba(255,255,255,.2); color: #fff; }
+  .st-ico-klein { width: 38px; height: 38px; border-radius: 11px; }
+  .st-ico-klein svg { width: 21px; height: 21px; }
+  /* große Karte */
+  .st-hero {
+    width: 100%; display: flex; flex-direction: column; gap: 14px; padding: 18px 18px 16px; border: none; border-radius: 22px;
+    color: #fff; background: linear-gradient(145deg, #f59331 0%, #ef7b17 45%, #e0620c 100%);
+    box-shadow: 0 10px 26px rgba(224, 98, 12, .28), 0 2px 6px rgba(224, 98, 12, .18);
+  }
+  .st-hero-kopf { display: flex; align-items: center; gap: 12px; }
+  .st-hero-titel { display: flex; flex-direction: column; min-width: 0; }
+  .st-hero-titel b { font-size: 19px; font-weight: 700; letter-spacing: .01em; }
+  .st-hero-titel small { font-size: 13.5px; opacity: .88; }
+  .st-hero-zahl { display: flex; align-items: baseline; gap: 10px; }
+  .st-hero-zahl strong { font-size: 56px; line-height: .95; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .st-hero-zahl span { font-size: 16px; font-weight: 600; opacity: .92; line-height: 1.25; }
+  .st-ziel { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
+  .st-ziel-balken { flex: 1; height: 8px; border-radius: 8px; background: rgba(255,255,255,.28); overflow: hidden; }
+  .st-ziel-balken i { display: block; height: 100%; width: 0; border-radius: 8px; background: #fff; transition: width .4s ease; }
+  .st-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px 11px 18px; border-radius: 999px;
+    background: #fff; color: #d4580a; font-size: 15.5px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  .st-cta svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  /* Schnell anlegen */
+  .st-schnell { margin: 14px 0 0; padding: 12px; border-radius: 18px; background: var(--card); border: 1px solid var(--rule);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .sn-zeile { display: flex; gap: 8px; }
+  .sn-zeile input[type=text], .sn-zeile textarea { flex: 1 1 auto; min-width: 0; margin: 0; }
+  #sn-de, #sn-bsp { width: 100%; padding: 9px 12px; border: 1px solid var(--rule); border-radius: 3px; background: var(--card); color: var(--ink);
+    resize: none; font: inherit; line-height: 1.35; }
+  #sn-de:focus, #sn-bsp:focus { outline: 2px solid var(--indigo); outline-offset: -1px; border-color: var(--indigo); }
+  html[data-vintage] #sn-de, html[data-vintage] #sn-bsp { background: var(--field, var(--card)); border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,.1); }
+  #sn-vorschlag { flex: 0 0 auto; white-space: nowrap; align-self: stretch; }
+  #sn-los { flex: 0 0 auto; width: 50px; padding: 0; font-size: 26px; line-height: 1; border-radius: 12px; }
+  /* Wort scannen: eigenes Symbol (📷 ist schon „Foto für die Rückseite“) */
+  #sn-scan { flex: 0 0 auto; width: 46px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+  #sn-scan svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #sn-scan[hidden] { display: none; }
+  .sn-scan-feld { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; }
+  .sn-scan-feld[hidden] { display: none; }
+  .sn-scan-feld img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; flex: 0 0 auto; background: var(--rule); }
+  .sn-scan-feld p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.4; color: var(--ink); }
+  .sn-scan-knoepfe { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sn-scan-knoepfe button { margin: 0; padding: 9px 12px; font-size: 14px; }
+  .sn-scan-knoepfe button[hidden] { display: none; }
+  .sn-mehr { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .sn-mehr > input[type=text] { margin: 0; }
+  .sn-fuss { display: flex; gap: 8px; align-items: center; }
+  .sn-fuss select { flex: 1 1 auto; min-width: 0; margin: 0; }
+  .sn-info { margin: 8px 2px 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.4; }
+  .sn-info b { color: var(--ink); }
+  html[data-vintage] .st-schnell { border-radius: 10px; background: var(--raised, var(--card)); }
+  /* zwei Lernarten */
+  .st-paar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .st-kachel { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 142px; padding: 16px;
+    border-radius: 18px; background: var(--card); color: var(--ink); border: 1px solid var(--rule); box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 18px rgba(0,0,0,.05); }
+  .st-kachel .st-ico { margin-bottom: auto; }
+  .st-kachel b { font-size: 17px; font-weight: 650; margin-top: 16px; }
+  .st-kachel small { font-size: 13px; line-height: 1.35; color: var(--ink-soft); }
+  /* Verwalten */
+  .st-abschnitt { margin: 22px 4px 8px; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+  .st-liste { border-radius: 18px; background: var(--card); border: 1px solid var(--rule); overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .st-zeile { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 64px;
+    background: none; border: none; border-radius: 0; color: var(--ink); }
+  .st-zeile + .st-zeile { border-top: 1px solid var(--rule); }
+  .st-zeile:active { transform: none; background: var(--tab); }
+  .st-z-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .st-z-txt b { font-size: 16px; font-weight: 600; }
+  .st-z-txt small { font-size: 13px; color: var(--ink-soft); }
+  .st-chev { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--ink-soft); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: .7; }
+  html[data-vintage] .st-hero, html[data-vintage] .st-kachel, html[data-vintage] .st-liste { border-radius: 10px; }
+  html[data-vintage] .st-hero-titel b, html[data-vintage] .st-kachel b, html[data-vintage] .st-z-txt b, html[data-vintage] .st-cta {
+    font-family: var(--f-mono); text-transform: uppercase; letter-spacing: .04em; }
+  html[data-vintage] .st-hero-zahl strong { font-family: var(--f-brand); }
+  html[data-vintage] .st-kachel, html[data-vintage] .st-liste { background: var(--raised, var(--card)); }
+  @media (prefers-reduced-motion: reduce) { .kachel, .st-ziel-balken i { transition: none; } }
+  #view-ueben #modus { display: none; }   /* Karten oder Hören wählt man jetzt über die Kacheln */
+  /* Ziffern in den Retro-Designs gleich breit, damit Zähler und Nummern nicht springen */
+  html[data-vintage] body { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Quiz-Duell: Spielbildschirm (überarbeitet) ----------
+     Zwei Spielfelder im Hintergrund, die Hälfte der Person, die dran ist, leuchtet in der
+     Akzentfarbe des Designs; darüber schwebt die Karte mit Vokabel, Fortschritt und Zeitbalken. */
+  :root { --du-farbe: #ef7b17; }
+  html[data-vintage] { --du-farbe: var(--accent); }
+  #duell { padding: 0; }
+  html[data-vintage] #duell { padding: 0; }
+  #du-spiel { position: relative; min-height: 100%; }
+  .du-feld { position: fixed; inset: 0; display: grid; grid-template-columns: 1fr 1fr; z-index: 0; }
+  .du-halb {
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    padding: calc(env(safe-area-inset-top) + 22px) 10px 0; background: var(--paper); color: var(--ink);
+    transition: background-color .25s ease, color .25s ease;
+  }
+  .du-halb + .du-halb { border-left: 1px solid var(--rule); }
+  .du-halb .du-pname { font-size: 13px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; opacity: .7; }
+  .du-halb .du-punkte { font-size: 64px; font-weight: 800; line-height: 1.05; }
+  .du-halb.dran .du-pname { opacity: 1; }
+  .du-halb.dran .du-pname::after { content: ""; display: block; width: 18px; height: 3px; border-radius: 3px; margin: 5px auto 0; background: var(--du-farbe); }
+  /* wer dran ist (während zugehört wird): Hälfte in der Akzentfarbe */
+  #duell[data-seite="0"] #du-p0, #duell[data-seite="1"] #du-p1 {
+    background: linear-gradient(180deg, var(--du-farbe), color-mix(in srgb, var(--du-farbe) 82%, #000));
+    color: #fff; border-color: transparent;
+  }
+  #duell[data-seite="0"] #du-p0 .du-pname::after, #duell[data-seite="1"] #du-p1 .du-pname::after { background: #fff; }
+  #duell[data-seite="0"] #du-p1, #duell[data-seite="1"] #du-p0 { color: var(--ink-soft); }
+  .du-plus { position: absolute; top: calc(env(safe-area-inset-top) + 118px); font-size: 34px; font-weight: 800; color: var(--moss); opacity: 0; }
+  .du-plus.pop { animation: duPop 1.1s ease-out both; }
+  @keyframes duPop { 0% { opacity: 0; transform: translateY(12px) scale(.7); } 18% { opacity: 1; transform: translateY(0) scale(1.15); } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px) scale(1); } }
+  /* Per Sprache abfragen (allein): keine Punkte und keine geteilten Hälften - oben die Fächer wie beim Üben */
+  .du-faecher { display: none; }
+  #duell.solo .du-feld, #duell.solo .du-tafel-gross { display: none; }
+  #duell.solo .du-mitte { padding-top: calc(env(safe-area-inset-top) + 22px); }
+  #duell.solo .du-faecher { display: flex; gap: 8px; margin: 0 0 16px; }
+  .du-fach { flex: 1; min-width: 0; text-align: center; padding: 10px 0 8px; border-radius: 14px; background: var(--card);
+    border: 2px solid var(--rule); color: var(--ink-soft); transition: border-color .2s ease, color .2s ease; }
+  .du-fach b { display: block; font-size: 24px; font-weight: 800; line-height: 1.1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .du-fach small { display: block; font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+  .du-fach.jetzt { border-color: var(--du-farbe); color: var(--du-farbe); }
+  .du-fach.ziel { animation: duFach .7s ease-out; }
+  .du-fach.ziel.hoch { border-color: var(--moss); color: var(--moss); }
+  .du-fach.ziel.runter { border-color: var(--alarm-ink); color: var(--alarm-ink); }
+  @keyframes duFach { 0% { transform: scale(1); } 35% { transform: scale(1.14); } 100% { transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .du-fach.ziel { animation: none; } }
+  html[data-vintage] .du-fach { border-radius: 6px; }
+  .du-mitte { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center;
+    min-height: calc(100vh - 148px); padding: calc(env(safe-area-inset-top) + 150px) 16px 12px; }
+  .du-card {
+    background: var(--card); color: var(--ink); border-radius: 22px; padding: 16px 18px 18px; text-align: center;
+    border: 2px solid transparent; box-shadow: 0 14px 36px rgba(0,0,0,.16), 0 2px 6px rgba(0,0,0,.08);
+    transition: border-color .2s ease;
+  }
+  .du-stern { font-size: 22px; line-height: 1; font-weight: 400; }
+  #du-merk.on { color: #e0a100; }
+  #du-merk.on span { color: var(--ink); }
+  .du-card.richtig { border-color: var(--moss); animation: duOk .5s ease-out; }
+  @keyframes duOk { 0% { transform: scale(1); } 35% { transform: scale(1.03); } 100% { transform: scale(1); } }
+  .du-meta { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .du-fort { height: 4px; border-radius: 4px; background: var(--tab); margin: 8px 0 14px; overflow: hidden; }
+  .du-fort i { display: block; height: 100%; width: 0; background: var(--du-farbe); border-radius: 4px; transition: width .4s ease; }
+  .du-zustand { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 1.4em; margin: 0;
+    font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+  .du-card.hoert .du-zustand { color: var(--du-farbe); }
+  .du-card.hoert .du-zustand::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; animation: duMic 1s ease-in-out infinite; }
+  @keyframes duMic { 50% { opacity: .25; transform: scale(.7); } }
+  .du-wort { margin: 12px 0 0; font-size: clamp(26px, 8vw, 38px); line-height: 1.15; font-weight: 700; overflow-wrap: anywhere; }
+  .du-loesung { margin: 10px 0 0; min-height: 0; font-size: 22px; font-weight: 600; color: var(--moss); }
+  .du-loesung:empty { display: none; }
+  .du-uhr { height: 6px; border-radius: 6px; background: var(--tab); margin: 16px 0 0; overflow: hidden; opacity: 0; transition: opacity .2s ease; }
+  .du-card.hoert .du-uhr { opacity: 1; }
+  .du-uhr i { display: block; height: 100%; background: var(--du-farbe); border-radius: 6px; transform-origin: left center; transform: scaleX(1); }
+  .du-card .du-gehoert { margin: 10px 0 0; font-size: 15px; font-style: italic; min-height: 1.3em; }
+  .du-card .du-diag { margin-top: 10px; }
+  .du-mitte .du-entscheid { margin: 14px 0 0; }
+  .du-mitte .du-frage-wer { color: var(--ink); }
+  .du-laut { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; margin: 0 16px; padding: 6px 14px;
+    border-radius: 14px; border: 1px solid var(--rule); background: color-mix(in srgb, var(--card) 90%, transparent); color: var(--ink);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  .du-laut svg { width: 22px; height: 22px; flex: none; fill: currentColor; }
+  .du-laut svg .strich { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .du-laut input, .du-laut-setup input { flex: 1; width: 100%; height: 34px; margin: 0; accent-color: var(--du-farbe); }
+  .du-laut-wert { min-width: 3.2em; text-align: right; font-size: 13px; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .du-leiste { position: relative; z-index: 1; display: flex; gap: 8px; padding: 10px 16px calc(env(safe-area-inset-bottom) + 14px); }
+  .du-steuer { display: contents; }
+  .du-steuer[hidden] { display: none; }
+  .du-lb {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 4px 8px; min-height: 58px;
+    border-radius: 14px; border: 1px solid var(--rule); background: color-mix(in srgb, var(--card) 90%, transparent); color: var(--ink);
+    font: inherit; font-size: 12.5px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  .du-lb svg { width: 22px; height: 22px; fill: currentColor; }
+  .du-lb svg.strich { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .du-lb:active { transform: scale(.96); }
+  /* Ergebnis */
+  #du-schluss { padding: calc(env(safe-area-inset-top) + 28px) 18px calc(env(safe-area-inset-bottom) + 18px); justify-content: center; }
+  .du-pokal { width: 84px; height: 84px; margin: 0 auto; border-radius: 26px; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--du-farbe) 16%, transparent); color: var(--du-farbe); }
+  .du-pokal svg { width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  #du-schluss .du-sieger { margin: 16px 0 18px; }
+  #du-schluss .du-tafel-gross { margin-top: 0; }
+  #du-schluss .du-spieler { border-radius: 18px; padding: 16px 8px 12px; }
+  #du-schluss .du-spieler.plus { border-color: var(--du-farbe); background: color-mix(in srgb, var(--du-farbe) 10%, var(--card)); }
+  #du-schluss .du-bilanz { margin: 14px 0 20px !important; }
+  .du-schluss-knoepfe { display: flex; flex-direction: column; gap: 10px; }
+  .du-schluss-knoepfe button { width: 100%; min-height: 52px; margin: 0; }
+  .du-schluss-knoepfe #du-nochmal { background: var(--du-farbe); border-color: var(--du-farbe); color: #fff; font-weight: 700; }
+  html[data-vintage] .du-card, html[data-vintage] .du-lb, html[data-vintage] #du-schluss .du-spieler { border-radius: 10px; }
+  html[data-vintage] .du-halb .du-pname, html[data-vintage] .du-zustand, html[data-vintage] .du-lb { font-family: var(--f-mono); }
+  html[data-vintage] .du-halb .du-punkte, html[data-vintage] .du-wort { font-family: var(--f-brand); }
+  @media (prefers-reduced-motion: reduce) { .du-plus.pop, .du-card.richtig, .du-card.hoert .du-zustand::before { animation: none; } }
+
+  /* ---------- Klar: modernes, minimalistisches Design (2026-09) ----------
+     Wie in BLOC: ruhige Fläche, flach statt Schatten, Schrift führt, Tinte als Hauptfarbe.
+     Die Signalfarbe ist die Farbe des Kastens (--kasten) - sparsam: Antworten, Fortschritt, gewähltes Fach.
+     Folgt Hell/Dunkel des Systems. Allgemeine Regeln über :where(), damit gezielte Regeln der App vorgehen. */
+  
+  
+  
+  
+  /* Kopf: ohne Linie, großer Titel */
+  
+  
+  
+  
+  /* Knöpfe, Felder */
+  
+  
+  
+  
+  
+  /* Kästen-Leiste: Tinte für den offenen Kasten, die Kastenfarbe als Punkt */
+  
+  
+  
+  
+  /* Große Karte der Startseite: flach, leicht in der Kastenfarbe getönt, Zahl in Tinte */
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  /* Flächen: flach mit feiner Linie */
+  
+  
+  
+  
+  
+  
+  /* Lernkarte: große, ruhige Karte - Antwort in der Kastenfarbe */
+  
+  
+  
+  
+  
+  /* Fächer als Segmente, gefüllte bekommen einen Strich in der Kastenfarbe */
+  
+  
+  
+  
+  
+  /* Design- und Moduswahl: Pillen, gewählt = Tinte */
+  
+  
+
+  /* ---------- Führung (Mockup „BLOC & Vokabelkasten Führung“) ---------- */
+  /* Startseite: Kästen unter „Verwalten“ */
+  /* Üben: Tagesziel oben rechts statt eigener Zeile (nur Karteikasten; beim Anhören bleibt die Zeile) */
+  .kopf-ziel { background: none; border: none; box-shadow: none; padding: 6px 0 6px 8px; margin: 0; min-height: 0; font-size: 13px; color: var(--ink-soft); white-space: nowrap; cursor: pointer; font-variant-numeric: tabular-nums; }
+  .kopf-ziel.erreicht { color: var(--moss); font-weight: 700; }
+  #view-ueben:not(.hoeren) #tagesziel { display: none; }
+  /* Auswahlzeile: schlicht, eine Zeile – links „15 offen“, rechts Kategorie und Richtung, einklappbar */
+  #view-ueben .auswahl { border: none; background: none; margin: 0 0 8px; }
+  #view-ueben .auswahl summary { padding: 6px 28px 6px 2px; min-height: 32px; }
+  #view-ueben .auswahl summary::after { right: 6px; }
+  #view-ueben .aw-l { font-size: 13px; text-transform: none; letter-spacing: 0; font-weight: 700; color: var(--ink); }
+  #view-ueben .aw-v { font-size: 13px; font-weight: 400; color: var(--ink-soft); text-align: right; }
+  #view-ueben .auswahl.gefiltert .aw-v { color: var(--indigo); font-weight: 600; }
+  #view-ueben .auswahl[open] { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; }
+  #view-ueben .auswahl[open] summary { padding-left: 12px; }
+  /* Zurück und Überspringen: leise Textlinks, mehr Luft zur Antwortwahl */
+  .bedien .merkzeile { justify-content: space-between; margin-top: 16px; }
+  .bedien .merkzeile #btn-zurueck, .bedien .merkzeile #btn-weiter,
+  html[data-vintage] .bedien .merkzeile #btn-zurueck, html[data-vintage] .bedien .merkzeile #btn-weiter {
+    flex: 0 0 auto; max-width: none; background: none; border: none; box-shadow: none; min-height: 40px; padding: 8px 4px; font-size: 14px; color: var(--ink-soft); }
+  .antwortwahl { margin-top: 18px; }
+  /* Startseite ohne „Verwalten“ (Liste und Neu stehen in der Leiste unten): die übrigen Elemente bekommen den Platz */
+  #view-start .st-gruss { font-size: 16px; margin-bottom: 10px; }
+  #view-start .st-hero { gap: 14px; padding: 22px 20px 20px; border-radius: 26px; }
+  #view-start .st-hero .st-ico { width: 48px; height: 48px; border-radius: 14px; }
+  #view-start .st-hero .st-ico svg { width: 28px; height: 28px; }
+  #view-start .st-hero-titel b { font-size: 21px; }
+  #view-start .st-hero-titel small { font-size: 14.5px; }
+  #view-start .st-hero-zahl strong { font-size: 66px; }
+  #view-start .st-hero-zahl span { font-size: 16px; }
+  #view-start .st-ziel { font-size: 14px; }
+  #view-start .st-ziel-balken { height: 10px; }
+  #view-start .st-cta { padding: 14px 22px 14px 24px; font-size: 17px; }
+  #view-start .st-schnell { margin-top: 16px; padding: 14px; border-radius: 20px; }
+  #view-start #sn-en { min-height: 52px; font-size: 17px; }
+  #view-start #sn-los { width: 56px; min-height: 52px; font-size: 28px; }
+  #view-start #sn-scan { width: 52px; min-height: 52px; }
+  #view-start .st-paar { gap: 14px; margin-top: 16px; }
+  #view-start .st-kachel { min-height: 0; padding: 16px 18px; }
+  #view-start .st-kachel .st-ico { width: 48px; height: 48px; border-radius: 14px; }
+  #view-start .st-kachel .st-ico svg { width: 28px; height: 28px; }
+  #view-start .st-kachel b { font-size: 19px; margin-top: 12px; }
+  #view-start .st-kachel small { font-size: 14px; }
+  /* Einblend-Meldung */
+  .meldung-leiste { position: fixed; left: 16px; right: 16px; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); z-index: 90;
+    max-width: 30rem; margin: 0 auto; display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px; border-radius: 14px;
+    background: var(--ink); color: var(--paper); font-size: 15px; line-height: 1.4; box-shadow: 0 10px 28px rgba(0,0,0,.28);
+    opacity: 0; transform: translateY(10px); transition: opacity .2s ease, transform .2s ease; cursor: pointer; }
+  .meldung-leiste.an { opacity: 1; transform: none; }
+  .meldung-leiste[hidden] { display: none; }
+  .meldung-leiste b { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px;
+    background: var(--alarm-ink, #e07a5f); color: var(--ink); }
+  .meldung-leiste.ok b { background: var(--moss); color: var(--paper); }
+  @media (prefers-reduced-motion: reduce) { .meldung-leiste { transition: none; } }
+  #vorschau.fertig { color: var(--moss); font-weight: 600; }
+  /* Verkleinerte Kachel: schmale Zeile unter der großen */
+  #view-start .st-paar.mit-klein { grid-template-columns: 1fr; gap: 10px; }
+  #view-start .st-kachel.klein { flex-direction: row; align-items: center; gap: 12px; min-height: 0; padding: 10px 14px; order: 2; }
+  #view-start .st-kachel.klein .st-ico { width: 34px; height: 34px; border-radius: 11px; margin: 0; }
+  #view-start .st-kachel.klein .st-ico svg { width: 20px; height: 20px; }
+  #view-start .st-kachel.klein b { margin: 0; font-size: 15px; }
+  #view-start .st-kachel.klein small { display: none; }
+  /* die andere Kachel dann quer: Symbol links, Name und Beschreibung rechts - so passt beides über die Leiste */
+  #view-start .st-paar.mit-klein .st-kachel:not(.klein) { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; min-height: 0; padding: 16px 18px; }
+  #view-start .st-paar.mit-klein .st-kachel:not(.klein) .st-ico { grid-row: 1 / 3; margin: 0; }
+  #view-start .st-paar.mit-klein .st-kachel:not(.klein) b { margin: 0; align-self: end; }
+  #view-start .st-paar.mit-klein .st-kachel:not(.klein) small { align-self: start; }
+
+  /* Tagesziel ausgeblendet, solange der Kasten leer ist */
+  .st-ziel[hidden] { display: none; }
+  /* Eine Signalfarbe: die des offenen Kastens - Fächer, Antwort, aktiver Reiter, Fokus und „Gewusst“.
+     „Nochmal“ ist bewusst ruhig. Die Retro-Designs (data-vintage) behalten ihre eigene Palette. */
+  html:not([data-vintage]) { --indigo: color-mix(in srgb, var(--kasten, #ef7b17) 82%, #000); }
+  html[data-thema="dunkel"], html[data-thema="nacht"] { --indigo: color-mix(in srgb, var(--kasten, #ef7b17) 68%, #fff); }
+  @media (prefers-color-scheme: dark) {
+    html[data-thema="auto"], html[data-thema="klar"] { --indigo: color-mix(in srgb, var(--kasten, #ef7b17) 68%, #fff); }
+  }
+  html:not([data-vintage]) button.known { background: var(--kasten, #ef7b17); border-color: var(--kasten, #ef7b17); color: #fff; }
+  html:not([data-vintage]) button.again { background: transparent; border-color: var(--rule); color: var(--ink); }
+  html:not([data-vintage]) .stempel.gewusst { color: var(--kasten, #ef7b17); }
+  html:not([data-vintage]) .stempel.nochmal { color: var(--ink-soft); }
