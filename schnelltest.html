@@ -99,6 +99,28 @@
       await bis(function () { return $('[data-ziel="karten"]'); }, 5000, "Startseite");
       pruefe($$("[data-view]").length >= 5, "Navigation unten fehlt");
     }],
+    ["Einführung: nur beim ersten Start, fünf Seiten, danach in den Einstellungen", async function () {
+      await bis(function () { return !id("einf").hidden; }, 3000, "Einführung beim ersten Start");   // der Test startet ohne Daten
+      var titel = [], erste = id("einf-text").textContent;
+      for (var i = 0; i < 5; i++) {
+        titel.push(id("einf-titel").textContent);
+        pruefe($$("#einf-punkte i").length === 5 && $$("#einf-punkte i")[i].classList.contains("an"), "Punkt " + (i + 1) + " nicht markiert");
+        klick("#einf-weiter");
+      }
+      pruefe(titel.join(" | ") === "Willkommen im Vokabelkasten | Selbst antworten | Lernen nebenbei | Quiz-Duell (Beta) | Neue Wörter, eigene Kästen", "Seiten: " + titel.join(" | "));
+      pruefe(/\d+ englischen Vokabeln/.test(erste), "Anzahl fehlt: " + erste);
+      pruefe(id("einf").hidden, "„Los geht's“ schließt die Einführung nicht");
+      pruefe(W.localStorage.getItem("vokabelkasten.einfuehrung") === "1", "Einführung nicht als gesehen gemerkt");
+      await laden();
+      await warte(500);
+      pruefe(id("einf").hidden, "Einführung kommt nach dem Neuladen wieder");
+      klick('[data-view="sichern"]');
+      klick("#btn-einfuehrung");
+      pruefe(!id("einf").hidden, "Einführung lässt sich in den Einstellungen nicht öffnen");
+      klick("#einf-weg");
+      pruefe(id("einf").hidden, "„Überspringen“ schließt nicht");
+      klick('[data-view="ueben"]');
+    }],
     ["Üben: erste Karten aufnehmen", async function () {
       klick('[data-ziel="karten"]');
       await bis(function () { return aktiv("ueben"); }, 3000, "Übungsansicht");
@@ -142,6 +164,13 @@
       klick('#eingabewahl [data-eingabe="aufdecken"]');
       klick('[data-view="ueben"]');
       pruefe(id("eingabe").hidden, "Eingabefeld bleibt nach dem Zurückstellen sichtbar");
+      // dieselbe Wahl direkt unter der Karte: Aufdecken | Schreiben | Sprechen, mit den Einstellungen verbunden
+      pruefe($$("#antwortwahl button").length === 3 && $("#antwortwahl #btn-sprache"), "Auswahl unter der Karte fehlt");
+      klick('#antwortwahl [data-eingabe="tippen"]');
+      pruefe(!id("eingabe").hidden, "„Schreiben“ unter der Karte zeigt kein Eingabefeld");
+      pruefe($('#eingabewahl [data-eingabe="tippen"]').getAttribute("aria-pressed") === "true", "Einstellungen zeigen „Schreiben“ nicht an");
+      klick('#antwortwahl [data-eingabe="aufdecken"]');
+      pruefe(id("eingabe").hidden && $('#antwortwahl [data-eingabe="aufdecken"]').getAttribute("aria-pressed") === "true", "„Aufdecken“ unter der Karte wirkt nicht");
     }],
     ["Liste und Suche", async function () {
       klick('[data-view="liste"]');

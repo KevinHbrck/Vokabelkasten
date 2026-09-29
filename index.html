@@ -442,8 +442,29 @@
   .merkzeile.zweite { margin-top: 9px; }
   button.pille.schmal { padding: 11px 13px; }
   /* Kasten per Sprache abfragen (Ablauf wie im Quiz, gewertet wie beim Üben) */
-  button.sprach-ueben { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 12px; min-height: 48px; }
-  button.sprach-ueben svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  /* So antwortest du: Aufdecken | Schreiben | Sprechen */
+  .antwortwahl { margin: 12px 0 0; }
+  .antwortwahl button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 0; }
+  .antwortwahl svg { width: 17px; height: 17px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* Einführung */
+  #einf { position: fixed; inset: 0; z-index: 75; display: flex; align-items: flex-end; justify-content: center; }
+  #einf[hidden], #einf [hidden] { display: none; }
+  .einf-inhalt { min-height: min(540px, 82vh); gap: 0; }
+  .einf-kopf { display: flex; justify-content: space-between; align-items: center; min-height: 36px; }
+  .einf-punkte { display: flex; gap: 6px; align-items: center; }
+  .einf-punkte i { width: 7px; height: 7px; border-radius: 4px; background: var(--rule); transition: width .2s ease, background .2s ease; }
+  .einf-punkte i.an { width: 20px; background: var(--kasten, #ef7b17); }
+  button.einf-weg { background: none; border: none; box-shadow: none; color: var(--ink-soft); font-size: 14px; padding: 8px 2px; min-height: 0; margin: 0; }
+  .einf-seite { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 12px 6px 22px; }
+  .einf-ico { width: 88px; height: 88px; border-radius: 26px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
+    background: color-mix(in srgb, var(--kasten, #ef7b17) 16%, transparent); color: var(--kasten, #ef7b17); }
+  .einf-ico svg { width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .einf-seite h2 { margin: 0 0 12px; font-size: 24px; line-height: 1.2; }
+  .einf-seite p { margin: 0; max-width: 34ch; font-size: 15.5px; line-height: 1.55; color: var(--ink); }
+  .einf-seite .einf-notiz { margin-top: 16px; font-size: 13.5px; color: var(--ink-soft); }
+  .einf-knoepfe { display: flex; gap: 10px; }
+  .einf-knoepfe button { margin: 0; min-height: 50px; }
+  #einf-weiter { flex: 1; }
   button.pille:disabled { opacity: .4; }
   .rauszeile { text-align: center; margin-top: 18px; }
   button.leise {
@@ -707,11 +728,14 @@
   .modus button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
   html[data-vintage] .modus { border-radius: 8px; background: var(--tab); }
   html[data-vintage] .modus button[data-modus],
+  html[data-vintage] .modus button[data-eingabe],
+  html[data-vintage] .antwortwahl #btn-sprache,
   html[data-vintage] .modus button[data-wischen] {
     border-radius: 6px; background: none; border: none; box-shadow: none; color: var(--ink-soft);
     font-family: var(--f-mono); font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
   }
   html[data-vintage] .modus button[data-wischen][aria-pressed="true"],
+  html[data-vintage] .modus button[data-eingabe][aria-pressed="true"],
   html[data-vintage] .modus button[data-modus][aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: var(--btn-lift); }
   /* beim Anhören braucht es weder Fach noch Abfragerichtung der Karten */
   #view-ueben.hoeren #sel-fach,
@@ -1848,10 +1872,12 @@
         <button class="pille schmal" id="btn-zurueck" type="button" disabled>← Zurück</button>
         <button class="pille schmal" id="btn-weiter" type="button">Überspringen →</button>
       </div>
-      <button class="pille sprach-ueben" id="btn-sprache" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
-        Per Sprache abfragen
-      </button>
+      <!-- So antwortest du: Aufdecken und Schreiben bleiben eingestellt (wie in den Einstellungen), Sprechen startet eine Runde -->
+      <div class="modus antwortwahl" id="antwortwahl" role="group" aria-label="So antwortest du">
+        <button type="button" data-eingabe="aufdecken"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>Aufdecken</button>
+        <button type="button" data-eingabe="tippen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>Schreiben</button>
+        <button type="button" id="btn-sprache" title="Die App liest vor und hört dir zu"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>Sprechen</button>
+      </div>
       </div>
     </div>
 
@@ -2068,6 +2094,11 @@
   <section id="view-sichern" class="view">
     <div class="schnell">
       <div class="sk-block">
+        <h3 class="sk-titel">Einführung</h3>
+        <button type="button" class="ghost" id="btn-einfuehrung">Einführung ansehen</button>
+        <p class="note">Der Vokabelkasten in fünf kurzen Schritten.</p>
+      </div>
+      <div class="sk-block">
         <h3 class="sk-titel">Darstellung</h3>
         <div class="themawahl" id="themawahl">
           <button type="button" data-thema="auto">Auto</button>
@@ -2104,9 +2135,9 @@
         <h3 class="sk-titel">Antwort</h3>
         <div class="modus" id="eingabewahl">
           <button type="button" data-eingabe="aufdecken">Aufdecken</button>
-          <button type="button" data-eingabe="tippen">Eintippen</button>
+          <button type="button" data-eingabe="tippen">Schreiben</button>
         </div>
-        <p class="note"><b>Eintippen:</b> Lösung schreiben oder diktieren, kleine Tippfehler zählen nicht. Die App schlägt Gewusst/Nochmal nur vor.</p>
+        <p class="note"><b>Schreiben:</b> Lösung eintippen oder diktieren, kleine Tippfehler zählen nicht. Die App schlägt Gewusst/Nochmal nur vor. Wechseln geht auch direkt unter der Karte, dort startet <b>Sprechen</b> eine Runde, in der die App vorliest und dir zuhört.</p>
       </div>
 
       <div class="sk-block">
@@ -2270,6 +2301,15 @@
 </nav>
 
 <!-- Einblendfenster für Nebenaktionen (⋯) -->
+<!-- Einführung: beim ersten Start auf einem Gerät von selbst, sonst über Einstellungen → Einführung -->
+<div id="einf" hidden>
+  <div class="blatt-hinter" data-einfzu></div>
+  <div class="blatt-inhalt einf-inhalt" role="dialog" aria-modal="true" aria-labelledby="einf-titel">
+    <div class="einf-kopf"><div class="einf-punkte" id="einf-punkte" aria-hidden="true"></div><button type="button" class="einf-weg" id="einf-weg" data-einfzu>Überspringen</button></div>
+    <div class="einf-seite"><span class="einf-ico" id="einf-ico"></span><h2 id="einf-titel"></h2><p id="einf-text"></p><p class="einf-notiz" id="einf-notiz" hidden></p></div>
+    <div class="einf-knoepfe"><button type="button" class="ghost" id="einf-zurueck">Zurück</button><button type="button" id="einf-weiter">Weiter</button></div>
+  </div>
+</div>
 <div id="blatt" hidden>
   <div class="blatt-hinter" data-blattzu></div>
   <div class="blatt-inhalt" role="dialog" aria-modal="true" aria-labelledby="blatt-titel">
@@ -2377,6 +2417,14 @@
      Verzeichnis: vokabelkasten.kaesten = { aktiv, liste:[{ id, name, farbe, art }] }. Wechseln geht ohne Neuladen:
      kastenOeffnen() sichert den alten Stand, setzt alles auf Anfang und liest den neuen Kasten wie beim Start ein. */
   var KASTEN_REG = "vokabelkasten.kaesten";
+  /* Erster Start auf diesem Gerät: noch kein Kasten gespeichert. Nur dann kommt die Einführung von selbst;
+     wer den Vokabelkasten schon nutzt, findet sie in den Einstellungen. Nicht, wenn die App per „Teilen“ geöffnet wurde. */
+  var EINF_KEY = "vokabelkasten.einfuehrung";
+  var ERSTER_START = (function () {
+    try { return !["vokabelkasten.v2", "vokabelkasten.v1", KASTEN_REG, EINF_KEY].some(function (k) { return window.localStorage.getItem(k); }); }
+    catch (e) { return false; }
+  })();
+  var GEOEFFNET_PER_TEILEN = /[?&](text|title)=/.test(location.search);
   var KASTEN_FARBEN = ["#ef7b17", "#2b78e4", "#7b4fd6", "#1f9d63", "#d6453d", "#c28a00", "#0e9aa7"];
   function kaestenLesen() {
     try {
@@ -4212,12 +4260,16 @@
   function setzeEingabe(m) {
     eingabeModus = m === "tippen" ? "tippen" : "aufdecken";
     daten.eingabe = eingabeModus;
-    Array.prototype.forEach.call(document.querySelectorAll("#eingabewahl button"), function (b) {
+    Array.prototype.forEach.call(document.querySelectorAll("#eingabewahl button, #antwortwahl [data-eingabe]"), function (b) {
       b.setAttribute("aria-pressed", b.dataset.eingabe === eingabeModus ? "true" : "false");
     });
   }
-  Array.prototype.forEach.call(document.querySelectorAll("#eingabewahl button"), function (b) {
-    b.addEventListener("click", function () { setzeEingabe(b.dataset.eingabe); sichern(); zeichneUeben(); });
+  Array.prototype.forEach.call(document.querySelectorAll("#eingabewahl button, #antwortwahl [data-eingabe]"), function (b) {
+    b.addEventListener("click", function () {
+      setzeEingabe(b.dataset.eingabe); sichern(); zeichneUeben();
+      // unter der Karte „Schreiben“ gewählt: gleich losschreiben
+      if (eingabeModus === "tippen" && ansicht === "ueben" && aktuell && !aufgedeckt) document.getElementById("eingabe-feld").focus();
+    });
   });
   function eingabeZeichnen() {
     var form = document.getElementById("eingabe"), feld = document.getElementById("eingabe-feld");
@@ -4990,6 +5042,91 @@
     if (e.key === "Escape" && !document.getElementById("blatt").hidden) blattZu();
   });
 
+  /* ---------- Einführung (wie bei BLOC) ----------
+     Fünf Seiten in der Farbe des Kastens. Beim ersten Start von selbst (ERSTER_START), sonst über die Einstellungen.
+     Die Zahl der Start-Vokabeln zählt die App selbst. Gesehen: vokabelkasten.einfuehrung */
+  var EINF_ICO = {
+    kasten: '<rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/>',
+    antwort: '<path d="M4 5.5h16v10H9.5L5 19.5v-4H4z"/><path d="M8 10.5h8"/>',
+    hoeren: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="6.5" rx="1.5"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.5"/>',
+    duell: '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5.5h2.5v1.5a3 3 0 0 1-3 3M7 5.5H4.5v1.5a3 3 0 0 0 3 3M12 14v4M8.5 20.5h7"/>',
+    neu: '<path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M8 10h8M8 14h5"/>'
+  };
+  // Den Karteikasten kennt jeder - die Seiten zeigen, was dieser anders macht
+  function einfSeiten() {
+    var n = SEED.rows.filter(Boolean).length;
+    return [
+      { ico: EINF_ICO.kasten, titel: "Willkommen im Vokabelkasten",
+        text: "Den Karteikasten kennst du – dieser kann mehr: selbst antworten, nebenbei lernen, im Duell spielen. Start mit " + n + " englischen Vokabeln oder deinen eigenen.",
+        notiz: "Kein Konto, kein Tracking – alles bleibt auf deinem Handy." },
+      { ico: EINF_ICO.antwort, titel: "Selbst antworten",
+        text: "Schreib die Lösung oder sag sie laut – die App prüft mit und verzeiht Tippfehler. Umschalten direkt unter der Karte.",
+        notiz: "Sprechen gibt es im Englisch-Kasten." },
+      { ico: EINF_ICO.hoeren, titel: "Lernen nebenbei",
+        text: "Die App liest dir deine Karten vor – beim Sport, Spazieren oder Autofahren.",
+        notiz: "Das Handy bleibt in der Tasche." },
+      { ico: EINF_ICO.duell, titel: "Quiz-Duell (Beta)",
+        text: "Die App fragt, ihr antwortet per Stimme und sammelt Punkte – etwa zu zweit auf langer Fahrt.",
+        notiz: "Testphase: Lärm und Musik können die Erkennung stören." },
+      { ico: EINF_ICO.neu, titel: "Neue Wörter, eigene Kästen",
+        text: "Eintippen, scannen oder ganze Listen fotografieren – die Übersetzung kommt von selbst. Mit „+“ legst du eigene Kästen an.",
+        notiz: "Tipp: ab und zu unter Einstellungen → Sicherung sichern." }
+    ];
+  }
+  var einfListe = [], einfNr = 0;
+  function einfZeichnen() {
+    var s = einfListe[einfNr], letzte = einfNr === einfListe.length - 1;
+    var punkte = document.getElementById("einf-punkte");
+    punkte.textContent = "";
+    einfListe.forEach(function (x, i) { var p = document.createElement("i"); if (i === einfNr) p.className = "an"; punkte.appendChild(p); });
+    document.getElementById("einf-ico").innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + s.ico + "</svg>";
+    document.getElementById("einf-titel").textContent = s.titel;
+    document.getElementById("einf-text").textContent = s.text;
+    var notiz = document.getElementById("einf-notiz");
+    notiz.hidden = !s.notiz;
+    notiz.textContent = s.notiz || "";
+    document.getElementById("einf-weg").hidden = letzte;
+    document.getElementById("einf-zurueck").hidden = !einfNr;
+    document.getElementById("einf-weiter").textContent = letzte ? "Los geht's" : "Weiter";
+  }
+  function einfBlaettern(d) {
+    var n = einfNr + d;
+    if (n < 0 || n >= einfListe.length) return;
+    einfNr = n;
+    einfZeichnen();
+  }
+  function einfuehrungAuf() {
+    einfListe = einfSeiten(); einfNr = 0;
+    einfZeichnen();
+    document.getElementById("einf").hidden = false;
+    waechterAbgleichen();
+    document.getElementById("einf-weiter").focus();
+  }
+  function einfuehrungZu() {
+    document.getElementById("einf").hidden = true;
+    try { window.localStorage.setItem(EINF_KEY, "1"); } catch (e) {}
+    waechterAbgleichen();
+  }
+  document.getElementById("einf-weiter").addEventListener("click", function () {
+    if (einfNr === einfListe.length - 1) einfuehrungZu(); else einfBlaettern(1);
+  });
+  document.getElementById("einf-zurueck").addEventListener("click", function () { einfBlaettern(-1); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-einfzu]"), function (el) { el.addEventListener("click", einfuehrungZu); });
+  document.getElementById("btn-einfuehrung").addEventListener("click", einfuehrungAuf);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !document.getElementById("einf").hidden) einfuehrungZu();
+  });
+  (function () {   // wischen: nach links weiter, nach rechts zurück
+    var x0 = null, inhalt = document.querySelector(".einf-inhalt");
+    inhalt.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    inhalt.addEventListener("touchend", function (e) {
+      if (x0 == null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 50) einfBlaettern(dx < 0 ? 1 : -1);
+    });
+  })();
+
   /* ---------- Auswahl (Kategorie, Richtung) als zugeklappte Zeile ---------- */
   function zeichneAuswahlText() {
     var kat = document.getElementById("sel-kat"), ri = document.getElementById("sel-richtung");
@@ -5068,7 +5205,7 @@
      Oberste bzw. geht zum Üben; erst auf dem Üben-Bildschirm verlässt sie die App. */
   var waechter = false, waechterUeberspringen = 0;
   function obenauf() {
-    return !document.getElementById("blatt").hidden || !document.getElementById("unterwegs").hidden || !document.getElementById("duell").hidden ||
+    return !document.getElementById("einf").hidden || !document.getElementById("blatt").hidden || !document.getElementById("unterwegs").hidden || !document.getElementById("duell").hidden ||
       document.getElementById("auswahl").open || ansicht !== "start";
   }
   function waechterAbgleichen() {
@@ -5079,7 +5216,8 @@
   window.addEventListener("popstate", function () {
     if (waechterUeberspringen > 0) { waechterUeberspringen--; return; }
     waechter = false;
-    if (!document.getElementById("blatt").hidden) document.getElementById("blatt").hidden = true;
+    if (!document.getElementById("einf").hidden) einfuehrungZu();
+    else if (!document.getElementById("blatt").hidden) document.getElementById("blatt").hidden = true;
     else if (!document.getElementById("unterwegs").hidden) uwBeenden();
     else if (!document.getElementById("duell").hidden) duSchliessen();
     else if (document.getElementById("auswahl").open) document.getElementById("auswahl").open = false;
@@ -7553,6 +7691,7 @@
   uwWeiterKnopf();
   tonMischen(true);   // von Anfang an: Musik anderer Apps läuft weiter
   wechsle("start");
+  if (ERSTER_START && !GEOEFFNET_PER_TEILEN) setTimeout(einfuehrungAuf, 250);
 })();
 </script>
 </body>
