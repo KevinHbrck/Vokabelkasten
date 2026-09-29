@@ -290,6 +290,19 @@
       id("kasten-form").requestSubmit();
       await bis(function () { return id("st-hero-name").textContent === "Gardenakasten"; }, 3000, "Wechsel in den Gardenakasten");
       var reg = JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")), gid = reg.aktiv, kaesten = reg.liste.length;
+      // Quiz-Duell und Sprechen gibt es auch im Wissenskasten; lange drücken verkleinert die Kachel (je Kasten)
+      var quiz = $('.st-kachel[data-ziel="quiz"]');
+      pruefe(W.getComputedStyle(quiz).display !== "none" && W.getComputedStyle(id("btn-sprache")).display !== "none", "Quiz-Duell oder Sprechen fehlt im Wissenskasten");
+      quiz.dispatchEvent(new W.PointerEvent("pointerdown", { bubbles: true, pointerType: "touch" }));   // wie ein Finger: erst auflegen, dann lange drücken
+      quiz.dispatchEvent(new W.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+      await bis(function () { return !id("blatt").hidden && /Verkleinern/.test(id("blatt-knoepfe").textContent); }, 2000, "Menü „Verkleinern“");
+      klick($("#blatt-knoepfe button"));
+      pruefe(quiz.classList.contains("klein") && $(".st-paar").classList.contains("mit-klein"), "Kachel wird nicht verkleinert");
+      quiz.dispatchEvent(new W.PointerEvent("pointerdown", { bubbles: true, pointerType: "touch" }));   // wie ein Finger: erst auflegen, dann lange drücken
+      quiz.dispatchEvent(new W.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+      await bis(function () { return !id("blatt").hidden && /Wieder groß/.test(id("blatt-knoepfe").textContent); }, 2000, "Menü „Wieder groß anzeigen“");
+      klick($("#blatt-knoepfe button"));
+      pruefe(!quiz.classList.contains("klein"), "Kachel wird nicht wieder groß");
       var enVorher = W.localStorage.getItem(KEY);
       function karten() { return JSON.parse(W.localStorage.getItem("vokabelkasten.kasten." + gid)).cards; }
       function datei(inhalt) {

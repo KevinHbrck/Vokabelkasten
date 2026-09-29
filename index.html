@@ -240,9 +240,9 @@
   .kv-name { flex: 1; font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
   .kv-name::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--k); flex: none; }
   .kv-zeile button { padding: 7px 10px; font-size: 13px; margin: 0; }
-  html[data-wissen] [data-ziel="quiz"], html[data-wissen] nav [data-view="quiz"], html[data-wissen] #btn-sprache,
+  /* Wissenskasten: nur der englische Beispielsatz-Vorschlag passt nicht. Quiz-Duell und Sprechen gibt es in jedem Kasten
+     (per langem Drücken lässt sich die Kachel verkleinern) */
   html[data-wissen] #sn-vorschlag { display: none !important; }
-  html[data-wissen] .st-paar { grid-template-columns: 1fr; }
   html[data-wissen] .zelle.en { font-style: normal; }
   /* Eintippen (nur wenn in den Einstellungen gewählt) */
   .eingabe { display: flex; gap: 8px; margin: 14px 0 0; }
@@ -1601,6 +1601,18 @@
   .meldung-leiste.ok b { background: var(--moss); color: var(--paper); }
   @media (prefers-reduced-motion: reduce) { .meldung-leiste { transition: none; } }
   #vorschau.fertig { color: var(--moss); font-weight: 600; }
+  /* Verkleinerte Kachel: schmale Zeile unter der großen */
+  #view-start .st-paar.mit-klein { grid-template-columns: 1fr; gap: 10px; }
+  #view-start .st-kachel.klein { flex-direction: row; align-items: center; gap: 12px; min-height: 0; padding: 10px 14px; order: 2; }
+  #view-start .st-kachel.klein .st-ico { width: 34px; height: 34px; border-radius: 11px; margin: 0; }
+  #view-start .st-kachel.klein .st-ico svg { width: 20px; height: 20px; }
+  #view-start .st-kachel.klein b { margin: 0; font-size: 15px; }
+  #view-start .st-kachel.klein small { display: none; }
+  /* die andere Kachel dann quer: Symbol links, Name und Beschreibung rechts - so passt beides über die Leiste */
+  #view-start .st-paar.mit-klein .st-kachel:not(.klein) { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; min-height: 0; padding: 16px 18px; }
+  #view-start .st-paar.mit-klein .st-kachel:not(.klein) .st-ico { grid-row: 1 / 3; margin: 0; }
+  #view-start .st-paar.mit-klein .st-kachel:not(.klein) b { margin: 0; align-self: end; }
+  #view-start .st-paar.mit-klein .st-kachel:not(.klein) small { align-self: start; }
 </style>
 </head>
 <body>
@@ -4144,7 +4156,15 @@
     grussHeute = passend[i % passend.length];
     return grussHeute;
   }
+  /* Kacheln Hörtraining / Quiz-Duell: lange drücken → verkleinern (schmale Zeile) bzw. wieder groß. Je Kasten gemerkt. */
+  function kachelnGroesse() {
+    var klein = Array.isArray(daten.kachelnKlein) ? daten.kachelnKlein : [];
+    var paar = document.querySelector(".st-paar");
+    Array.prototype.forEach.call(document.querySelectorAll(".st-kachel"), function (k) { k.classList.toggle("klein", klein.indexOf(k.dataset.ziel) > -1); });
+    if (paar) paar.classList.toggle("mit-klein", klein.length > 0);
+  }
   function zeichneKacheln() {
+    kachelnGroesse();
     var f = daten.cards.filter(function (c) { return c.aktiv && c.due <= heute(); }).length, k = imKasten().length;
     var ziel = tagesZiel(), h = geuebtAm(Date.now()), serie = lernSerie(), std = new Date().getHours();
     // Begrüßung mit Lernserie
@@ -6849,6 +6869,7 @@
     var deZuerst = du.solo ? (richtung === "mix" ? Math.random() < 0.5 : richtung !== "en") : du.richtung === "de";
     var frage = deZuerst ? c.front : c.back, antwort = deZuerst ? c.back : c.front;
     var sFrage = deZuerst ? "de-DE" : "en-GB", sAntwort = deZuerst ? "en-GB" : "de-DE";
+    if (WISSEN) { sFrage = "de-DE"; sAntwort = "de-DE"; }   // Begriff und Bedeutung auf Deutsch (z. B. „Zugmodul“)
     du.frage = { karte: c, frage: frage, antwort: antwort, sFrage: sFrage, sAntwort: sAntwort,
                  loesungen: duLoesungen(antwort), notiz: [] };
     duMerkZeigen();
@@ -7594,6 +7615,15 @@
     kaestenSichern(); kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
   }
   /* Langes Drücken auf einen Kasten oben öffnet sein Menü (der Tipp danach wechselt nicht) */
+  Array.prototype.forEach.call(document.querySelectorAll(".st-kachel"), function (k) {
+    langDruck(k, function () {
+      var klein = Array.isArray(daten.kachelnKlein) ? daten.kachelnKlein.slice() : [], z = k.dataset.ziel, ist = klein.indexOf(z) > -1;
+      blattAuf(k.querySelector("b").textContent, [{ text: ist ? "Wieder groß anzeigen" : "Verkleinern", tun: function () {
+        daten.kachelnKlein = ist ? klein.filter(function (x) { return x !== z; }) : klein.concat([z]);
+        sichern(); kachelnGroesse();
+      } }]);
+    });
+  });
   function langDruck(el, fn) {
     var uhr = null, ausgeloest = false, x0 = 0, y0 = 0;
     function weg() { clearTimeout(uhr); uhr = null; }
