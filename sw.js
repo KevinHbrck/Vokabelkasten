@@ -6,7 +6,7 @@
  */
 
 /* Einzige Stelle für die Fassung - die App fragt sie per postMessage ab (Einstellungen, ganz unten) */
-var FASSUNG = "2026-09-29-20";
+var FASSUNG = "2026-09-29-21";
 var NETZ_WARTEN = 2500;   // ms - so lange wartet der Start höchstens aufs Netz, wenn es eine gespeicherte Fassung gibt
 var SPEICHER = "vokabelkasten-" + FASSUNG;
 var GRUNDGERUEST = ["./", "./index.html", "./daten.js", "./app.js", "./app.css", "./privacy.html", "./manifest.json", "./icon.png"];
@@ -66,8 +66,10 @@ self.addEventListener("fetch", function (e) {
     }
     return antwort;
   });
-  function ausSpeicher() {
-    return caches.match(anfrage).then(function (treffer) {
+  // locker = offline: dann notfalls auch eine andere Fassung (app.js?v=…). Beim bloßen Zeitlimit nur genau diese,
+  // damit nie eine alte app.js zu einer neuen index.html kommt
+  function ausSpeicher(locker) {
+    return caches.match(anfrage, { ignoreSearch: !!locker && anfrage.mode !== "navigate" }).then(function (treffer) {
       if (treffer || anfrage.mode !== "navigate") return treffer || null;
       return caches.match("./index.html").then(function (t) { return t || caches.match("./"); });
     });
@@ -78,7 +80,7 @@ self.addEventListener("fetch", function (e) {
     var uhr = setTimeout(function () { ausSpeicher().then(nimm, function () {}); }, NETZ_WARTEN);
     ausDemNetz.then(function (a) { clearTimeout(uhr); nimm(a); }, function () {
       clearTimeout(uhr);
-      ausSpeicher().then(function (t) { nimm(t || new Response("", { status: 504, statusText: "offline" })); },
+      ausSpeicher(true).then(function (t) { nimm(t || new Response("", { status: 504, statusText: "offline" })); },
                          function () { nimm(new Response("", { status: 504, statusText: "offline" })); });
     });
   }));
