@@ -189,7 +189,7 @@
       // Tagesziel steht beim Üben oben rechts, „x offen“ vorn in der Auswahlzeile
       pruefe(!id("kopf-ziel").hidden && /Heute \d+ \/ \d+/.test(id("kopf-ziel").textContent), "Tagesziel oben rechts fehlt: " + id("kopf-ziel").textContent);
       pruefe(/offen|im Kasten|Auswahl/.test($("#auswahl .aw-l").textContent), "Auswahlzeile zeigt nicht, was offen ist: " + $("#auswahl .aw-l").textContent);
-      pruefe($(".st-liste").previousElementSibling === id("kasten-leiste"), "Kästen stehen nicht unter „Verwalten“");
+      pruefe(id("kasten-leiste").nextElementSibling === $(".st-hero") && !$(".st-liste"), "Kästen stehen nicht oben über der großen Karte, oder Liste/Neu sind noch auf der Startseite");
       klick("#kopf-ziel");
       await bis(function () { return aktiv("statistik"); }, 3000, "Statistik");
     }],

@@ -1639,7 +1639,6 @@
 
   /* ---------- Führung (Mockup „BLOC & Vokabelkasten Führung“) ---------- */
   /* Startseite: Kästen unter „Verwalten“ */
-  #view-start .kasten-leiste { margin: 0 -2px 10px; }
   /* Üben: Tagesziel oben rechts statt eigener Zeile (nur Karteikasten; beim Anhören bleibt die Zeile) */
   .kopf-ziel { background: none; border: none; box-shadow: none; padding: 6px 0 6px 8px; margin: 0; min-height: 0; font-size: 13px; color: var(--ink-soft); white-space: nowrap; cursor: pointer; font-variant-numeric: tabular-nums; }
   .kopf-ziel.erreicht { color: var(--moss); font-weight: 700; }
@@ -1659,6 +1658,28 @@
   html[data-vintage] .bedien .merkzeile #btn-zurueck, html[data-vintage] .bedien .merkzeile #btn-weiter {
     flex: 0 0 auto; max-width: none; background: none; border: none; box-shadow: none; min-height: 40px; padding: 8px 4px; font-size: 14px; color: var(--ink-soft); }
   .antwortwahl { margin-top: 18px; }
+  /* Startseite ohne „Verwalten“ (Liste und Neu stehen in der Leiste unten): die übrigen Elemente bekommen den Platz */
+  #view-start .st-gruss { font-size: 16px; margin-bottom: 10px; }
+  #view-start .st-hero { gap: 14px; padding: 22px 20px 20px; border-radius: 26px; }
+  #view-start .st-hero .st-ico { width: 48px; height: 48px; border-radius: 14px; }
+  #view-start .st-hero .st-ico svg { width: 28px; height: 28px; }
+  #view-start .st-hero-titel b { font-size: 21px; }
+  #view-start .st-hero-titel small { font-size: 14.5px; }
+  #view-start .st-hero-zahl strong { font-size: 66px; }
+  #view-start .st-hero-zahl span { font-size: 16px; }
+  #view-start .st-ziel { font-size: 14px; }
+  #view-start .st-ziel-balken { height: 10px; }
+  #view-start .st-cta { padding: 14px 22px 14px 24px; font-size: 17px; }
+  #view-start .st-schnell { margin-top: 16px; padding: 14px; border-radius: 20px; }
+  #view-start #sn-en { min-height: 52px; font-size: 17px; }
+  #view-start #sn-los { width: 56px; min-height: 52px; font-size: 28px; }
+  #view-start #sn-scan { width: 52px; min-height: 52px; }
+  #view-start .st-paar { gap: 14px; margin-top: 16px; }
+  #view-start .st-kachel { min-height: 0; padding: 16px 18px; }
+  #view-start .st-kachel .st-ico { width: 48px; height: 48px; border-radius: 14px; }
+  #view-start .st-kachel .st-ico svg { width: 28px; height: 28px; }
+  #view-start .st-kachel b { font-size: 19px; margin-top: 12px; }
+  #view-start .st-kachel small { font-size: 14px; }
 </style>
 </head>
 <body>
@@ -1705,6 +1726,8 @@
   <!-- Startseite: oben das Wichtigste (heute lernen), darunter die zwei Lernarten, unten Verwalten -->
   <section id="view-start" class="view active">
     <p class="st-gruss" id="st-gruss"></p>
+    <!-- Kästen: Reiter zum Antippen; auf der Startseite wechselt man auch per Wischen. Liste und Neu stehen in der Leiste unten -->
+    <div class="kasten-leiste" id="kasten-leiste" role="tablist" aria-label="Karteikästen"></div>
     <button type="button" class="kachel st-hero" data-ziel="karten">
       <span class="st-hero-kopf">
         <span class="st-ico st-ico-hell"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/></svg></span>
@@ -1759,19 +1782,6 @@
       <button type="button" class="kachel st-kachel" data-ziel="quiz" style="--ton:var(--moss)">
         <span class="st-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5.5h2.5v1.5a3 3 0 0 1-3 3M7 5.5H4.5v1.5a3 3 0 0 0 3 3M12 14v4M8.5 20.5h7"/></svg></span>
         <b>Quiz-Duell</b><small>Zu zweit, mit Punkten</small>
-      </button>
-    </div>
-    <p class="st-abschnitt">Verwalten</p>
-    <!-- Kästen: Reiter zum Antippen (unten, weil man sie selten braucht); auf der Startseite wechselt man auch per Wischen -->
-    <div class="kasten-leiste" id="kasten-leiste" role="tablist" aria-label="Karteikästen"></div>
-    <div class="st-liste">
-      <button type="button" class="kachel st-zeile" data-ziel="liste">
-        <span class="st-ico st-ico-klein"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></span>
-        <span class="st-z-txt"><b>Liste</b><small id="k-liste"></small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-      </button>
-      <button type="button" class="kachel st-zeile" data-ziel="neu">
-        <span class="st-ico st-ico-klein"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg></span>
-        <span class="st-z-txt"><b>Neu</b><small>Vokabeln hinzufügen oder einfügen</small></span><svg class="st-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
       </button>
     </div>
   </section>
@@ -4202,7 +4212,8 @@
     // Lernarten und Verwalten
     var n = uwKartenAuswahl(uwEinstellungen().auswahl).length;
     document.getElementById("k-hoeren").textContent = n ? n + (n === 1 ? " Karte" : " Karten") + " · freihändig" : "Vorlesen lassen, freihändig";
-    document.getElementById("k-liste").textContent = daten.cards.length + (WISSEN ? " Karten · " : " Vokabeln · ") + k + " im Kasten";
+    var kListe = document.getElementById("k-liste");   // Zeile „Liste“ gibt es auf der Startseite nicht mehr (steht in der Leiste unten)
+    if (kListe) kListe.textContent = daten.cards.length + (WISSEN ? " Karten · " : " Vokabeln · ") + k + " im Kasten";
   }
   Array.prototype.forEach.call(document.querySelectorAll(".kachel"), function (b) {
     b.addEventListener("click", function () {
