@@ -1757,7 +1757,7 @@
       }
       else zeichneUeben();
     }
-    if (name === "sichern") { zeichneStats(); uwEinstellungenZeigen(); stimmTipp(); }
+    if (name === "sichern") { zeichneStats(); uwEinstellungenZeigen(); stimmTipp(); zielWahlZeigen(); }
     if (name === "quiz") duEinstellungenZeigen();
     if (name === "start") zeichneKacheln();
     kopfZeigen();
@@ -2857,7 +2857,23 @@
   document.getElementById("st-vor").addEventListener("click", function () { statMonat = new Date(statMonat.getFullYear(), statMonat.getMonth() - 1, 1); statTag = null; zeichneStatistik(); });
   document.getElementById("st-nach").addEventListener("click", function () { statMonat = new Date(statMonat.getFullYear(), statMonat.getMonth() + 1, 1); statTag = null; zeichneStatistik(); });
   document.getElementById("sel-ziel").addEventListener("change", function (e) {
-    daten.ziel = Number(e.target.value) || 20; sichern(); zeichneStatistik(); zeichneTagesziel();
+    daten.ziel = Number(e.target.value) || 20; sichern(); zeichneStatistik(); zeichneTagesziel(); zielWahlZeigen();
+  });
+  // Tagesziel oben in den Optionen: dieselbe Einstellung wie in der Statistik
+  function zielWahlZeigen() {
+    var zl = tagesZiel(), h = geuebtAm(Date.now());
+    Array.prototype.forEach.call(document.querySelectorAll("#zielwahl button"), function (b) {
+      b.setAttribute("aria-pressed", Number(b.dataset.zielwahl) === zl ? "true" : "false");
+    });
+    document.getElementById("opt-ziel-stand").textContent = h + " / " + zl + " heute";
+    document.getElementById("opt-ziel-fuell").style.width = Math.min(100, Math.round(h / zl * 100)) + "%";
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#zielwahl button"), function (b) {
+    b.addEventListener("click", function () {
+      daten.ziel = Number(b.dataset.zielwahl) || 20; sichern();
+      document.getElementById("sel-ziel").value = String(daten.ziel);
+      zielWahlZeigen(); zeichneTagesziel();
+    });
   });
 
   /* ---------- Zurück-Taste (Android) ----------
@@ -3929,7 +3945,7 @@
   if (!sprache) {
     // ohne Sprachausgabe gibt es nichts anzuhören - dann auch keinen Umschalter
     document.getElementById("modus").hidden = true;
-    document.getElementById("sk-stimme").hidden = true;
+    document.getElementById("ab-stimme").hidden = true;   // ohne Sprachausgabe kein Abschnitt „Stimme und Hören“
   } else if (sprache.getVoices) {
     sprache.getVoices();                    // Stimmen schon mal laden lassen
     // Die Stimmen kommen oft erst nach dem Start - dann die Auswahl neu füllen

@@ -457,11 +457,20 @@
   </section>
 
   <section id="view-sichern" class="view">
+    <!-- Oben offen, was man regelmäßig braucht; alles andere thematisch gruppiert und zugeklappt -->
+    <h2 class="st-abschnitt opt-kopf">Wichtig</h2>
     <div class="schnell">
-      <div class="sk-block">
-        <h3 class="sk-titel">Einführung</h3>
-        <button type="button" class="ghost" id="btn-einfuehrung">Einführung ansehen</button>
-        <p class="note">Der Vokabelkasten in fünf kurzen Schritten.</p>
+      <div class="sk-block" id="sk-ziel">
+        <h3 class="sk-titel">Tagesziel <span class="opt-stand" id="opt-ziel-stand"></span></h3>
+        <div class="opt-balken" aria-hidden="true"><i id="opt-ziel-fuell"></i></div>
+        <div class="modus" id="zielwahl">
+          <button type="button" data-zielwahl="10">10</button>
+          <button type="button" data-zielwahl="20">20</button>
+          <button type="button" data-zielwahl="30">30</button>
+          <button type="button" data-zielwahl="50">50</button>
+          <button type="button" data-zielwahl="80">80</button>
+        </div>
+        <p class="note">Karten am Tag, über alle Kästen. Ein Tag mit mindestens einer Karte zählt für die Serie.</p>
       </div>
       <div class="sk-block">
         <h3 class="sk-titel">Darstellung</h3>
@@ -475,22 +484,28 @@
           <button type="button" data-thema="kodak">C60</button>
         </div>
       </div>
-
-      <div class="sk-block">
-        <h3 class="sk-titel">Wischen</h3>
-        <div class="modus" id="wischwahl">
-          <button type="button" data-wischen="an">An</button>
-          <button type="button" data-wischen="aus">Aus</button>
-        </div>
-        <p class="note">Nach dem Aufdecken: rechts = <b>Gewusst</b>, links = <b>Nochmal</b>.</p>
+      <div class="sk-block" id="sk-sicherung">
+        <h3 class="sk-titel">Sicherung</h3>
+    <p class="note" id="sicher-status"></p>
+    <p class="note">Alles liegt nur in diesem Browser. Browserdaten gelöscht oder neues Handy = weg. Deshalb ab und zu sichern – die Datei enthält alle Kästen und Fotos.</p>
+    <div class="stack">
+      <button id="btn-teilen" type="button" hidden>Sicherung teilen (z. B. Drive, Mail)</button>
+      <button id="btn-export" type="button">Sicherung herunterladen</button>
+      <button class="ghost" id="btn-import" type="button">Sicherung einlesen</button>
+      <input type="file" id="file" hidden>
+    </div>
+    <p class="note" id="snap-status" style="margin-top:14px">Letzter Schnappschuss: noch keiner</p>
+    <p class="note">Zusätzlich alle 7 Tage ein automatischer Schnappschuss auf diesem Gerät.</p>
+    <div class="stack">
+      <button class="ghost" id="btn-snap" type="button" hidden></button>
+    </div>
       </div>
+    </div>
 
-      <div class="sk-block">
-        <h3 class="sk-titel">Kästen</h3>
-        <div id="kasten-verwalten"></div>
-        <p class="note">Neue Kästen mit „+“ auf der Startseite. Karten und Fächer je Kasten, Einstellungen und Tagesziel gemeinsam.</p>
-      </div>
-
+    <h2 class="st-abschnitt opt-kopf">Mehr</h2>
+    <details class="abschnitt" id="ab-lernen">
+      <summary><span class="ab-titel">Lernen</span><span class="ab-unter">Antwort, Wischen, Wiederholungstempo</span></summary>
+      <div class="ab-inhalt">
       <div class="sk-block">
         <h3 class="sk-titel">Antwort</h3>
         <div class="modus" id="eingabewahl">
@@ -499,7 +514,14 @@
         </div>
         <p class="note"><b>Schreiben:</b> Lösung eintippen oder diktieren, kleine Tippfehler zählen nicht. Die App schlägt Gewusst/Nochmal nur vor. Wechseln geht auch direkt unter der Karte, dort startet <b>Sprechen</b> eine Runde, in der die App vorliest und dir zuhört.</p>
       </div>
-
+      <div class="sk-block">
+        <h3 class="sk-titel">Wischen</h3>
+        <div class="modus" id="wischwahl">
+          <button type="button" data-wischen="an">An</button>
+          <button type="button" data-wischen="aus">Aus</button>
+        </div>
+        <p class="note">Nach dem Aufdecken: rechts = <b>Gewusst</b>, links = <b>Nochmal</b>.</p>
+      </div>
       <div class="sk-block">
         <h3 class="sk-titel">Wiederholungstempo</h3>
         <select id="sel-tempo" aria-label="Wiederholungstempo">
@@ -516,7 +538,11 @@
         </div>
         <p class="note" id="tempo-info"></p>
       </div>
-
+      </div>
+    </details>
+    <details class="abschnitt" id="ab-stimme">
+      <summary><span class="ab-titel">Stimme und Hören</span><span class="ab-unter">Vorlesen, Tempo, Lautstärke</span></summary>
+      <div class="ab-inhalt">
       <div class="sk-block" id="sk-stimme">
         <h3 class="sk-titel">Stimme zum Vorlesen</h3>
         <p class="note" style="margin-top:0">Gilt überall, wo vorgelesen wird.</p>
@@ -543,9 +569,39 @@
         <p class="note" style="margin:6px 0 0">Musik läuft weiter. iPhone auf lautlos = keine Stimme.</p>
         <p class="note" id="stimm-tipp"></p>
       </div>
+      </div>
+    </details>
+    <details class="abschnitt" id="ab-kaesten">
+      <summary><span class="ab-titel">Kästen</span><span class="ab-unter">Umbenennen, verschieben, Papierkorb</span></summary>
+      <div class="ab-inhalt">
+      <div class="sk-block">
+        <h3 class="sk-titel">Kästen</h3>
+        <div id="kasten-verwalten"></div>
+        <p class="note">Neue Kästen mit „+“ auf der Startseite. Karten und Fächer je Kasten, Einstellungen und Tagesziel gemeinsam.</p>
+      </div>
+      </div>
+    </details>
+    <details class="abschnitt" id="ab-lernstand">
+      <summary><span class="ab-titel">Lernstand</span><span class="ab-unter">Zurücksetzen und Zahlen</span></summary>
+      <div class="ab-inhalt">
+    <p class="note" id="stats"></p>
+    <p class="note">Zurücksetzen betrifft nur dieses Gerät.</p>
+    <div class="stack">
+      <button class="ghost" id="btn-lernstand" type="button">Lernstand zurücksetzen</button>
+      <button class="ghost" id="btn-reset" type="button">Alle Vokabeln löschen</button>
     </div>
 
-    <div class="schnell">
+          </div>
+    </details>
+
+    <details class="abschnitt" id="ab-app">
+      <summary><span class="ab-titel">App</span><span class="ab-unter">Einführung, App teilen</span></summary>
+      <div class="ab-inhalt">
+      <div class="sk-block">
+        <h3 class="sk-titel">Einführung</h3>
+        <button type="button" class="ghost" id="btn-einfuehrung">Einführung ansehen</button>
+        <p class="note">Der Vokabelkasten in fünf kurzen Schritten.</p>
+      </div>
       <div class="sk-block">
         <h3 class="sk-titel">App teilen</h3>
         <p class="teil-url" id="teil-url"></p>
@@ -555,8 +611,8 @@
         </div>
         <p class="note">Dein Lernstand bleibt bei dir – andere starten leer.</p>
       </div>
-    </div>
-
+      </div>
+    </details>
     <details class="abschnitt" id="ab-apple">
       <summary><span class="ab-titel">App installieren</span><span class="ab-unter">Symbol auf Startbildschirm oder Desktop</span></summary>
       <div class="ab-inhalt">
@@ -609,39 +665,6 @@
 
         <p class="dialognote" id="applenote"></p>
       </div>
-    </details>
-
-    <details class="abschnitt" id="ab-sicherung">
-      <summary><span class="ab-titel">Sicherung</span><span class="ab-unter">Lernstand herunterladen und einlesen</span></summary>
-      <div class="ab-inhalt">
-    <p class="note" id="sicher-status"></p>
-    <p class="note">Alles liegt nur in diesem Browser. Browserdaten gelöscht oder neues Handy = weg. Deshalb ab und zu sichern – die Datei enthält alle Kästen und Fotos.</p>
-    <div class="stack">
-      <button id="btn-teilen" type="button" hidden>Sicherung teilen (z. B. Drive, Mail)</button>
-      <button id="btn-export" type="button">Sicherung herunterladen</button>
-      <button class="ghost" id="btn-import" type="button">Sicherung einlesen</button>
-      <input type="file" id="file" hidden>
-    </div>
-    <p class="note" id="snap-status" style="margin-top:14px">Letzter Schnappschuss: noch keiner</p>
-    <p class="note">Zusätzlich alle 7 Tage ein automatischer Schnappschuss auf diesem Gerät.</p>
-    <div class="stack">
-      <button class="ghost" id="btn-snap" type="button" hidden></button>
-    </div>
-
-          </div>
-    </details>
-
-    <details class="abschnitt" id="ab-lernstand">
-      <summary><span class="ab-titel">Lernstand</span><span class="ab-unter">Zurücksetzen und Zahlen</span></summary>
-      <div class="ab-inhalt">
-    <p class="note" id="stats"></p>
-    <p class="note">Zurücksetzen betrifft nur dieses Gerät.</p>
-    <div class="stack">
-      <button class="ghost" id="btn-lernstand" type="button">Lernstand zurücksetzen</button>
-      <button class="ghost" id="btn-reset" type="button">Alle Vokabeln löschen</button>
-    </div>
-
-          </div>
     </details>
 
     <a class="abschnitt ab-link" href="privacy.html" target="_blank" rel="noopener">

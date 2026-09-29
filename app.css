@@ -1616,3 +1616,10 @@
   html:not([data-vintage]) button.again { background: transparent; border-color: var(--rule); color: var(--ink); }
   html:not([data-vintage]) .stempel.gewusst { color: var(--kasten, #ef7b17); }
   html:not([data-vintage]) .stempel.nochmal { color: var(--ink-soft); }
+/* Optionen: „Wichtig“ offen, „Mehr“ zugeklappt (2026-09-29) */
+.opt-kopf:first-of-type { margin-top: 4px; }
+.sk-titel .opt-stand { float: right; font-size: 13px; font-weight: 400; color: var(--ink-soft); }
+.opt-balken { height: 6px; border-radius: 6px; background: var(--tab); overflow: hidden; margin: 2px 0 12px; }
+.opt-balken i { display: block; height: 100%; width: 0; border-radius: 6px; background: var(--kasten, #ef7b17); transition: width .3s ease; }
+#zielwahl button { min-width: 0; }
+.abschnitt .ab-inhalt > .sk-block:first-child { padding-top: 0; }
