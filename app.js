@@ -27,6 +27,9 @@
   var VK_DATEN = window.VK_DATEN;
   var SEED = VK_DATEN.SEED, SEED_STAND = VK_DATEN.SEED_STAND, SEED_NEU_AB = VK_DATEN.SEED_NEU_AB,
       SEED_AENDERUNG = VK_DATEN.SEED_AENDERUNG, SEED_ZUSAMMEN = VK_DATEN.SEED_ZUSAMMEN, VORLAGEN = VK_DATEN.VORLAGEN;
+  /* Lernverfahren (Rechenregeln je Antwort) stehen in lernen.js - hier unter kurzen Namen */
+  var VK_LERNEN = window.VK_LERNEN;
+  var BEWERTUNG = VK_LERNEN.BEWERTUNG, LEITNER = VK_LERNEN.LeitnerScheduler, FSRS_PLAN = VK_LERNEN.FsrsScheduler;
   /* ---------- Kästen ----------
      Mehrere Karteikästen nebeneinander. Englisch ist der ursprüngliche Kasten und bleibt technisch genau wie er war
      (Schlüssel vokabelkasten.v2, Startliste, Stimmen). Jeder weitere Kasten ist ein „Wissenskasten“ (Begriff → Bedeutung)
@@ -65,9 +68,31 @@
   var KATS = kastenKats();
   var KEY = kastenKey(KASTEN.id);
   var ALT_KEY = "vokabelkasten.v1";
+  var VOR_V3 = "vokabelkasten.vor-v3.";   // + Kasten-id: Stand vor dem Umbau auf Schema 3 (FSRS), siehe laden()
   // Index = Fach. Fach 1 wird nie angesteuert, eine richtige Antwort
   // hebt die Karte immer mindestens auf Fach 2.
   var TAGE = [0, 1, 1, 3, 7, 16];
+
+  /* Lernverfahren: "leitner" (feste Abstände je Fach) oder "fsrs" (Abstand je Karte nach ihrem Gedächtnisstand).
+     Jede Antwort schreibt beide Stände fort (k.box/k.due und k.fsrs, siehe lernen.js); die Einstellung bestimmt nur,
+     welcher Stand über Fälligkeit, Reihenfolge und angezeigtes Fach entscheidet - so geht beim Umschalten nichts
+     verloren. Früher gab es hier SM-2 (Felder iv/ez/rep); dessen Stand wurde beim Umbau auf Schema 3 nach FSRS übernommen. */
+  var MODUS = "leitner";
+  var RETENTION = 0.9;   // gewünschte Behaltensquote bei FSRS (0,80 bis 0,95): höher = sicherer, aber mehr Wiederholungen
+  var KNOEPFE = 2;       // Antwortknöpfe: 2 (Nochmal, Gewusst) oder 4 (Nochmal, Schwer, Gut, Leicht) - in beiden Verfahren
+
+  // angezeigtes Fach: bei Leitner das echte Fach, bei FSRS nach dem Abstand (<1 Tag, <1 Woche, <1 Monat, <3 Monate, länger)
+  function fachVon(c) {
+    return MODUS === "fsrs" ? VK_LERNEN.fachAusIntervall(VK_LERNEN.intervallTage(c.fsrs)) : c.box;
+  }
+  // ist die Karte heute dran - nach dem gewählten Verfahren
+  function istDran(c, jetzt) {
+    return MODUS === "fsrs" ? FSRS_PLAN.isDue(c, jetzt) : LEITNER.isDue(c, jetzt);
+  }
+  // nächster Termin der Karte (Tagesbeginn in ms), für „wieder in … Tagen“
+  function termin(c) {
+    return MODUS === "fsrs" && c.fsrs ? VK_LERNEN.tagesBeginn(c.fsrs.due) : c.due;
+  }
 
   function setzeAbstaende(vier) {
     var sauber = vier.map(function (n) {
@@ -89,7 +114,7 @@
     return "eigen";
   }
 
-  var daten = { v: 2, seeded: false, cards: [] };
+  var daten = { v: 3, seeded: false, cards: [], reviews: [] };
   var geladen = false;   // erst nach laden() wird gespeichert (siehe sichern)
   var speicherOk = true;
   var filterKat = "alle";
@@ -117,6 +142,13 @@
         if (p && Array.isArray(p.cards)) daten = p;
       } catch (e) { /* kaputter Eintrag: Startdatensatz nehmen */ }
     }
+    /* Schema 3 (FSRS-Stand je Karte, Antwortprotokoll): vorher den alten Stand unverändert zur Seite legen, einmal
+       je Kasten - gleich hier, denn ab jetzt baut jedes sichern() um (siehe migriereV3 in lernen.js). Der Umbau
+       ergänzt nur und löscht nichts; ist der Speicher für die Sicherung zu voll, geht es darum auch ohne sie weiter. */
+    if (roh && daten.cards.length && !(daten.v >= 3)) {
+      try { if (!window.localStorage.getItem(VOR_V3 + KASTEN.id)) window.localStorage.setItem(VOR_V3 + KASTEN.id, roh); }
+      catch (e) { /* kein Platz für die Sicherung */ }
+    }
     geladen = true;   // ab hier darf gespeichert werden
     if (!daten.seeded) {
       if (!WISSEN) { saeen(); uebernehmeAlteVersion(); }   // Wissenskästen starten leer
@@ -136,6 +168,12 @@
     if (["retro", "tapedeck", "klar"].indexOf(thema) > -1) thema = "auto";   // diese Designs gibt es nicht mehr (2026-09)
     if (typeof daten.listKat === "string") listKat = daten.listKat;
     if (["nr", "de", "en"].indexOf(daten.listSort) > -1) listSort = daten.listSort;
+    /* Lernverfahren unter eigenem Namen "verfahren": daten.modus gehört der Übungsart (Karten/Hören) und hat eine
+       frühere SM-2-Wahl beim nächsten Start überschrieben. Wer sie trotzdem noch gespeichert hat, lernt jetzt mit FSRS. */
+    if (daten.verfahren !== "fsrs" && daten.verfahren !== "leitner") daten.verfahren = daten.modus === "sm2" ? "fsrs" : "leitner";
+    MODUS = daten.verfahren;
+    if (typeof daten.retention === "number") RETENTION = Math.min(0.95, Math.max(0.8, daten.retention));
+    KNOEPFE = daten.knoepfe === 4 ? 4 : 2;
     if (Array.isArray(daten.abstaende) && daten.abstaende.length === 4) {
       setzeAbstaende(daten.abstaende);
     } else {
@@ -144,6 +182,8 @@
     if (!WISSEN) ordNachtragen();
     aktivNachtragen();
     if (!WISSEN) seedAktualisieren();
+    // Umbau auf Schema 3 (die Sicherung dafür steht oben); am Schluss, damit auch frisch dazugekommene Startkarten ihn bekommen
+    if (VK_LERNEN.migriereV3(daten, TAGE, Date.now())) sichern();
   }
 
   /* Einmalige Umstellung auf die neue Startliste. Geändert wird nur, was noch genau so dasteht
@@ -167,7 +207,7 @@
       var bleibt = nachId["s" + z[0]], geht = nachId["s" + z[1]], soll = SEED.rows[z[0]];
       if (!bleibt || !geht || geht.front !== z[2] || geht.back !== z[3]) return;
       if (bleibt.front !== soll[0] || bleibt.back !== soll[1]) return;
-      if (geht.box > bleibt.box || (geht.box === bleibt.box && geht.due < bleibt.due)) { bleibt.box = geht.box; bleibt.due = geht.due; }
+      if (geht.box > bleibt.box || (geht.box === bleibt.box && geht.due < bleibt.due)) { bleibt.box = geht.box; bleibt.due = geht.due; if (geht.fsrs) bleibt.fsrs = geht.fsrs; }
       bleibt.aktiv = !!(bleibt.aktiv || geht.aktiv);
       bleibt.merk = !!(bleibt.merk || geht.merk);
       if (!bleibt.bsp && geht.bsp) bleibt.bsp = geht.bsp;
@@ -211,7 +251,7 @@
   // Ab Fach 4 hat eine Karte drei richtige Antworten hinter sich
   // und meldet sich erst in einer Woche wieder.
   function sitzen() {
-    return daten.cards.filter(function (c) { return c.aktiv && c.box >= 4; }).length;
+    return daten.cards.filter(function (c) { return c.aktiv && fachVon(c) >= 4; }).length;
   }
 
   function imKasten() {
@@ -298,6 +338,11 @@
     daten.thema = thema;
     daten.listKat = listKat;
     daten.listSort = listSort;
+    daten.verfahren = MODUS;
+    daten.retention = RETENTION;
+    daten.knoepfe = KNOEPFE;
+    // neue, eingelesene oder zurückgesetzte Karten bekommen hier ihren FSRS-Stand (aus dem Fach), bevor sie gespeichert werden
+    VK_LERNEN.migriereV3(daten, TAGE, Date.now());
     try { window.localStorage.setItem(KEY, JSON.stringify(daten)); }
     catch (e) { speicherOk = false; zeigeWarnung(); }
     gemeinsamAblegen();
@@ -306,7 +351,7 @@
   /* Einstellungen, die für alle Kästen gelten, liegen im Englisch-Kasten (vokabelkasten.v2):
      ein anderer Kasten übernimmt sie beim Laden und schreibt Änderungen dorthin zurück.
      Pro Kasten bleiben Karten, Fächer, Liste, Richtung und Tagesverlauf. */
-  var GEMEINSAM = ["thema", "wischen", "eingabe", "ziel", "deStimme", "deTempo", "enTempo", "unterwegs", "abstaende", "letzteSicherung"];
+  var GEMEINSAM = ["thema", "wischen", "eingabe", "ziel", "deStimme", "deTempo", "enTempo", "unterwegs", "abstaende", "modus", "verfahren", "retention", "knoepfe", "letzteSicherung"];
   function gemeinsamHolen() {
     if (KASTEN.id === "en") return;
     try {
@@ -357,14 +402,14 @@
   }
   // Kategorie und zusaetzlich das gewaehlte Fach
   function imFilter(c) {
-    return imKat(c) && (!filterFach || c.box === filterFach);
+    return imKat(c) && (!filterFach || fachVon(c) === filterFach);
   }
   function anzahlMerk() {
     return daten.cards.filter(function (c) { return c.merk; }).length;
   }
   function faellig() {
     var t = heute();
-    return daten.cards.filter(function (c) { return c.aktiv && imFilter(c) && c.due <= t; });
+    return daten.cards.filter(function (c) { return c.aktiv && imFilter(c) && istDran(c, t); });
   }
   // Bei "gemischt" wird pro vorgelegter Karte einmal gewuerfelt,
   // damit die Rueckseite beim Aufdecken zur Vorderseite passt.
@@ -484,7 +529,9 @@
 
   // Merkt sich den Zustand vor einer Aktion, damit "Zurück" ihn wiederherstellen kann.
   function merkeSchritt(k, art) {
-    verlauf.push({ karte: k, box: k.box, due: k.due, art: art, zeit: Date.now(), zusatz: !!extraOffen[k.id] });
+    // beide Stände (Leitner und FSRS), damit "Zurück" alles genau zurückdreht
+    verlauf.push({ karte: k, box: k.box, due: k.due, fsrs: k.fsrs ? JSON.parse(JSON.stringify(k.fsrs)) : k.fsrs, zuletzt: k.zuletzt,
+      art: art, zeit: Date.now(), zusatz: !!extraOffen[k.id] });
     if (verlauf.length > 50) verlauf.shift();
   }
 
@@ -494,6 +541,11 @@
     if (e.art === "bewertung") zaehleKarte(-1, e.zeit);
     e.karte.box = e.box;
     e.karte.due = e.due;
+    e.karte.fsrs = e.fsrs;
+    e.karte.zuletzt = e.zuletzt;
+    // genau den Protokolleintrag dieser Antwort entfernen (nicht einfach den letzten: eine zwischendurch
+    // eingelesene Sicherung sortiert das Protokoll neu)
+    if (e.eintrag && daten.reviews && daten.reviews.indexOf(e.eintrag) > -1) daten.reviews.splice(daten.reviews.indexOf(e.eintrag), 1);
     if (e.art === "bewertung") {
       if (e.zusatz) extraOffen[e.karte.id] = true;
       else { delete extraOffen[e.karte.id]; delete extraGehabt[e.karte.id]; }
@@ -518,12 +570,11 @@
 
   // Schiebt eine Karte ohne Bewertung um genau ein Fach zurueck.
   function einFachRunter(k) {
-    if (k.box <= 1) return false;
+    var vorher = fachVon(k);
+    if (vorher <= 1) return false;
     merkeSchritt(k, "hand");
-    var vorher = k.box;
-    k.box = k.box - 1;
-    k.due = heute();
-    meldung = { wort: k.front, vorher: vorher, nachher: k.box };
+    fachSetzen(k, vorher - 1);
+    meldung = { wort: k.front, vorher: vorher, nachher: fachVon(k) };
     sichern();
     return true;
   }
@@ -531,12 +582,20 @@
   // Legt eine Karte in ein frei gewaehltes Fach.
   function inFach(k, neu) {
     neu = Math.min(5, Math.max(1, neu));
-    if (neu === k.box) return false;
-    k.box = neu;
-    k.due = heute();
+    if (neu === fachVon(k)) return false;
+    fachSetzen(k, neu);
     meldung = { wort: k.front, vorher: 0, nachher: neu };
     sichern();
     return true;
+  }
+
+  /* Fach von Hand: die Karte liegt danach in beiden Verfahren in diesem Fach und ist heute dran. Unter FSRS bekommt
+     sie den Abstand, der in der Fächer-Ansicht zu diesem Fach gehört (fsrsFuerFach in lernen.js); unter Leitner
+     bleibt der FSRS-Stand, wie er ist - er zählt dort ja nicht, und so geht beim Zurückschalten nichts verloren. */
+  function fachSetzen(k, neu) {
+    k.box = neu;
+    k.due = heute();
+    if (MODUS === "fsrs") k.fsrs = VK_LERNEN.fsrsFuerFach(neu, Date.now());
   }
 
   /* Schwierige Karten (Stern) kommen etwas häufiger: Nach einer richtigen Antwort kommt die Karte
@@ -545,40 +604,84 @@
      dann nicht, geht sie wie üblich zurück in Fach 1. Ab Fach 4 gibt es keine Zusatzrunde mehr. */
   var extraOffen = {};   // Karten-IDs, deren Zusatzwiederholung noch ansteht
   var extraGehabt = {};  // in dieser Runde schon einmal zusätzlich gezeigt
-  function bewerten(gewusst) {
+  /* bewertung: true/false (gewusst/nicht gewusst, = Gut/Nochmal) oder eine Stufe aus BEWERTUNG (1 bis 4).
+     Jede gewertete Antwort geht an beide Verfahren und ins Antwortprotokoll daten.reviews - so bleibt das jeweils
+     andere Verfahren auf dem Laufenden, und später lassen sich die FSRS-Parameter aus dem Protokoll anpassen. */
+  function bewerten(bewertung) {
     if (!aktuell) return;
-    var k = aktuell;
-    var vorher = k.box;
+    var stufe = bewertung === true ? BEWERTUNG.GUT : bewertung === false ? BEWERTUNG.NOCHMAL : bewertung;
+    var gewusst = stufe >= BEWERTUNG.SCHWER;
+    var k = aktuell, jetzt = Date.now();
+    var vorher = fachVon(k);
     var zusatz = !!extraOffen[k.id];
     delete extraOffen[k.id];
     merkeSchritt(k, "bewertung");
     zaehleKarte(1);
     if (gewusst && zusatz) {
-      // Zusatzwiederholung bestanden: Fach und Termin bleiben, wie sie sind
-    } else if (gewusst) {
-      k.box = Math.min(5, k.box + 1);
-      k.due = heute() + TAGE[k.box] * 86400000;
-      if (k.merk && k.box < 4 && !extraGehabt[k.id] && imFilter(k) && runde.length >= 2) {
-        extraGehabt[k.id] = true;
-        extraOffen[k.id] = true;
-        runde.splice(Math.min(3, runde.length), 0, k);
-      }
+      // Zusatzwiederholung bestanden: Fach und Termin bleiben, wie sie sind - in beiden Verfahren, darum auch kein Protokolleintrag
     } else {
-      k.box = 1;
-      k.due = heute();
-      // Wieder einreihen nur, wenn die Karte zur Auswahl passt und noch
-      // etwas anderes ansteht. Sonst saehe man sofort dieselbe Karte.
-      if (imFilter(k) && runde.length > 0) runde.push(k);
+      LEITNER.review(k, stufe, jetzt, { tage: TAGE });
+      FSRS_PLAN.review(k, stufe, jetzt, { retention: RETENTION });
+      k.zuletzt = jetzt;
+      var eintrag = { cardId: k.id, timestamp: jetzt, rating: stufe, scheduler: MODUS };
+      daten.reviews.push(eintrag);
+      verlauf[verlauf.length - 1].eintrag = eintrag;   // für "Zurück"
+      if (gewusst) {
+        if (k.merk && fachVon(k) < 4 && !extraGehabt[k.id] && imFilter(k) && runde.length >= 2) {
+          extraGehabt[k.id] = true;
+          extraOffen[k.id] = true;
+          runde.splice(Math.min(3, runde.length), 0, k);
+        }
+      } else if (imFilter(k) && runde.length > 0 && istDran(k, jetzt)) {
+        // Wieder einreihen nur, wenn die Karte zur Auswahl passt, heute noch dran ist (bei FSRS erst morgen wieder)
+        // und noch etwas anderes ansteht. Sonst saehe man sofort dieselbe Karte.
+        runde.push(k);
+      }
     }
     meldung = {
       wort: k.front,
       vorher: vorher,
-      nachher: k.box,
-      due: k.due          // nur für die Anzeige „wieder in … Tagen“
+      nachher: fachVon(k),
+      falsch: !gewusst,
+      due: termin(k)      // nur für die Anzeige „wieder in … Tagen“
     };
     rundeBilanz[gewusst ? 0 : 1]++;
     sichern();
     naechsteKarte();
+  }
+
+  /* Antwortknöpfe: 2 oder 4 (Einstellung), darunter, wohin die Karte je Antwort geht - unter Leitner das Fach,
+     unter FSRS der nächste Termin aus der Vorschau (die Fächer sind dort nur Gruppen nach Abstand). */
+  function knoepfeZeigen(k) {
+    var vier = KNOEPFE === 4, ziel = {};
+    document.getElementById("bewertung").classList.toggle("vier", vier);
+    document.getElementById("btn-schwer").hidden = !vier;
+    document.getElementById("btn-leicht").hidden = !vier;
+    document.querySelector("#btn-gewusst .haupt").textContent = vier ? "Gut" : "Gewusst";
+    document.getElementById("st-gewusst").textContent = vier ? "Gut" : "Gewusst";   // Stempel beim Wischen nach rechts
+    if (MODUS === "fsrs") {
+      var v = FSRS_PLAN.vorschau(k, Date.now(), { retention: RETENTION });
+      [BEWERTUNG.NOCHMAL, BEWERTUNG.SCHWER, BEWERTUNG.GUT, BEWERTUNG.LEICHT].forEach(function (b) { ziel[b] = wannKurz(v[b]); });
+    } else {
+      // Leitner kennt nur richtig und falsch: Schwer, Gut und Leicht führen ins selbe Fach; bei 4 Knöpfen kurz, sonst passt es nicht
+      ziel[BEWERTUNG.NOCHMAL] = vier ? "→ Fach 1" : (k.box > 1 ? "zurück in Fach 1" : "bleibt in Fach 1");
+      ziel[BEWERTUNG.GUT] = vier ? "→ Fach " + Math.min(5, k.box + 1) : (k.box < 5 ? "weiter in Fach " + (k.box + 1) : "bleibt in Fach 5");
+      ziel[BEWERTUNG.SCHWER] = ziel[BEWERTUNG.LEICHT] = ziel[BEWERTUNG.GUT];
+    }
+    document.getElementById("ziel-nochmal").textContent = ziel[BEWERTUNG.NOCHMAL];
+    document.getElementById("ziel-schwer").textContent = ziel[BEWERTUNG.SCHWER];
+    document.getElementById("ziel-gewusst").textContent = ziel[BEWERTUNG.GUT];
+    document.getElementById("ziel-leicht").textContent = ziel[BEWERTUNG.LEICHT];
+  }
+  // "morgen", "in 2 Tagen", "≈ 12 Tage", "≈ 3 Monate" - ab 3 Tagen ungefähr, weil FSRS die Abstände leicht streut
+  function wannKurz(tage) {
+    if (tage <= 0) return "heute";
+    if (tage === 1) return "morgen";
+    if (tage < 3) return "in " + tage + " Tagen";
+    if (tage < 45) return "≈ " + tage + " Tage";
+    if (tage < 365) return "≈ " + Math.round(tage / 30) + " Monate";
+    var jahre = Math.round(tage / 36.5) / 10;
+    return "≈ " + String(jahre).replace(".", ",") + (jahre === 1 ? " Jahr" : " Jahre");
   }
 
   function zeichneMeldung() {
@@ -600,7 +703,9 @@
     el.appendChild(document.createTextNode(
       meldung.vorher === 0
         ? " von Hand in Fach " + meldung.nachher + " gelegt"
-        : (meldung.vorher === meldung.nachher
+        : (meldung.falsch && MODUS === "fsrs"
+            ? " nicht gewusst"   // bei FSRS sagt das Fach nach einem Fehler wenig, der Termin dahinter umso mehr
+            : meldung.vorher === meldung.nachher
             ? " bleibt in Fach " + meldung.nachher
             : " \u2192 Fach " + meldung.nachher)
     ));
@@ -758,7 +863,7 @@
     zaehlwerk.kacheln.forEach(function (k, i) {
       var fach = i + 1;
       var n = daten.cards.filter(function (c) {
-        return c.aktiv && imKat(c) && c.box === fach;
+        return c.aktiv && imKat(c) && fachVon(c) === fach;
       }).length;
       if (k.ziel !== n) {
         var alt = k.ziel;
@@ -842,11 +947,8 @@
       sprichBtn.setAttribute("aria-label", enSichtbar ? "Englisch vorlesen" : "Deutsch vorlesen");
       sprichBtn.title = enSichtbar ? "Englisch vorlesen" : "Deutsch vorlesen";
       document.getElementById("k-kat").textContent =
-        (KATS[aktuell.kat] || "") + " \u00b7 Fach " + aktuell.box;
-      document.getElementById("ziel-nochmal").textContent =
-        aktuell.box > 1 ? "zurück in Fach 1" : "bleibt in Fach 1";
-      document.getElementById("ziel-gewusst").textContent =
-        aktuell.box < 5 ? "weiter in Fach " + (aktuell.box + 1) : "bleibt in Fach 5";
+        (KATS[aktuell.kat] || "") + " \u00b7 Fach " + fachVon(aktuell);
+      knoepfeZeigen(aktuell);
       // Für die Vintage-Designs: Vorderseite = Seite A, aufgedeckt = Seite B
       document.getElementById("karte").classList.toggle("offen", aufgedeckt);
       document.getElementById("vorne").textContent = s[0];
@@ -857,7 +959,7 @@
       document.getElementById("bsp").hidden = !aufgedeckt || !aktuell.bsp;
       bildAufKarte();
       document.getElementById("tipp").hidden = aufgedeckt && !wischen;
-      document.getElementById("tipp").textContent = aufgedeckt ? "\u2190 Nochmal \u00b7 Gewusst \u2192" : "Zum Aufdecken tippen";
+      document.getElementById("tipp").textContent = aufgedeckt ? "\u2190 Nochmal \u00b7 " + (KNOEPFE === 4 ? "Gut" : "Gewusst") + " \u2192" : "Zum Aufdecken tippen";
       trainer.classList.toggle("wischbar", wischen);
       document.getElementById("bewertung").hidden = !aufgedeckt;
       if (eingabeModus === "tippen" && !aufgedeckt) document.getElementById("tipp").textContent = "Antwort unten eintippen – oder zum Aufdecken tippen";
@@ -912,7 +1014,7 @@
       btn.textContent = "Weiter üben";
       btn.addEventListener("click", function () { rundeStarten(false); });
     } else {
-      var n = imFach.reduce(function (m, c) { return c.due < m ? c.due : m; }, Infinity);
+      var n = imFach.reduce(function (m, c) { return termin(c) < m ? termin(c) : m; }, Infinity);
       var d = Math.round((n - heute()) / 86400000);
       var offen = daten.cards.filter(function (c) { return !c.aktiv; }).length;
       p.textContent = (d <= 0
@@ -1102,7 +1204,7 @@
         fo.textContent = "F" + fb;
         fach.appendChild(fo);
       }
-      fach.value = String(c.box);
+      fach.value = String(fachVon(c));
       fach.hidden = !c.aktiv;
       fach.title = "Fach wechseln";
       fach.setAttribute("aria-label", "Fach von " + c.front);
@@ -1146,7 +1248,7 @@
         if (nurKasten && !c.aktiv) { zeichneListe(); return; }
         li.className = c.aktiv ? "" : "ruht";
         fach.hidden = !c.aktiv;
-        fach.value = String(c.box);
+        fach.value = String(fachVon(c));
         
         schreibeInfo(treffer.length, gesamt, q);
       });
@@ -1355,8 +1457,8 @@
     zeichneTempo();
     wichtigListe();
     var n = daten.cards.length;
-    var gelernt = daten.cards.filter(function (c) { return c.aktiv && c.box >= 4; }).length;
-    var f = daten.cards.filter(function (c) { return c.aktiv && c.due <= heute(); }).length;
+    var gelernt = daten.cards.filter(function (c) { return c.aktiv && fachVon(c) >= 4; }).length;
+    var f = daten.cards.filter(function (c) { return c.aktiv && istDran(c, Date.now()); }).length;
     document.getElementById("stats").textContent =
       n + " Vokabeln insgesamt, " + imKasten().length + " davon im Kasten. " +
       gelernt + " in Fach 4 oder 5, heute fällig: " + f + ", schwierig: " + anzahlMerk() + ".";
@@ -1450,7 +1552,7 @@
       if (!confirm("Lernstand vom " + snapDatum(snap.zeit) + " wiederherstellen? Dein aktueller Stand auf diesem Gerät wird dabei ersetzt.")) return;
       try { window.localStorage.setItem(KEY, JSON.stringify(snap.daten)); }
       catch (e) { melde("Das hat nicht geklappt: Der Speicher dieses Browsers ist voll oder gesperrt."); return; }
-      daten = { v: 2, seeded: false, cards: [] };
+      daten = { v: 3, seeded: false, cards: [], reviews: [] };
       laden();
       document.getElementById("sel-paket").value = String(paket);
       document.getElementById("sel-abdeck").value = abdeck;
@@ -1534,6 +1636,19 @@
   }
 
   function zeichneTempo() {
+    document.getElementById("sel-modus").value = MODUS;
+    document.getElementById("tempo-block").hidden = MODUS === "fsrs";
+    document.getElementById("modus-info").textContent = MODUS === "fsrs"
+      ? "FSRS rechnet für jede Karte aus, wann du sie gerade noch weißt, und fragt sie genau dann ab – weniger Wiederholungen für dasselbe Ergebnis. Die Fächer ordnen die Karten nach Abstand: unter 1 Tag, 1 Woche, 1 Monat, 3 Monaten, länger."
+      : "Feste Abstände je Fach – einfach und gut zu überblicken.";
+    document.getElementById("retention-block").hidden = MODUS !== "fsrs";
+    document.getElementById("sel-retention").value = String(RETENTION);
+    document.getElementById("sel-knoepfe").value = String(KNOEPFE);
+    document.getElementById("knoepfe-info").textContent = KNOEPFE === 2
+      ? "Gewusst oder nicht – mehr braucht es nicht. Wischen geht auch: rechts = Gewusst, links = Nochmal."
+      : MODUS === "fsrs"
+        ? "Schwer holt die Karte etwas früher zurück, Leicht schiebt sie weiter hinaus. Wischen: rechts = Gut, links = Nochmal."
+        : "Leitner zählt Schwer, Gut und Leicht gleich als gewusst – die Abstufung merkt sich FSRS im Hintergrund.";
     var vier = TAGE.slice(2);
     var art = vorlagenName(vier);
     document.getElementById("sel-tempo").value = art;
@@ -1795,7 +1910,7 @@
   }
   function zeichneKacheln() {
     kachelnGroesse();
-    var f = daten.cards.filter(function (c) { return c.aktiv && c.due <= heute(); }).length, k = imKasten().length;
+    var f = daten.cards.filter(function (c) { return c.aktiv && istDran(c, Date.now()); }).length, k = imKasten().length;
     var ziel = tagesZiel(), h = geuebtAm(Date.now()), serie = lernSerie(), std = new Date().getHours();
     // Begrüßung mit Lernserie
     var gruss = document.getElementById("st-gruss");
@@ -2055,6 +2170,13 @@
   document.getElementById("btn-gewusst").addEventListener("click", function (e) {
     e.stopPropagation(); bewerten(true);
   });
+  // nur bei 4 Knöpfen sichtbar; Gewusst steht dann für „Gut“
+  document.getElementById("btn-schwer").addEventListener("click", function (e) {
+    e.stopPropagation(); bewerten(BEWERTUNG.SCHWER);
+  });
+  document.getElementById("btn-leicht").addEventListener("click", function (e) {
+    e.stopPropagation(); bewerten(BEWERTUNG.LEICHT);
+  });
 
   /* ---------- Schnell anlegen (Startseite) ----------
      English zuerst (so begegnet einem das Wort), Deutsch dazu, Enter: die Karte liegt sofort in Fach 1.
@@ -2101,7 +2223,7 @@
     if (!en) { snInfo(""); return; }
     var c = snVorhanden(en);
     if (c) {
-      snInfo(c.aktiv ? "liegt schon im Kasten (Fach " + c.box + ")." : "steht schon in der Liste – + legt die Karte in den Kasten.",
+      snInfo(c.aktiv ? "liegt schon im Kasten (Fach " + fachVon(c) + ")." : "steht schon in der Liste – + legt die Karte in den Kasten.",
              WISSEN ? "„" + c.front + "“ = „" + c.back + "“" : "„" + c.back + "“ = „" + c.front + "“");
       if (!snEl("de").value) snEl("de").placeholder = c.front;
     } else {
@@ -2343,7 +2465,7 @@
     if (!en) { snEl("en").focus(); return; }
     var da = snVorhanden(en);
     if (da && !de) {   // vorhandene Karte in den Kasten legen
-      if (!da.aktiv) { da.aktiv = true; da.box = 1; da.due = heute(); }
+      if (!da.aktiv) { da.aktiv = true; da.box = 1; da.due = heute(); delete da.fsrs; }   // FSRS-Stand neu (Fach 1) in sichern()
       if (bsp && !da.bsp) da.bsp = bsp;
       sichern(); snLeeren(); zeichneKacheln();
       snInfo("ist jetzt im Kasten (Fach " + da.box + ").", "„" + (WISSEN ? da.front : da.back) + "“");
@@ -2593,7 +2715,7 @@
     if (!aktuell) return;
     var k = aktuell, akt = [];
     akt.push({ text: "✎ Vokabel bearbeiten", tun: function () { karteBearbeitenBlatt(k); } });
-    if (k.box > 1) akt.push({ text: "↓ Zurück in Fach " + (k.box - 1), tun: function () {
+    if (fachVon(k) > 1) akt.push({ text: "↓ Zurück in Fach " + (fachVon(k) - 1), tun: function () {
       if (!einFachRunter(k)) return;
       // Passt die Karte nicht mehr zur Auswahl, faellt sie aus der Runde.
       if (!imFilter(k)) { naechsteKarte(); return; }
@@ -3057,6 +3179,25 @@
     else if (mq.addListener) mq.addListener(folgen);
   }
 
+  document.getElementById("sel-modus").addEventListener("change", function (e) {
+    // nur die Weiche umstellen: beide Stände sind aktuell (siehe bewerten), darum verschiebt sich dabei keine Karte
+    MODUS = e.target.value === "fsrs" ? "fsrs" : "leitner";
+    sichern();
+    rundeStarten(false);   // die Runde neu nach dem jetzt gültigen Verfahren zusammenstellen
+    zeichneTempo();
+  });
+  // Behaltensquote gilt ab der nächsten Antwort; schon geplante Termine bleiben, wie sie sind
+  document.getElementById("sel-retention").addEventListener("change", function (e) {
+    RETENTION = Math.min(0.95, Math.max(0.8, Number(e.target.value) || 0.9));
+    sichern();
+  });
+  document.getElementById("sel-knoepfe").addEventListener("change", function (e) {
+    KNOEPFE = e.target.value === "4" ? 4 : 2;
+    sichern();
+    zeichneTempo();
+    if (aktuell) zeichneUeben();
+  });
+
   document.getElementById("sel-tempo").addEventListener("change", function (e) {
     if (e.target.value === "eigen") {
       document.getElementById("tempofelder").hidden = false;
@@ -3161,22 +3302,27 @@
   }
   function sicherungsInhalt() {
     sichern();
-    var en = kastenLesen("en") || { v: 2, seeded: true, cards: [] };
+    var en = kastenLesen("en") || { v: 3, seeded: true, cards: [], reviews: [] };
     var aus = JSON.parse(JSON.stringify(en));
     var weitere = KAESTEN.liste.filter(function (k) { return k.id !== "en"; });
     if (weitere.length) {
       aus.kaesten = weitere.map(function (k) { return { id: k.id, name: k.name, farbe: k.farbe, art: k.art }; });
       aus.kastenDaten = {};
-      weitere.forEach(function (k) { var d = kastenLesen(k.id); if (d) aus.kastenDaten[k.id] = { cards: d.cards }; });
+      weitere.forEach(function (k) { var d = kastenLesen(k.id); if (d) aus.kastenDaten[k.id] = { cards: d.cards, reviews: d.reviews || [] }; });
     }
     return aus;
   }
-  // Karten einer Sicherung in einen Kasten mischen: Vorhandenes behält den besseren Lernstand, Neues kommt dazu
-  function kartenMischen(ziel, karten, katAnzahl, kid, bilder, aufgaben, quelle) {
-    var idx = {}, neu = 0, akt = 0;
+  /* Karten einer Sicherung in einen Kasten mischen: Vorhandenes behält den besseren Lernstand, Neues kommt dazu.
+     Leitner (Fach/Termin): das höhere Fach gewinnt, wie bisher. FSRS: der Stand mit der jüngeren Wiederholung gewinnt -
+     jedes Verfahren behält so für sich das Aktuellere. reviews = Antwortprotokoll der Datei für diesen Kasten; es
+     wird über ids (Kennung in der Datei -> Kennung hier) den Karten zugeordnet, auch wenn sie hier neu angelegt werden. */
+  function kartenMischen(ziel, karten, katAnzahl, kid, bilder, aufgaben, quelle, reviews) {
+    var idx = {}, neu = 0, akt = 0, ids = {};
     function foto(c, karte) {   // Foto aus der Datei an die Karte hängen (hat sie schon eins, bleibt es)
       var u = c.bild && bilder && bilder[(quelle || kid) + ":" + c.id];   // in der Datei unter der Kennung des Quell-Kastens
-      if (!u) return;
+      // nur eingebettete Bilder (so schreibt die App sie selbst in die Sicherung) - eine Internetadresse in einer
+      // fremden oder veränderten Datei würde sonst beim Einlesen unbemerkt abgerufen
+      if (typeof u !== "string" || u.indexOf("data:image/") !== 0) return;
       aufgaben.push([kid, karte.id, u, !!karte.bild]);   // hatte die Karte schon ein Foto: nur ergänzen, falls es fehlt
       karte.bild = true;
     }
@@ -3186,10 +3332,16 @@
       if (typeof c.front !== "string" || typeof c.back !== "string") return;
       var box = Math.min(5, Math.max(1, parseInt(c.box, 10) || 1));
       var vorhanden = idx[c.front + "\u0000" + c.back];
+      var fsrs = VK_LERNEN.fsrsGueltig(c.fsrs);
       if (vorhanden) {
+        if (typeof c.id === "string") ids[c.id] = vorhanden.id;
         if (c.merk) vorhanden.merk = true;
         if (c.aktiv !== false) vorhanden.aktiv = true;
-        if (box > vorhanden.box) { vorhanden.box = box; vorhanden.due = typeof c.due === "number" ? c.due : vorhanden.due; akt++; }
+        var besser = false;
+        if (box > vorhanden.box) { vorhanden.box = box; vorhanden.due = typeof c.due === "number" ? c.due : vorhanden.due; besser = true; }
+        if (fsrs && fsrs.last_review && !(vorhanden.fsrs && vorhanden.fsrs.last_review >= fsrs.last_review)) { vorhanden.fsrs = fsrs; besser = true; }
+        if (typeof c.zuletzt === "number" && !(vorhanden.zuletzt >= c.zuletzt)) vorhanden.zuletzt = c.zuletzt;
+        if (besser) akt++;
         foto(c, vorhanden);
         return;
       }
@@ -3199,15 +3351,23 @@
         ord: ord++, merk: !!c.merk, aktiv: (typeof c.aktiv === "boolean") ? c.aktiv : true, box: box,
         due: typeof c.due === "number" ? c.due : heute(), created: typeof c.created === "number" ? c.created : Date.now()
       };
+      // ohne (gültigen) FSRS-Stand in der Datei rechnet standNachtragen ihn beim Speichern aus dem Fach aus
+      if (fsrs) karte.fsrs = fsrs;
+      if (typeof c.zuletzt === "number") karte.zuletzt = c.zuletzt;
+      if (typeof c.id === "string") ids[c.id] = karte.id;
       ziel.cards.push(karte);
       foto(c, karte);
       idx[c.front + "\u0000" + c.back] = karte;   // doppelte Zeilen in der Datei landen auf derselben Karte
       neu++;
     });
+    VK_LERNEN.protokollMischen(ziel, reviews, ids);
     return { neu: neu, akt: akt };
   }
   function kastenSchreiben(id, d) {
     if (id === KASTEN.id) { sichern(); return; }
+    // wie in sichern(): fehlende FSRS-Stände gleich ergänzen - aber nur in Schema 3; ein Kasten im alten Schema
+    // wird erst beim Öffnen umgebaut, weil laden() vorher seine Sicherung anlegt
+    if (d.v >= 3) VK_LERNEN.migriereV3(d, TAGE, Date.now());
     try { window.localStorage.setItem(kastenKey(id), JSON.stringify(d)); } catch (e) {}
   }
   // Fotos aus der Datei nachladen (nur wo die Karte noch keins hat)
@@ -3222,10 +3382,10 @@
   /* Welche Kästen füllt eine Datei? Karten oben = Englisch, dazu jeder Kasten aus kaesten/kastenDaten mit Karten. */
   function dateiKaesten(p) {
     var l = [];
-    if (p.cards.length) l.push({ id: "en", karten: p.cards });
+    if (p.cards.length) l.push({ id: "en", karten: p.cards, reviews: p.reviews });
     (Array.isArray(p.kaesten) ? p.kaesten : []).forEach(function (k) {
       var kd = k && k.id && k.id !== "en" && p.kastenDaten && p.kastenDaten[k.id];
-      if (kd && Array.isArray(kd.cards) && kd.cards.length) l.push({ id: String(k.id), k: k, karten: kd.cards });
+      if (kd && Array.isArray(kd.cards) && kd.cards.length) l.push({ id: String(k.id), k: k, karten: kd.cards, reviews: kd.reviews });
     });
     return l;
   }
@@ -3256,7 +3416,7 @@
   }
   function inOffenenKasten(z, bilder) {
     var fotos = [];
-    var r = kartenMischen(daten, z.karten, KATS.length, KASTEN.id, bilder, fotos, z.id);
+    var r = kartenMischen(daten, z.karten, KATS.length, KASTEN.id, bilder, fotos, z.id, z.reviews);
     sichern();
     kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
     zeichneListe();
@@ -3267,8 +3427,8 @@
   function sicherungEinlesen(p) {
     var gesamt = { neu: 0, akt: 0 }, dazu = [], fotos = [];
     // Englisch (oben in der Datei)
-    var en = kastenLesen("en") || { v: 2, seeded: true, cards: [] };
-    var r = kartenMischen(en, p.cards, SEED.kats.length, "en", p.bilder, fotos);
+    var en = kastenLesen("en") || { v: 3, seeded: true, cards: [], reviews: [] };
+    var r = kartenMischen(en, p.cards, SEED.kats.length, "en", p.bilder, fotos, undefined, p.reviews);
     gesamt.neu += r.neu; gesamt.akt += r.akt;
     kastenSchreiben("en", en);
     // weitere Kästen: fehlende werden angelegt, vorhandene gemischt
@@ -3291,8 +3451,8 @@
         eintrag = { id: String(k.id), name: String(k.name || "Kasten").slice(0, 30), farbe: +k.farbe || 1, art: "wissen" };
         KAESTEN.liste.push(eintrag); dazu.push(kastenTitel(eintrag));
       }
-      var d = kastenLesen(eintrag.id) || { v: 2, seeded: true, cards: [] };
-      var r2 = kartenMischen(d, p.kastenDaten[k.id].cards, 4, eintrag.id, p.bilder, fotos, String(k.id));
+      var d = kastenLesen(eintrag.id) || { v: 3, seeded: true, cards: [], reviews: [] };
+      var r2 = kartenMischen(d, p.kastenDaten[k.id].cards, 4, eintrag.id, p.bilder, fotos, String(k.id), p.kastenDaten[k.id].reviews);
       gesamt.neu += r2.neu; gesamt.akt += r2.akt;
       kastenSchreiben(eintrag.id, d);
     });
@@ -3321,7 +3481,7 @@
   document.getElementById("btn-lernstand").addEventListener("click", function () {
     if (!confirm("Alle Karten zurück auf Fach 1? Vokabeln, Kasten und Sterne bleiben erhalten.")) return;
     var t = heute();
-    daten.cards.forEach(function (c) { c.box = 1; c.due = t; });
+    daten.cards.forEach(function (c) { c.box = 1; c.due = t; delete c.fsrs; });   // sichern() gibt allen einen neuen FSRS-Stand
     sichern();
     zeichneStats();
     rundeStarten(false);
@@ -3329,7 +3489,8 @@
 
   document.getElementById("btn-reset").addEventListener("click", function () {
     if (!confirm("Wirklich alle Vokabeln löschen? Nur eine Sicherungsdatei bringt sie zurück.")) return;
-    daten = { v: 2, seeded: true, cards: [] };
+    daten = { v: 3, seeded: true, cards: [], reviews: [] };
+    try { window.localStorage.removeItem(VOR_V3 + KASTEN.id); } catch (e) {}   // gelöscht heißt gelöscht: auch die Sicherung vor dem FSRS-Umbau
     bilderKastenLoeschen(KASTEN.id);
     runde = []; aktuell = null;
     sichern();
@@ -3433,7 +3594,7 @@
       if (!imKat(c)) return false;
       if (auswahl === "alle" || auswahl === "liste") return true;
       if (!c.aktiv) return false;
-      return auswahl === "kasten" || c.due <= t;
+      return auswahl === "kasten" || istDran(c, t);
     });
   }
   function hoerInfo() {
@@ -4030,7 +4191,7 @@
       if (auswahl === "alle") return true;
       if (auswahl === "schwierig") return !!c.merk;
       if (!c.aktiv) return false;
-      return auswahl === "kasten" || c.due <= t;
+      return auswahl === "kasten" || istDran(c, t);
     });
   }
   function duKartenInfo() {
@@ -4453,7 +4614,7 @@
     var el = document.getElementById("du-faecher");
     el.textContent = "";
     for (var f = 1; f <= 5; f++) {
-      var n = daten.cards.filter(function (c) { return c.aktiv && imKat(c) && c.box === f; }).length;
+      var n = daten.cards.filter(function (c) { return c.aktiv && imKat(c) && fachVon(c) === f; }).length;
       var d = document.createElement("div");
       d.className = "du-fach" + (f === jetzt ? " jetzt" : "") + (f === ziel ? " ziel" + (hoch ? " hoch" : " runter") : "");
       var b = document.createElement("b");
@@ -4468,10 +4629,10 @@
   /* sofort werten, sobald feststeht, ob die Antwort richtig war - dann sieht man gleich, wohin die Karte wandert */
   function duSoloWerten(gewusst) {
     if (!du || !du.solo || du.gewertet || !du.frage) return;
-    var k = du.frage.karte, vorher = k.box;
+    var k = du.frage.karte, vorher = fachVon(k);
     du.gewertet = true;
     if (aktuell === k) bewerten(gewusst);
-    var nachher = k.box;
+    var nachher = fachVon(k);
     duFaecherZeigen(0, nachher, gewusst);
     duPhase(gewusst ? (nachher > vorher ? "Gewusst · Fach " + vorher + " → " + nachher : "Gewusst · bleibt in Fach " + nachher)
                     : (vorher > 1 ? "Zurück in Fach 1" : "Bleibt in Fach 1"));
@@ -4529,7 +4690,7 @@
     du.phase = "vorlesen";
     duTafel(du.dran);
     duEntscheidZu();
-    duPhase(du.solo ? "Fach " + c.box : du.namen[du.dran] + " ist dran");
+    duPhase(du.solo ? "Fach " + fachVon(c) : du.namen[du.dran] + " ist dran");
     duSetze("du-vorne", frage);
     duSetze("du-hinten", "");
     duSetze("du-gehoert", "");
@@ -5063,7 +5224,7 @@
     if (du) duSchliessen();
     if (geladen) sichern();
     geladen = false;
-    daten = { v: 2, seeded: false, cards: [] };
+    daten = { v: 3, seeded: false, cards: [], reviews: [] };
     KAESTEN.aktiv = k.id;
     kaestenSichern();
     KASTEN = k; WISSEN = k.art === "wissen"; KATS = kastenKats(); KEY = kastenKey(k.id);
@@ -5250,7 +5411,7 @@
   }
   function kastenEndgueltigLoeschen(k) {
     if (!confirm("„" + kastenTitel(k) + "“ mit allen Karten endgültig löschen? Das lässt sich nur mit einer Sicherungsdatei rückgängig machen.")) return;
-    try { window.localStorage.removeItem(kastenKey(k.id)); } catch (e) {}
+    try { window.localStorage.removeItem(kastenKey(k.id)); window.localStorage.removeItem(VOR_V3 + k.id); } catch (e) {}   // samt Sicherung vor dem FSRS-Umbau
     bilderKastenLoeschen(k.id);
     KAESTEN.papierkorb = papierkorb().filter(function (x) { return x.id !== k.id; });
     kaestenSichern(); kastenVerwaltenZeichnen();

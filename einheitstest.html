@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vokabelkasten Einheitstest</title>
+<style>
+  :root { --bg:#f3f1ec; --text:#1f1d1a; --dim:#6b675f; --ok:#3f7d4e; --fail:#b5452f; --rule:#dcd7cc; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#161513; --text:#ece8e0; --dim:#a39d92; --rule:#34312c; } }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 Georgia, "Times New Roman", serif; }
+  .wrap { padding:16px; max-width:46rem; }
+  h1 { font-size:21px; margin:0 0 4px; }
+  p { color:var(--dim); margin:0 0 12px; }
+  button { font:inherit; padding:10px 16px; border-radius:3px; border:1px solid var(--text); background:var(--text); color:var(--bg); cursor:pointer; }
+  button:disabled { opacity:.5; }
+  #summe { font-weight:700; margin:12px 0; }
+  #summe.ok { color:var(--ok); } #summe.fail { color:var(--fail); }
+  ol { padding-left:22px; margin:0; }
+  li { margin:4px 0; }
+  li.fail { color:var(--fail); }
+  li small { display:block; color:var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vokabelkasten Einheitstest</h1>
+  <p>Prüft die Lernverfahren (lernen.js) einzeln: ohne App, ohne Speicher, dein Lernstand bleibt unberührt.
+    Läuft auch direkt aus dem Ordner (file://).</p>
+  <button id="los" type="button">Test starten</button>
+  <div id="summe"></div>
+  <ol id="liste"></ol>
+</div>
+<script src="./ts-fsrs.js"></script>
+<script src="./lernen.js"></script>
+<script>
+(function () {
+  "use strict";
+  var L = window.VK_LERNEN, B = L.BEWERTUNG, TAG = 86400000;
+  var liste = document.getElementById("liste"), summe = document.getElementById("summe");
+
+  function pruefe(b, text) { if (!b) throw new Error(text); }
+  function eintrag(name) { var li = document.createElement("li"); li.textContent = "… " + name; liste.appendChild(li); return li; }
+  // fester Zeitpunkt mitten am Tag, damit kein Test um Mitternacht kippt
+  var JETZT = new Date(2026, 8, 30, 14, 30).getTime(), HEUTE = new Date(2026, 8, 30).getTime();
+  var FEST = { retention: 0.9, fuzz: false };   // FSRS ohne Streuung, damit die Ergebnisse gleich bleiben
+  var NORMAL = [0, 1, 1, 3, 7, 16], GRUENDLICH = [0, 1, 1, 2, 4, 8], LOCKER = [0, 1, 2, 5, 12, 30];
+  function karte(box, due) { return { id: "t", front: "Haus", back: "house", box: box, due: due === undefined ? HEUTE : due }; }
+
+  /* So rechnete bewerten() in app.js vor dem Umbau (wörtlich, nur heute() durch den festen Tag ersetzt) -
+     der neue LeitnerScheduler muss für jede Lage genau dasselbe ergeben. */
+  function altBewerten(k, gewusst, TAGE) {
+    if (gewusst) {
+      k.box = Math.min(5, k.box + 1);
+      k.due = HEUTE + TAGE[k.box] * 86400000;
+    } else {
+      k.box = 1;
+      k.due = HEUTE;
+    }
+    return k;
+  }
+
+  // Kasten im Schema 2 (vor FSRS): je Fach eine Karte, dazu Merk-, Bild- und inaktive Karte und Kastenfelder
+  function kastenV2() {
+    var karten = [1, 2, 3, 4, 5].map(function (box) {
+      return { id: "k" + box, front: "Wort " + box, back: "word " + box, bsp: "", kat: "Alltag", ord: box, aktiv: true,
+        merk: false, box: box, due: HEUTE + (box - 2) * TAG, created: HEUTE - 30 * TAG };
+    });
+    karten.push({ id: "m", front: "Merk", back: "star", kat: "Alltag", ord: 6, aktiv: true, merk: true, box: 3, due: HEUTE, created: HEUTE, bild: true });
+    karten.push({ id: "i", front: "Aus", back: "off", kat: "Alltag", ord: 7, aktiv: false, merk: false, box: 1, due: HEUTE, created: HEUTE });
+    return { v: 2, seeded: true, cards: karten, log: { "2026-09-29": 12 }, abstaende: [1, 3, 7, 16], richtung: "de", paket: 15 };
+  }
+
+  var TESTS = [
+    ["Leitner: verhält sich wie bisher (jedes Fach, jede Vorlage, gewusst und nicht gewusst)", function () {
+      [NORMAL, GRUENDLICH, LOCKER].forEach(function (tage) {
+        for (var box = 1; box <= 5; box++) {
+          [true, false].forEach(function (gewusst) {
+            var alt = altBewerten(karte(box), gewusst, tage);
+            var neu = L.LeitnerScheduler.review(karte(box), gewusst ? B.GUT : B.NOCHMAL, JETZT, { tage: tage });
+            pruefe(alt.box === neu.box && alt.due === neu.due,
+              "Fach " + box + (gewusst ? " gewusst" : " nicht gewusst") + ": alt Fach " + alt.box + "/" + alt.due + ", neu Fach " + neu.box + "/" + neu.due);
+          });
+        }
+      });
+    }],
+    ["Leitner: Schwer, Gut und Leicht zählen als gewusst", function () {
+      [B.SCHWER, B.GUT, B.LEICHT].forEach(function (b) {
+        var k = L.LeitnerScheduler.review(karte(2), b, JETZT, { tage: NORMAL });
+        pruefe(k.box === 3 && k.due === HEUTE + 3 * TAG, "Bewertung " + b + " ergibt Fach " + k.box);
+      });
+    }],
+    ["Leitner: Fach 5 bleibt Fach 5, Nochmal geht zurück in Fach 1 und ist heute dran", function () {
+      var k = L.LeitnerScheduler.review(karte(5), B.GUT, JETZT, { tage: NORMAL });
+      pruefe(k.box === 5 && k.due === HEUTE + 16 * TAG, "Fach 5: " + k.box);
+      k = L.LeitnerScheduler.review(karte(4), B.NOCHMAL, JETZT, { tage: NORMAL });
+      pruefe(k.box === 1 && L.LeitnerScheduler.isDue(k, JETZT), "Nochmal: Fach " + k.box);
+    }],
+    ["Leitner: fällig ist, was heute oder früher dran war", function () {
+      pruefe(L.LeitnerScheduler.isDue(karte(2, HEUTE), JETZT), "heute nicht fällig");
+      pruefe(L.LeitnerScheduler.isDue(karte(2, HEUTE - 3 * TAG), JETZT), "überfällig nicht fällig");
+      pruefe(!L.LeitnerScheduler.isDue(karte(2, HEUTE + TAG), JETZT), "morgen schon fällig");
+    }],
+    ["FSRS: neue Karte mit Gut kommt in einigen Tagen wieder, Leitner-Felder bleiben unberührt", function () {
+      var k = L.FsrsScheduler.review(karte(3, HEUTE + 5 * TAG), B.GUT, JETZT, FEST);
+      pruefe(k.fsrs && k.fsrs.state === 2 && k.fsrs.reps === 1 && k.fsrs.lapses === 0, "Stand " + JSON.stringify(k.fsrs));
+      pruefe(k.fsrs.last_review === JETZT, "zuletzt gelernt nicht gesetzt");
+      pruefe(L.intervallTage(k.fsrs) >= 1, "Abstand " + L.intervallTage(k.fsrs) + " Tage");
+      pruefe(k.box === 3 && k.due === HEUTE + 5 * TAG, "Leitner-Stand verändert: Fach " + k.box);
+      pruefe(!L.FsrsScheduler.isDue(k, JETZT), "gleich wieder fällig");
+    }],
+    ["FSRS: Nochmal zählt einen Fehler und plant kürzer als Gut", function () {
+      var gut = L.FsrsScheduler.review(karte(1), B.GUT, JETZT, FEST);
+      var spaeter = gut.fsrs.due;
+      var falsch = L.FsrsScheduler.review(JSON.parse(JSON.stringify(gut)), B.NOCHMAL, spaeter, FEST);
+      var richtig = L.FsrsScheduler.review(JSON.parse(JSON.stringify(gut)), B.GUT, spaeter, FEST);
+      pruefe(falsch.fsrs.lapses === 1 && richtig.fsrs.lapses === 0, "Fehler nicht gezählt");
+      pruefe(L.intervallTage(falsch.fsrs) < L.intervallTage(richtig.fsrs),
+        "Nochmal " + L.intervallTage(falsch.fsrs) + " Tage, Gut " + L.intervallTage(richtig.fsrs) + " Tage");
+    }],
+    ["FSRS: Nochmal < Schwer < Gut < Leicht beim Abstand", function () {
+      var gut = L.FsrsScheduler.review(karte(1), B.GUT, JETZT, FEST), spaeter = gut.fsrs.due;
+      var tage = [B.NOCHMAL, B.SCHWER, B.GUT, B.LEICHT].map(function (b) {
+        return L.intervallTage(L.FsrsScheduler.review(JSON.parse(JSON.stringify(gut)), b, spaeter, FEST).fsrs);
+      });
+      for (var i = 1; i < tage.length; i++) pruefe(tage[i - 1] < tage[i], "Abstände " + tage.join(" / "));
+    }],
+    ["FSRS: Vorschau für die Knöpfe stimmt mit der echten Antwort überein und ändert die Karte nicht", function () {
+      var k = L.FsrsScheduler.review(karte(1), B.GUT, JETZT, FEST), zeit = k.fsrs.due + TAG, vorher = JSON.stringify(k);
+      var v = L.FsrsScheduler.vorschau(k, zeit, FEST);
+      pruefe(JSON.stringify(k) === vorher, "Vorschau hat die Karte verändert");
+      [B.NOCHMAL, B.SCHWER, B.GUT, B.LEICHT].forEach(function (b) {
+        var echt = L.FsrsScheduler.review(JSON.parse(vorher), b, zeit, FEST);
+        var tage = Math.round((L.tagesBeginn(echt.fsrs.due) - L.tagesBeginn(zeit)) / TAG);
+        pruefe(v[b] === tage, "Bewertung " + b + ": Vorschau " + v[b] + " Tage, echt " + tage);
+      });
+    }],
+    ["FSRS: höhere Behaltensquote heißt kürzere Abstände", function () {
+      var hoch = L.FsrsScheduler.review(karte(1), B.GUT, JETZT, { retention: 0.95, fuzz: false });
+      var tief = L.FsrsScheduler.review(karte(1), B.GUT, JETZT, { retention: 0.8, fuzz: false });
+      hoch = L.FsrsScheduler.review(hoch, B.GUT, hoch.fsrs.due, { retention: 0.95, fuzz: false });
+      tief = L.FsrsScheduler.review(tief, B.GUT, tief.fsrs.due, { retention: 0.8, fuzz: false });
+      pruefe(L.intervallTage(hoch.fsrs) < L.intervallTage(tief.fsrs), "95 %: " + L.intervallTage(hoch.fsrs) + " Tage, 80 %: " + L.intervallTage(tief.fsrs) + " Tage");
+    }],
+    ["FSRS: gespeicherter Stand (JSON) rechnet genau so weiter wie der ungespeicherte", function () {
+      var a = L.FsrsScheduler.review(karte(1), B.GUT, JETZT, FEST);
+      var b = JSON.parse(JSON.stringify(a));
+      var zeit = a.fsrs.due + 2 * TAG;
+      a = L.FsrsScheduler.review(a, B.SCHWER, zeit, FEST);
+      b = L.FsrsScheduler.review(b, B.SCHWER, zeit, FEST);
+      pruefe(JSON.stringify(a.fsrs) === JSON.stringify(b.fsrs), JSON.stringify(a.fsrs) + " ≠ " + JSON.stringify(b.fsrs));
+    }],
+    ["FSRS: fällig am Kalendertag von due, ohne Stand sofort", function () {
+      var k = karte(1);
+      pruefe(L.FsrsScheduler.isDue(k, JETZT), "neue Karte nicht fällig");
+      k.fsrs = { due: HEUTE + 2 * TAG + 20 * 3600000, stability: 2, difficulty: 5, reps: 1, lapses: 0, state: 2, last_review: HEUTE };
+      pruefe(!L.FsrsScheduler.isDue(k, HEUTE + TAG + 23 * 3600000), "am Vortag fällig");
+      pruefe(L.FsrsScheduler.isDue(k, HEUTE + 2 * TAG + 60000), "am Tag selbst (morgens) nicht fällig");
+    }],
+    ["Fächer-Ansicht bei FSRS: Grenzen <1 Tag, <1 Woche, <1 Monat, <3 Monate, länger", function () {
+      [[0, 1], [1, 2], [6, 2], [7, 3], [29, 3], [30, 4], [89, 4], [90, 5], [400, 5]].forEach(function (p) {
+        pruefe(L.fachAusIntervall(p[0]) === p[1], p[0] + " Tage ergeben Fach " + L.fachAusIntervall(p[0]) + " statt " + p[1]);
+      });
+    }],
+    ["Umbau auf Schema 3: kein Feld geht verloren, jede Karte bekommt FSRS-Stand und zuletzt gelernt", function () {
+      var d = kastenV2(), vorher = JSON.parse(JSON.stringify(d));
+      pruefe(L.migriereV3(d, NORMAL, JETZT) === true, "Umbau meldet keine Änderung");
+      pruefe(d.v === 3 && Array.isArray(d.reviews) && d.reviews.length === 0, "Schema " + d.v);
+      pruefe(d.log && d.log["2026-09-29"] === 12 && d.abstaende.join() === "1,3,7,16", "Kastenfelder verändert");
+      pruefe(d.cards.length === vorher.cards.length, "Kartenzahl " + d.cards.length);
+      d.cards.forEach(function (k, i) {
+        Object.keys(vorher.cards[i]).forEach(function (feld) {
+          pruefe(JSON.stringify(k[feld]) === JSON.stringify(vorher.cards[i][feld]), "Karte " + k.id + ": " + feld + " verändert");
+        });
+        pruefe(k.fsrs && typeof k.fsrs.due === "number" && k.zuletzt !== undefined, "Karte " + k.id + " ohne FSRS-Stand");
+      });
+    }],
+    ["Umbau: Fach wird nach Tabelle umgerechnet (Fach 1 neu, sonst Stabilität = Abstand des Fachs)", function () {
+      var d = kastenV2();
+      L.migriereV3(d, NORMAL, JETZT);
+      d.cards.forEach(function (k) {
+        if (k.box === 1) {
+          pruefe(k.fsrs.state === 0 && k.fsrs.reps === 0 && k.zuletzt === null, "Fach 1 nicht neu: " + JSON.stringify(k.fsrs));
+        } else {
+          pruefe(k.fsrs.state === 2 && k.fsrs.stability === NORMAL[k.box] && k.fsrs.difficulty === 5 && k.fsrs.reps === k.box - 1,
+            "Fach " + k.box + ": " + JSON.stringify(k.fsrs));
+          pruefe(k.fsrs.last_review === k.due - NORMAL[k.box] * TAG && k.zuletzt === k.fsrs.last_review, "Fach " + k.box + ": zuletzt falsch");
+        }
+        pruefe(k.fsrs.due === k.due, "Fach " + k.box + ": fällig verschoben");
+      });
+    }],
+    ["Umbau: Umschalten verschiebt nichts - beide Verfahren sehen dieselben Karten am selben Tag", function () {
+      var d = kastenV2();
+      L.migriereV3(d, NORMAL, JETZT);
+      for (var tag = -3; tag <= 40; tag++) {
+        var zeit = JETZT + tag * TAG;
+        d.cards.forEach(function (k) {
+          pruefe(L.LeitnerScheduler.isDue(k, zeit) === L.FsrsScheduler.isDue(k, zeit), "Karte " + k.id + " an Tag " + tag + " verschieden fällig");
+        });
+      }
+      var zweiter = JSON.stringify(d);
+      pruefe(L.migriereV3(d, NORMAL, JETZT) === false && JSON.stringify(d) === zweiter, "zweiter Umbau hat etwas verändert");
+    }],
+    ["Hin und her: jede Antwort schreibt beide Stände fort, Umschalten ändert keinen davon", function () {
+      var d = kastenV2();
+      L.migriereV3(d, NORMAL, JETZT);
+      var zeit = JETZT, bewertungen = [B.GUT, B.NOCHMAL, B.GUT, B.SCHWER, B.LEICHT, B.GUT];
+      d.cards.forEach(function (k, i) {
+        var b = bewertungen[i % bewertungen.length];
+        L.LeitnerScheduler.review(k, b, zeit, { tage: NORMAL });
+        L.FsrsScheduler.review(k, b, zeit, FEST);
+      });
+      var stand = JSON.stringify(d.cards);
+      // "Umschalten" liest nur das andere Feld - ein weiterer Umbau-Lauf (wie beim nächsten Start) darf nichts ändern
+      L.migriereV3(d, NORMAL, zeit + TAG);
+      pruefe(JSON.stringify(d.cards) === stand, "Stände nach erneutem Laden verändert");
+      d.cards.forEach(function (k) {
+        pruefe(k.fsrs.last_review === zeit, "Karte " + k.id + ": FSRS-Stand nicht fortgeschrieben");
+      });
+    }],
+    ["Umbau: SM-2-Kasten nimmt den eigenen Abstand, sonst zählt ein alter iv nicht", function () {
+      var d = kastenV2();
+      d.cards[3].iv = 40; d.cards[3].rep = 6; d.cards[3].ez = 2.7;   // Fach 4 im SM-2-Modus
+      var e = JSON.parse(JSON.stringify(d));
+      d.modus = "sm2";
+      L.migriereV3(d, NORMAL, JETZT);
+      L.migriereV3(e, NORMAL, JETZT);
+      pruefe(d.cards[3].fsrs.stability === 40 && d.cards[3].fsrs.reps === 6, "SM-2: " + JSON.stringify(d.cards[3].fsrs));
+      pruefe(e.cards[3].fsrs.stability === 7 && e.cards[3].fsrs.reps === 3, "Leitner mit altem iv: " + JSON.stringify(e.cards[3].fsrs));
+      pruefe(d.cards[3].iv === 40 && d.cards[3].ez === 2.7, "SM-2-Felder gelöscht");
+    }],
+    ["Rückweg FSRS -> Leitner: Fach nach Abstand mit den Grenzen der Fächer-Ansicht, gleicher Tag", function () {
+      [[0, 1], [3, 2], [10, 3], [45, 4], [200, 5]].forEach(function (p) {
+        var k = { id: "r", front: "a", back: "b", fsrs: p[0] ?
+          { due: HEUTE + p[0] * TAG + 3600000, stability: p[0], difficulty: 5, reps: 2, lapses: 0, state: 2, last_review: HEUTE } :
+          { due: HEUTE, stability: 0, difficulty: 0, reps: 0, lapses: 0, state: 0, last_review: null } };
+        L.standNachtragen(k, NORMAL, JETZT, 0);
+        // Tagesbeginn statt "+ n × 24 h": dazwischen kann die Zeitumstellung liegen (Ende Oktober)
+        pruefe(k.box === p[1] && k.due === L.tagesBeginn(HEUTE + p[0] * TAG + 3600000), p[0] + " Tage: Fach " + k.box + ", fällig " + new Date(k.due));
+      });
+    }],
+    ["Fach von Hand setzen bei FSRS: Karte landet in der Ansicht genau in diesem Fach und ist heute dran", function () {
+      for (var f = 1; f <= 5; f++) {
+        var k = { id: "h", fsrs: L.fsrsFuerFach(f, JETZT) };
+        pruefe(L.fachAusIntervall(L.intervallTage(k.fsrs)) === f, "Fach " + f + " landet in Fach " + L.fachAusIntervall(L.intervallTage(k.fsrs)));
+        pruefe(L.FsrsScheduler.isDue(k, JETZT) && !L.FsrsScheduler.isDue(k, HEUTE - 1), "Fach " + f + ": nicht heute fällig");
+        L.FsrsScheduler.review(k, B.GUT, JETZT, FEST);   // und FSRS rechnet damit weiter
+        pruefe(k.fsrs.reps === f && L.intervallTage(k.fsrs) >= 1, "Fach " + f + ": danach " + JSON.stringify(k.fsrs));
+      }
+    }],
+    ["Sicherung einlesen: gültiger FSRS-Stand wird übernommen, kaputter verworfen", function () {
+      var gut = L.FsrsScheduler.review(karte(1), B.GUT, JETZT, FEST).fsrs;
+      var kopie = L.fsrsGueltig(JSON.parse(JSON.stringify(gut)));
+      pruefe(kopie && JSON.stringify(kopie) === JSON.stringify(gut), "gültiger Stand verworfen");
+      pruefe(L.fsrsGueltig(L.fsrsFuerFach(1, JETZT)), "neue Karte verworfen");
+      var extra = JSON.parse(JSON.stringify(gut)); extra.fremd = "x";
+      pruefe(!("fremd" in L.fsrsGueltig(extra)), "fremdes Feld mitgenommen");
+      [null, "text", {}, { due: "morgen" }].forEach(function (f) { pruefe(L.fsrsGueltig(f) === null, "angenommen: " + JSON.stringify(f)); });
+      ["due", "stability", "difficulty", "reps", "lapses", "state"].forEach(function (feld) {
+        var f = JSON.parse(JSON.stringify(gut)); f[feld] = -1;
+        pruefe(L.fsrsGueltig(f) === null, feld + " = -1 angenommen");
+      });
+      var ohneDatum = JSON.parse(JSON.stringify(gut)); ohneDatum.last_review = null;
+      pruefe(L.fsrsGueltig(ohneDatum) === null, "gelernte Karte ohne Datum angenommen");
+    }],
+    ["Sicherung einlesen: Antwortprotokoll landet bei den richtigen Karten, doppelt Eingelesenes nur einmal", function () {
+      var ziel = { cards: [], reviews: [{ cardId: "hier1", timestamp: 100, rating: 3, scheduler: "leitner" }] };
+      var datei = [
+        { cardId: "a", timestamp: 300, rating: 1, scheduler: "fsrs" },
+        { cardId: "b", timestamp: 200, rating: 4, scheduler: "leitner" },
+        { cardId: "a", timestamp: 300, rating: 1, scheduler: "fsrs" },            // doppelt in der Datei
+        { cardId: "weg", timestamp: 400, rating: 3, scheduler: "fsrs" },          // Karte gibt es nicht
+        { cardId: "b", timestamp: 500, rating: 7, scheduler: "fsrs" },            // unbrauchbare Bewertung
+        { cardId: "constructor", timestamp: 600, rating: 3, scheduler: "fsrs" }   // kein Schlupfloch über Objekt-Eigenschaften
+      ];
+      var ids = { a: "hier1", b: "neu7" };
+      pruefe(L.protokollMischen(ziel, datei, ids) === 2, "Anzahl übernommen falsch: " + JSON.stringify(ziel.reviews));
+      pruefe(ziel.reviews.map(function (r) { return r.cardId + "@" + r.timestamp; }).join() === "hier1@100,neu7@200,hier1@300",
+        "Zuordnung oder Reihenfolge: " + JSON.stringify(ziel.reviews));
+      pruefe(L.protokollMischen(ziel, datei, ids) === 0 && ziel.reviews.length === 3, "zweites Einlesen hat verdoppelt");
+      pruefe(L.protokollMischen({ cards: [] }, undefined, {}) === 0, "Datei ohne Protokoll (ältere Sicherung) macht Probleme");
+    }],
+    ["Umbau: Karte ohne Fälligkeit wird über die nächsten Tage verteilt", function () {
+      var tage = [0, 1, 2, 3, 4, 5, 6, 7].map(function (nr) {
+        return (L.fsrsAusFach({ box: 5 }, NORMAL, JETZT, nr).due - HEUTE) / TAG;
+      });
+      pruefe(tage.join() === "0,1,2,3,4,5,6,7", "verteilt auf " + tage.join());
+    }]
+  ];
+
+  document.getElementById("los").addEventListener("click", async function () {
+    var knopf = this;
+    knopf.disabled = true; liste.innerHTML = ""; summe.textContent = "";
+    var ok = 0, schlecht = 0;
+    for (var t = 0; t < TESTS.length; t++) {
+      var li = eintrag(TESTS[t][0]);
+      try { await TESTS[t][1](); li.textContent = "✓ " + TESTS[t][0]; ok++; }
+      catch (e) {
+        li.className = "fail"; li.textContent = "✗ " + TESTS[t][0];
+        var sm = document.createElement("small"); sm.textContent = e && e.message ? e.message : String(e); li.appendChild(sm);
+        schlecht++;
+      }
+    }
+    summe.className = schlecht ? "fail" : "ok";
+    summe.textContent = schlecht ? schlecht + " von " + TESTS.length + " Prüfungen fehlgeschlagen" : "Alles in Ordnung: " + ok + " von " + TESTS.length + " Prüfungen bestanden";
+    document.title = (schlecht ? "✗ " : "✓ ") + "Vokabelkasten Einheitstest";
+    knopf.disabled = false;
+  });
+  if (/[?&]auto\b/.test(location.search)) document.getElementById("los").click();
+})();
+</script>
+</body>
+</html>

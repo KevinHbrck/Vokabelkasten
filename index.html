@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-09-29-21">
+<link rel="stylesheet" href="./app.css?v=2026-09-30-8">
 </head>
 <body>
 
@@ -230,8 +230,15 @@
         <button class="again" id="btn-nochmal" type="button">
           <span class="haupt">Nochmal</span><span class="neben" id="ziel-nochmal"></span>
         </button>
+        <!-- Schwer und Leicht nur bei „4 Knöpfe“ (Einstellungen), dann heißt Gewusst „Gut“ -->
+        <button class="ghost stufe" id="btn-schwer" type="button" hidden>
+          <span class="haupt">Schwer</span><span class="neben" id="ziel-schwer"></span>
+        </button>
         <button class="known" id="btn-gewusst" type="button">
           <span class="haupt">Gewusst</span><span class="neben" id="ziel-gewusst"></span>
+        </button>
+        <button class="ghost stufe leicht" id="btn-leicht" type="button" hidden>
+          <span class="haupt">Leicht</span><span class="neben" id="ziel-leicht"></span>
         </button>
       </div>
       <div class="merkzeile">
@@ -524,6 +531,33 @@
         <p class="note">Nach dem Aufdecken: rechts = <b>Gewusst</b>, links = <b>Nochmal</b>.</p>
       </div>
       <div class="sk-block">
+        <h3 class="sk-titel">Lernverfahren</h3>
+        <select id="sel-modus" aria-label="Lernverfahren">
+          <option value="leitner">Leitner · feste Abstände je Fach</option>
+          <option value="fsrs">FSRS · Abstand je Karte</option>
+        </select>
+        <p class="note" id="modus-info"></p>
+      </div>
+      <div class="sk-block" id="retention-block" hidden>
+        <h3 class="sk-titel">Behaltensquote</h3>
+        <select id="sel-retention" aria-label="Behaltensquote">
+          <option value="0.8">80 % · wenig Wiederholungen</option>
+          <option value="0.85">85 %</option>
+          <option value="0.9">90 % · empfohlen</option>
+          <option value="0.93">93 %</option>
+          <option value="0.95">95 % · sehr sicher, viele Wiederholungen</option>
+        </select>
+        <p class="note">So viele Karten sollst du beim Abfragen noch wissen. Höher heißt sicherer, aber öfter wiederholen.</p>
+      </div>
+      <div class="sk-block">
+        <h3 class="sk-titel">Antwortknöpfe</h3>
+        <select id="sel-knoepfe" aria-label="Antwortknöpfe">
+          <option value="2">2 Knöpfe · Nochmal, Gewusst</option>
+          <option value="4">4 Knöpfe · Nochmal, Schwer, Gut, Leicht</option>
+        </select>
+        <p class="note" id="knoepfe-info"></p>
+      </div>
+      <div class="sk-block" id="tempo-block">
         <h3 class="sk-titel">Wiederholungstempo</h3>
         <select id="sel-tempo" aria-label="Wiederholungstempo">
           <option value="gruendlich">Gründlich · 1, 2, 4, 8 Tage</option>
@@ -787,7 +821,9 @@
   </div>
 </section>
 
-<script src="./daten.js?v=2026-09-29-21"></script>
-<script src="./app.js?v=2026-09-29-21"></script>
+<script src="./daten.js?v=2026-09-30-8"></script>
+<script src="./ts-fsrs.js?v=2026-09-30-8"></script>
+<script src="./lernen.js?v=2026-09-30-8"></script>
+<script src="./app.js?v=2026-09-30-8"></script>
 </body>
 </html>

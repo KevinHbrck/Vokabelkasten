@@ -280,6 +280,9 @@
   .grade button { flex: 1; line-height: 1.25; }
   .haupt { display: block; }
   .neben { display: block; font-size: 11px; opacity: .8; margin-top: 3px; }
+  /* 4 Knöpfe (Nochmal, Schwer, Gut, Leicht): enger, damit sie auch auf dem Handy in eine Reihe passen */
+  .grade.vier { gap: 6px; }
+  .grade.vier button { padding: 12px 4px; min-width: 0; }
 
   button {
     font: inherit; padding: 13px 16px; border-radius: 3px;
@@ -918,6 +921,7 @@
   html[data-vintage] .grade .neben { font-family: var(--f-body); font-weight: 500; font-size: 12.5px; letter-spacing: 0; text-transform: none; }
   html[data-vintage] button.again { background: var(--again-bg); border-color: rgba(0,0,0,.2); color: var(--again-ink); }
   html[data-vintage] button.known { background: var(--known-bg); border-color: rgba(0,0,0,.2); color: var(--known-ink); }
+  html[data-vintage] .grade.vier button { padding: 12px 4px; font-size: 12px; letter-spacing: .02em; }
 
   /* Tasten: Hauptknöpfe in der Akzentfarbe, übrige wie Kassettenrekorder-Tasten */
   html[data-vintage] button:not([class]) {
@@ -1179,6 +1183,7 @@
     .card .divider { margin: 12px 0; }
     .bedien .grade { margin-top: 0; flex-direction: column; }
     .bedien .grade button { min-height: 58px; }
+    .bedien .grade.vier { display: grid; grid-template-columns: 1fr 1fr; }
     .bedien .merkzeile { margin-top: 10px; }
     /* Unterwegs: Wort links, Tasten rechts */
     #unterwegs { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-template-rows: auto 1fr auto auto; column-gap: 20px; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(env(safe-area-inset-bottom) + 10px); }
@@ -1614,6 +1619,7 @@
   }
   html:not([data-vintage]) button.known { background: var(--kasten, #ef7b17); border-color: var(--kasten, #ef7b17); color: #fff; }
   html:not([data-vintage]) button.again { background: transparent; border-color: var(--rule); color: var(--ink); }
+  html:not([data-vintage]) button.stufe.leicht { border-color: var(--kasten, #ef7b17); color: var(--indigo); }
   html:not([data-vintage]) .stempel.gewusst { color: var(--kasten, #ef7b17); }
   html:not([data-vintage]) .stempel.nochmal { color: var(--ink-soft); }
 /* Optionen: „Wichtig“ offen, „Mehr“ zugeklappt (2026-09-29) */

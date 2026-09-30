@@ -140,6 +140,33 @@
       var m = id("meldung").textContent;
       pruefe(/Fach 2/.test(m) && /wieder|heute/.test(m), "Meldung passt nicht: " + m);
     }],
+    ["Lernverfahren FSRS mit vier Knöpfen: Antwort zählt für beide, Umschalten verschiebt nichts", async function () {
+      var modus = id("sel-modus"), kn = id("sel-knoepfe");
+      modus.value = "fsrs"; modus.dispatchEvent(new W.Event("change"));
+      kn.value = "4"; kn.dispatchEvent(new W.Event("change"));
+      pruefe(!id("retention-block").hidden, "Behaltensquote bei FSRS nicht sichtbar");
+      if (id("trainer").hidden) {
+        var b = await bis(function () { return $("#leer button"); }, 3000, "Knopf zum Aufnehmen");
+        klick(b);
+      }
+      await bis(function () { return !id("trainer").hidden && id("vorne").textContent; }, 3000, "Karte");
+      klick("#karte");
+      await bis(function () { return !id("bewertung").hidden; }, 2000, "Bewertung");
+      pruefe(!id("btn-schwer").hidden && !id("btn-leicht").hidden && /Gut/.test(id("btn-gewusst").textContent), "vier Knöpfe fehlen");
+      pruefe(/heute|morgen|Tag/.test(id("ziel-schwer").textContent), "keine Vorschau unter Schwer: " + id("ziel-schwer").textContent);
+      var vorher = JSON.parse(W.localStorage.getItem(KEY)).reviews.length;
+      klick("#btn-schwer");
+      var d = JSON.parse(W.localStorage.getItem(KEY)), r = d.reviews[d.reviews.length - 1];
+      pruefe(d.reviews.length === vorher + 1 && r.rating === 2 && r.scheduler === "fsrs", "Protokoll: " + JSON.stringify(r));
+      var k = d.cards.filter(function (c) { return c.id === r.cardId; })[0];
+      pruefe(k.fsrs.reps >= 1 && k.box >= 2 && k.zuletzt === r.timestamp, "nicht beide Stände fortgeschrieben: " + JSON.stringify({ box: k.box, fsrs: k.fsrs }));
+      var stand = JSON.stringify(d.cards);
+      modus.value = "leitner"; modus.dispatchEvent(new W.Event("change"));
+      pruefe(JSON.stringify(JSON.parse(W.localStorage.getItem(KEY)).cards) === stand, "Umschalten hat Karten verändert");
+      pruefe(id("retention-block").hidden, "Behaltensquote bei Leitner sichtbar");
+      kn.value = "2"; kn.dispatchEvent(new W.Event("change"));
+      pruefe(id("btn-schwer").hidden && /Gewusst/.test(id("btn-gewusst").textContent), "zurück auf 2 Knöpfe klappt nicht");
+    }],
     ["Eintippen: nur wenn eingestellt, gnädig bei Tippfehlern", async function () {
       pruefe(id("eingabe").hidden, "Eingabefeld ist sichtbar, obwohl Aufdecken eingestellt ist");
       klick('[data-view="sichern"]');
