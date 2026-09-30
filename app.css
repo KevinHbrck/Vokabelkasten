@@ -1638,13 +1638,28 @@
 .sw-tag.an i { background: #fff; }
 .sw-tag.heute { opacity: 1; }
 /* Lernseite: Stimme-Lautstärke oben, Nachschub unter den Fächern */
-.ue-laut { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 13px; color: var(--ink-soft); }
+.ue-laut { display: flex; justify-content: flex-end; margin: -4px 0 6px; }
 .ue-laut[hidden] { display: none; }
-.ue-laut-knopf { flex: none; min-height: 40px; padding: 8px 12px; font-size: 14px; }
-.ue-laut-regler { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
-.ue-laut-regler[hidden] { display: none; }
-.ue-laut input { flex: 1; min-width: 0; margin: 0; accent-color: var(--kasten, #ef7b17); }
-.ue-laut b { font-variant-numeric: tabular-nums; color: var(--ink); min-width: 44px; text-align: right; }
+/* Lautstärke der Stimme: runder Lautsprecher-Knopf, Regler klappt darunter auf */
+.laut { position: relative; display: inline-flex; flex: none; }
+.laut[hidden] { display: none; }
+.laut-knopf { width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--rule); background: var(--card);
+  color: var(--ink); display: inline-flex; align-items: center; justify-content: center; box-shadow: none; min-height: 0; }
+.laut-knopf svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.laut-knopf .ls-box { fill: currentColor; }
+.laut-knopf[aria-expanded="true"] { border-color: var(--kasten, #ef7b17); color: var(--kasten, #ef7b17); }
+.laut-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 70; display: flex; flex-direction: column; gap: 10px;
+  width: 270px; padding: 12px 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--rule);
+  box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.laut-pop[hidden] { display: none; }
+.laut-zeile { display: flex; align-items: center; gap: 10px; }
+.laut-zeile small { width: 64px; flex: none; font-size: 12.5px; color: var(--ink-soft); }
+.laut-pop input { flex: 1; min-width: 0; height: 32px; margin: 0; accent-color: var(--kasten, #ef7b17); }
+.laut-pop .du-laut-wert { min-width: 42px; font-size: 14px; color: var(--ink); }
+.laut-pop b { font-variant-numeric: tabular-nums; color: var(--ink); min-width: 42px; text-align: right; font-size: 14px; }
+.uw-kopf-rechts, .du-meta-rechts { display: inline-flex; align-items: center; gap: 10px; }
+.du-meta .laut-knopf { width: 36px; height: 36px; }
+.du-meta .laut-knopf svg { width: 19px; height: 19px; }
 .nachschub { display: flex; align-items: center; gap: 6px; margin: -6px 0 12px; font-size: 13px; color: var(--ink-soft); }
 .nachschub[hidden] { display: none; }
 .nachschub span { flex: 1; min-width: 0; }

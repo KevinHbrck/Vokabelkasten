@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-09-30-10">
+<link rel="stylesheet" href="./app.css?v=2026-09-30-12">
 </head>
 <body>
 
@@ -122,10 +122,7 @@
   <section id="view-ueben" class="view">
     <div id="warnbox" class="warn" hidden></div>
     <!-- Stimme lauter/leiser, ohne in die Optionen zu müssen (gilt für Vorlesen, Sprechen und Hörtraining) -->
-    <div class="ue-laut" id="ue-laut-zeile">
-      <button type="button" class="ghost ue-laut-knopf" id="ue-laut-knopf" aria-expanded="false" aria-controls="ue-laut-regler"><span aria-hidden="true">&#128266;</span> <span id="ue-laut-knopf-txt">Stimme</span></button>
-      <label class="ue-laut-regler" id="ue-laut-regler" hidden><input type="range" id="ue-laut" min="10" max="100" step="5" aria-label="Lautstärke der Stimme"><b id="ue-laut-wert"></b></label>
-    </div>
+    <div class="ue-laut" id="ue-laut-zeile"><div class="laut" data-laut></div></div>
 
     <!-- zwei Arten zu lernen; jede zeigt nur ihre eigenen Bedienelemente -->
     <div class="modus" id="modus">
@@ -758,7 +755,7 @@
 <section id="unterwegs" hidden aria-label="Unterwegs-Modus">
   <div class="uw-kopf">
     <h2>Unterwegs</h2>
-    <span id="uw-stand"></span>
+    <span class="uw-kopf-rechts"><span id="uw-stand"></span><span class="laut" data-laut></span></span>
   </div>
   <div class="uw-karte" aria-live="polite">
     <p class="uw-phase" id="uw-phase"></p>
@@ -790,7 +787,7 @@
     <div class="du-mitte">
       <div class="du-faecher" id="du-faecher" aria-hidden="true"></div>
       <div class="du-card" id="du-card" aria-live="polite">
-        <div class="du-meta"><span id="du-frage-nr"></span><span id="du-rest"></span></div>
+        <div class="du-meta"><span id="du-frage-nr"></span><span class="du-meta-rechts"><span id="du-rest"></span><span class="laut" data-laut></span></span></div>
         <div class="du-fort" aria-hidden="true"><i id="du-fort"></i></div>
         <p class="du-zustand" id="du-phase"></p>
         <p class="du-wort" id="du-vorne"></p>
@@ -835,9 +832,9 @@
   </div>
 </section>
 
-<script src="./daten.js?v=2026-09-30-10"></script>
-<script src="./ts-fsrs.js?v=2026-09-30-10"></script>
-<script src="./lernen.js?v=2026-09-30-10"></script>
-<script src="./app.js?v=2026-09-30-10"></script>
+<script src="./daten.js?v=2026-09-30-12"></script>
+<script src="./ts-fsrs.js?v=2026-09-30-12"></script>
+<script src="./lernen.js?v=2026-09-30-12"></script>
+<script src="./app.js?v=2026-09-30-12"></script>
 </body>
 </html>

@@ -4135,28 +4135,65 @@
     document.getElementById(id).addEventListener("change", uwEinstellungenMerken);
   });
   document.getElementById("uw-laut").addEventListener("input", lautAnzeigen);
-  function uwLautOben() {
-    var zeile = document.getElementById("ue-laut-zeile");
-    zeile.hidden = !sprache;
-    if (!sprache) return;
-    var w = Math.round(uwEinstellungen().laut * 100);
-    document.getElementById("ue-laut").value = String(w);
-    document.getElementById("ue-laut-wert").textContent = w + " %";
-    document.getElementById("ue-laut-knopf-txt").textContent = "Stimme " + w + " %";
+  /* Lautstärke der Stimme: ein schlichter Lautsprecher-Knopf, antippen öffnet den Regler (Lernseite, Unterwegs, Duell).
+     Alle Regler hängen an derselben Einstellung wie in den Optionen (uw-laut). */
+  function lautSymbol(w) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ls-box" d="M4 9.5h3.2L12 5.6v12.8l-4.8-3.9H4z"/>' +
+      (w >= 15 ? '<path d="M15.3 9.3a3.8 3.8 0 0 1 0 5.4"/>' : '') +
+      (w >= 55 ? '<path d="M17.9 6.8a7.3 7.3 0 0 1 0 10.4"/>' : '') + '</svg>';
   }
-  document.getElementById("ue-laut-knopf").addEventListener("click", function () {
-    var regler = document.getElementById("ue-laut-regler");
-    regler.hidden = !regler.hidden;
-    this.setAttribute("aria-expanded", String(!regler.hidden));
+  function lautAlle() {
+    var w = Math.round(uwEinstellungen().laut * 100);
+    document.getElementById("ue-laut-zeile").hidden = !sprache;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-laut]"), function (el) {
+      el.hidden = !sprache && !el.closest("#duell");   // im Duell bleibt der Signalton immer einstellbar
+      el.querySelector(".laut-knopf").innerHTML = lautSymbol(w);
+      el.querySelector("input").value = String(w);
+      el.querySelector("b").textContent = w + " %";
+    });
+  }
+  function lautZu(ausser) {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-laut]"), function (el) {
+      if (el === ausser) return;
+      el.querySelector(".laut-pop").hidden = true;
+      el.querySelector(".laut-knopf").setAttribute("aria-expanded", "false");
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-laut]"), function (el) {
+    el.innerHTML = '<button type="button" class="laut-knopf" aria-label="Lautstärke der Stimme" aria-expanded="false"></button>' +
+      '<span class="laut-pop" hidden><span class="laut-zeile"><small>Stimme</small><input type="range" min="10" max="100" step="5" aria-label="Lautstärke der Stimme"><b></b></span></span>';
+    var knopf = el.querySelector(".laut-knopf"), pop = el.querySelector(".laut-pop");
+    knopf.addEventListener("click", function (e) {
+      e.stopPropagation();
+      lautZu(el);
+      pop.hidden = !pop.hidden;
+      knopf.setAttribute("aria-expanded", String(!pop.hidden));
+    });
+    pop.addEventListener("click", function (e) { e.stopPropagation(); });
+    el.querySelector("input").addEventListener("input", function (e) {
+      var ziel = document.getElementById("uw-laut");
+      ziel.value = e.target.value;
+      ziel.dispatchEvent(new Event("change", { bubbles: true }));   // speichert wie in den Optionen
+      lautAnzeigen();
+      lautAlle();
+    });
   });
-  document.getElementById("ue-laut").addEventListener("input", function (e) {
-    var ziel = document.getElementById("uw-laut");
-    ziel.value = e.target.value;
-    ziel.dispatchEvent(new Event("change", { bubbles: true }));   // speichert wie in den Optionen
-    lautAnzeigen();
-    document.getElementById("ue-laut-wert").textContent = e.target.value + " %";
-    document.getElementById("ue-laut-knopf-txt").textContent = "Stimme " + e.target.value + " %";
-  });
+  document.addEventListener("click", function () { lautZu(null); });
+  // Im Duell steckt auch der Signalton im selben Fenster (statt eines zweiten Lautsprechers unten)
+  (function () {
+    var pop = document.querySelector("#duell [data-laut] .laut-pop"), alt = document.querySelector("#duell .du-laut");
+    if (!pop || !alt) return;
+    var zeile = document.createElement("span");
+    zeile.className = "laut-zeile";
+    zeile.innerHTML = "<small>Signalton</small>";
+    zeile.appendChild(document.getElementById("du-laut-spiel"));
+    zeile.appendChild(document.getElementById("du-laut-spiel-wert"));
+    pop.appendChild(zeile);
+    alt.parentNode.removeChild(alt);
+  })();
+  document.getElementById("uw-laut").addEventListener("input", lautAlle);
+  function uwLautOben() { lautAlle(); }
+  try { lautAlle(); } catch (err) {}
   Array.prototype.forEach.call(document.querySelectorAll(".probe"), function (b) {
     b.addEventListener("click", function () {
       if (uw) return;
