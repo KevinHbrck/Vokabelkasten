@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-09-30-8">
+<link rel="stylesheet" href="./app.css?v=2026-09-30-9">
 </head>
 <body>
 
@@ -56,6 +56,7 @@
   <!-- Startseite: oben das Wichtigste (heute lernen), darunter die zwei Lernarten, unten Verwalten -->
   <section id="view-start" class="view active">
     <p class="st-gruss" id="st-gruss"></p>
+    <div class="st-woche" id="st-woche" aria-label="Diese Woche gelernt"></div>
     <!-- Kästen: Reiter zum Antippen; auf der Startseite wechselt man auch per Wischen. Liste und Neu stehen in der Leiste unten -->
     <div class="kasten-leiste" id="kasten-leiste" role="tablist" aria-label="Karteikästen"></div>
     <button type="button" class="kachel st-hero" data-ziel="karten">
@@ -118,6 +119,9 @@
 
   <section id="view-ueben" class="view">
     <div id="warnbox" class="warn" hidden></div>
+    <!-- Stimme lauter/leiser, ohne in die Optionen zu müssen (gilt für Vorlesen, Sprechen und Hörtraining) -->
+    <label class="ue-laut" id="ue-laut-zeile"><span aria-hidden="true">&#128266;</span><span class="ue-laut-text">Stimme</span>
+      <input type="range" id="ue-laut" min="10" max="100" step="5" aria-label="Lautstärke der Stimme"><b id="ue-laut-wert"></b></label>
 
     <!-- zwei Arten zu lernen; jede zeigt nur ihre eigenen Bedienelemente -->
     <div class="modus" id="modus">
@@ -196,6 +200,12 @@
 
     <div id="modus-karten">
     <div class="boxes" id="boxes"></div>
+    <div class="nachschub" id="nachschub" hidden>
+      <span id="nachschub-txt">Neue in den Kasten</span>
+      <button type="button" class="ghost" data-nachschub="10">+ 10</button>
+      <button type="button" class="ghost" data-nachschub="20">+ 20</button>
+      <button type="button" class="ghost" data-nachschub="30">+ 30</button>
+    </div>
     <p class="meldung" id="meldung" hidden></p>
 
     <div id="trainer" hidden>
@@ -821,9 +831,9 @@
   </div>
 </section>
 
-<script src="./daten.js?v=2026-09-30-8"></script>
-<script src="./ts-fsrs.js?v=2026-09-30-8"></script>
-<script src="./lernen.js?v=2026-09-30-8"></script>
-<script src="./app.js?v=2026-09-30-8"></script>
+<script src="./daten.js?v=2026-09-30-9"></script>
+<script src="./ts-fsrs.js?v=2026-09-30-9"></script>
+<script src="./lernen.js?v=2026-09-30-9"></script>
+<script src="./app.js?v=2026-09-30-9"></script>
 </body>
 </html>

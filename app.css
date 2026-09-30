@@ -1629,3 +1629,25 @@
 .opt-balken i { display: block; height: 100%; width: 0; border-radius: 6px; background: var(--kasten, #ef7b17); transition: width .3s ease; }
 #zielwahl button { min-width: 0; }
 .abschnitt .ab-inhalt > .sk-block:first-child { padding-top: 0; }
+/* Wochenzeile (Startseite) */
+.st-woche { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; margin: 0 0 12px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 16px; }
+.sw-links { display: flex; flex-direction: column; min-width: 0; }
+.sw-links b { font-size: 14px; }
+.sw-links small { font-size: 12.5px; color: var(--ink-soft); }
+.sw-tage { display: flex; gap: 6px; flex: none; }
+.sw-tag { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; color: var(--ink-soft); }
+.sw-tag i { display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--tab); box-shadow: inset 0 0 0 1.5px var(--rule); }
+.sw-tag.an i { background: var(--kasten, #ef7b17); box-shadow: none; }
+.sw-tag.heute { color: var(--ink); font-weight: 700; }
+html[data-vintage] .st-woche { border-radius: 10px; background: var(--raised, var(--card)); }
+/* Lernseite: Stimme-Lautstärke oben, Nachschub unter den Fächern */
+.ue-laut { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 13px; color: var(--ink-soft); }
+.ue-laut[hidden] { display: none; }
+.ue-laut input { flex: 1; min-width: 0; margin: 0; accent-color: var(--kasten, #ef7b17); }
+.ue-laut b { font-variant-numeric: tabular-nums; color: var(--ink); min-width: 44px; text-align: right; }
+.nachschub { display: flex; align-items: center; gap: 6px; margin: -6px 0 12px; font-size: 13px; color: var(--ink-soft); }
+.nachschub[hidden] { display: none; }
+.nachschub span { flex: 1; min-width: 0; }
+.nachschub button { padding: 8px 12px; font-size: 14px; min-height: 40px; }
+.nachschub button[hidden] { display: none; }

@@ -918,8 +918,34 @@
     el.textContent = satz;
   }
 
+  /* Neue Karten direkt auf der Lernseite in den Kasten legen (wie „Nächste … aufnehmen“ in der Liste) */
+  var nachschubMeldung = "";
+  function zeichneNachschub() {
+    var box = document.getElementById("nachschub");
+    var offen = daten.cards.filter(function (c) { return !c.aktiv; }).length;
+    box.hidden = !offen;
+    if (!offen) return;
+    document.getElementById("nachschub-txt").textContent = nachschubMeldung || ("Neue in den Kasten · " + offen + " warten");
+    Array.prototype.forEach.call(box.querySelectorAll("[data-nachschub]"), function (b) {
+      var n = Number(b.dataset.nachschub);
+      b.textContent = "+ " + Math.min(n, offen);
+      b.hidden = n > 10 && offen <= n - 10;   // „+ 20“ nur, wenn mehr als 10 warten usw.
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-nachschub]"), function (b) {
+    b.addEventListener("click", function () {
+      var liste = naechsteOffene(Number(b.dataset.nachschub));
+      if (!liste.length) return;
+      aufnehmen(liste);
+      nachschubMeldung = liste.length + (liste.length === 1 ? " Karte" : " Karten") + " aufgenommen · Fach 1";
+      setTimeout(function () { nachschubMeldung = ""; if (ansicht === "ueben") zeichneNachschub(); }, 4000);
+      if (!aktuell) rundeStarten(false); else zeichneUeben();
+    });
+  });
   function zeichneUeben() {
     if (modus === "hoeren") hoerInfo();   // z.B. nach Wechsel der Kategorie
+    zeichneNachschub();
+    uwLautOben();
     zeichneTagesziel();
     zeichneAuswahlText();
     zeichneFaecher();
@@ -1908,7 +1934,25 @@
     Array.prototype.forEach.call(document.querySelectorAll(".st-kachel"), function (k) { k.classList.toggle("klein", klein.indexOf(k.dataset.ziel) > -1); });
     if (paar) paar.classList.toggle("mit-klein", klein.length > 0);
   }
+  /* Wochenzeile wie in BLOC: Mo–So, ein Punkt je Tag mit gelernten Karten (alle Kästen), heute fett */
+  function zeichneWoche() {
+    var box = document.getElementById("st-woche");
+    if (!box) return;
+    var jetzt = new Date(), wt = (jetzt.getDay() + 6) % 7;   // Montag = 0
+    var mo = new Date(jetzt.getFullYear(), jetzt.getMonth(), jetzt.getDate() - wt);
+    var tage = 0, karten = 0, punkte = "";
+    ["M", "D", "M", "D", "F", "S", "S"].forEach(function (b, i) {
+      var tag = new Date(mo.getFullYear(), mo.getMonth(), mo.getDate() + i).getTime();
+      var n = i <= wt ? geuebtAm(tag) : 0;
+      if (n) { tage++; karten += n; }
+      punkte += '<span class="sw-tag' + (n ? " an" : "") + (i === wt ? " heute" : "") + '"><i></i>' + b + '</span>';
+    });
+    box.innerHTML = '<span class="sw-links"><b>Diese Woche</b><small>' +
+      (tage ? tage + (tage === 1 ? " Tag" : " Tage") + " · " + karten + (karten === 1 ? " Karte" : " Karten") : "noch nicht gelernt") +
+      '</small></span><span class="sw-tage">' + punkte + '</span>';
+  }
   function zeichneKacheln() {
+    zeichneWoche();
     kachelnGroesse();
     var f = daten.cards.filter(function (c) { return c.aktiv && istDran(c, Date.now()); }).length, k = imKasten().length;
     var ziel = tagesZiel(), h = geuebtAm(Date.now()), serie = lernSerie(), std = new Date().getHours();
@@ -4092,6 +4136,21 @@
     document.getElementById(id).addEventListener("change", uwEinstellungenMerken);
   });
   document.getElementById("uw-laut").addEventListener("input", lautAnzeigen);
+  function uwLautOben() {
+    var zeile = document.getElementById("ue-laut-zeile");
+    zeile.hidden = !sprache;
+    if (!sprache) return;
+    var w = Math.round(uwEinstellungen().laut * 100);
+    document.getElementById("ue-laut").value = String(w);
+    document.getElementById("ue-laut-wert").textContent = w + " %";
+  }
+  document.getElementById("ue-laut").addEventListener("input", function (e) {
+    var ziel = document.getElementById("uw-laut");
+    ziel.value = e.target.value;
+    ziel.dispatchEvent(new Event("change", { bubbles: true }));   // speichert wie in den Optionen
+    lautAnzeigen();
+    document.getElementById("ue-laut-wert").textContent = e.target.value + " %";
+  });
   Array.prototype.forEach.call(document.querySelectorAll(".probe"), function (b) {
     b.addEventListener("click", function () {
       if (uw) return;
