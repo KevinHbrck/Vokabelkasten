@@ -1936,7 +1936,7 @@
   }
   /* Wochenzeile wie in BLOC: Mo–So, ein Punkt je Tag mit gelernten Karten (alle Kästen), heute fett */
   function zeichneWoche() {
-    var box = document.getElementById("st-woche");
+    var box = document.getElementById("st-wochenzeile");
     if (!box) return;
     var jetzt = new Date(), wt = (jetzt.getDay() + 6) % 7;   // Montag = 0
     var mo = new Date(jetzt.getFullYear(), jetzt.getMonth(), jetzt.getDate() - wt);
@@ -1947,9 +1947,8 @@
       if (n) { tage++; karten += n; }
       punkte += '<span class="sw-tag' + (n ? " an" : "") + (i === wt ? " heute" : "") + '"><i></i>' + b + '</span>';
     });
-    box.innerHTML = '<span class="sw-links"><b>Diese Woche</b><small>' +
-      (tage ? tage + (tage === 1 ? " Tag" : " Tage") + " · " + karten + (karten === 1 ? " Karte" : " Karten") : "noch nicht gelernt") +
-      '</small></span><span class="sw-tage">' + punkte + '</span>';
+    box.setAttribute("aria-label", "Diese Woche: " + (tage ? tage + (tage === 1 ? " Tag" : " Tage") + ", " + karten + (karten === 1 ? " Karte" : " Karten") : "noch nicht gelernt"));
+    box.innerHTML = '<span class="sw-tage">' + punkte + '</span>';
   }
   function zeichneKacheln() {
     zeichneWoche();
@@ -4143,13 +4142,20 @@
     var w = Math.round(uwEinstellungen().laut * 100);
     document.getElementById("ue-laut").value = String(w);
     document.getElementById("ue-laut-wert").textContent = w + " %";
+    document.getElementById("ue-laut-knopf-txt").textContent = "Stimme " + w + " %";
   }
+  document.getElementById("ue-laut-knopf").addEventListener("click", function () {
+    var regler = document.getElementById("ue-laut-regler");
+    regler.hidden = !regler.hidden;
+    this.setAttribute("aria-expanded", String(!regler.hidden));
+  });
   document.getElementById("ue-laut").addEventListener("input", function (e) {
     var ziel = document.getElementById("uw-laut");
     ziel.value = e.target.value;
     ziel.dispatchEvent(new Event("change", { bubbles: true }));   // speichert wie in den Optionen
     lautAnzeigen();
     document.getElementById("ue-laut-wert").textContent = e.target.value + " %";
+    document.getElementById("ue-laut-knopf-txt").textContent = "Stimme " + e.target.value + " %";
   });
   Array.prototype.forEach.call(document.querySelectorAll(".probe"), function (b) {
     b.addEventListener("click", function () {
