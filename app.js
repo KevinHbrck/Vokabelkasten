@@ -4733,6 +4733,7 @@
     if (!du || !du.solo || du.gewertet || !du.frage) return;
     var k = du.frage.karte, vorher = fachVon(k);
     du.gewertet = true;
+    du.offen = 0;
     if (aktuell === k) bewerten(gewusst);
     var nachher = fachVon(k);
     duFaecherZeigen(0, nachher, gewusst);
@@ -4854,6 +4855,7 @@
           (du.manuell ? "Mikrofon nicht verfügbar" : "Spracherkennung gestört"), wer, pkt);
       }
       if (ergebnis === "richtig") { du.auto++; return duPunkt(lauf, wer, pkt); }
+      if (du.solo && !ergebnis) return duSoloOffen(lauf, "Nichts gehört · Karte bleibt im Fach");   // nichts verstanden: nicht abwerten, nicht nachfragen
       if (pkt === 1 && !du.solo) {
         duPhase(ergebnis ? "Falsch" : "Keine Antwort");
         return duDran(lauf, 1 - wer, 2);       // die andere Person ist dran, für 2 Punkte
@@ -4958,6 +4960,7 @@
   function duManuellEntscheid(lauf, frage, wer, pkt) {
     var aktiv = function () { return du && lauf === du.lauf; };
     if (!aktiv()) return;
+    if (du.solo) return duSoloOffen(lauf, du.manuell ? "Lösung" : "Nicht verstanden · Karte bleibt im Fach");
     du.phase = "entscheiden";
     duSeite(null);
     duPhase(frage);
@@ -4983,6 +4986,47 @@
         box.appendChild(b);
       });
     });
+  }
+
+  /* Allein, wenn die App nicht weiß, ob die Antwort stimmte (nichts gehört, Erkennung gestört, ohne Mikrofon):
+     nicht stehen bleiben und nicht nachfragen. Die Lösung wird vorgelesen, die Karte bleibt ungewertet in ihrem Fach
+     und kommt am Ende der Runde noch einmal. Wer das Handy gerade in der Hand hat, kann in der Zeit trotzdem
+     „Gewusst“ oder „Nicht gewusst“ tippen - muss aber nicht. */
+  function duSoloOffen(lauf, grund) {
+    var f = du.frage, aktiv = function () { return du && lauf === du.lauf; };
+    du.phase = "ergebnis";
+    duSeite(null);
+    duPhase(grund);
+    duSetze("du-hinten", f.antwort);
+    var box = document.getElementById("du-knoepfe"), gewaehlt = null;
+    document.getElementById("du-frage-wer").textContent = "Gewusst? (kein Muss)";
+    box.textContent = "";
+    [["Gewusst", true, "plus"], ["Nicht gewusst", false, ""]].forEach(function (w) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = w[2]; b.textContent = w[0];
+      b.addEventListener("click", function () {
+        if (!aktiv() || du.gewertet) return;
+        gewaehlt = w[1];
+        du.hand++;
+        du.punkte[w[1] ? 0 : 1]++;
+        duEntscheidZu();
+        duSoloWerten(w[1]);
+      });
+      box.appendChild(b);
+    });
+    document.getElementById("du-entscheid").hidden = false;   // die Leiste mit Pause, Stern und Überspringen bleibt sichtbar
+    return duSprich(f.antwort, f.sAntwort, lauf)
+      .then(function () { return duBeispiel(lauf); })
+      .then(function () { return warteWenn(2500, aktiv); })
+      .then(function () {
+        if (!aktiv()) return;
+        duEntscheidZu();
+        if (du.gewertet) { du.offen = 0; duWeiter(gewaehlt); return; }
+        du.offen = (du.offen || 0) + 1;
+        if (du.offen > runde.length + 1) { duEnde(); return; }   // nur noch ungewertete Karten: Runde beenden statt endlos kreisen
+        if (runde.length) { runde.push(aktuell); naechsteKarte(); }
+        duFrage();
+      });
   }
 
   function duEnde() {
