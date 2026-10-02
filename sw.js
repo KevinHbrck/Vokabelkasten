@@ -6,7 +6,7 @@
  */
 
 /* Einzige Stelle für die Fassung - die App fragt sie per postMessage ab (Einstellungen, ganz unten) */
-var FASSUNG = "2026-10-02-5";
+var FASSUNG = "2026-10-02-6";
 var NETZ_WARTEN = 2500;   // ms - so lange wartet der Start höchstens aufs Netz, wenn es eine gespeicherte Fassung gibt
 var SPEICHER = "vokabelkasten-" + FASSUNG;
 var GRUNDGERUEST = ["./", "./index.html", "./daten.js", "./ts-fsrs.js", "./lernen.js", "./app.js", "./app.css", "./privacy.html", "./manifest.json", "./icon.png", "./icon-180.png"];

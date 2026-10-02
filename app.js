@@ -2794,6 +2794,7 @@
 
   /* Bearbeiten direkt aus dem ⋯-Fenster: Text, Beispiel, Kategorie. Fach, Termine und Stern bleiben. */
   function karteBearbeitenBlatt(c) {
+    blattTaste("Abbrechen");
     var knoepfe = document.getElementById("blatt-knoepfe");
     document.getElementById("blatt-titel").textContent = "Vokabel bearbeiten";
     knoepfe.textContent = "";
@@ -2848,7 +2849,13 @@
   }
 
   /* ---------- Einblendfenster (⋯) ---------- */
+  // Beschriftung der unteren Taste im Einblendfenster: „Abbrechen“ bei Auswahl und Rückfrage, „Schließen“ bei reinen Anzeigen
+  function blattTaste(text) {
+    var b = document.querySelector("#blatt .blatt-inhalt > button[data-blattzu]");
+    if (b) b.textContent = text;
+  }
   function blattAuf(titel, aktionen) {
+    blattTaste("Abbrechen");
     var knoepfe = document.getElementById("blatt-knoepfe");
     document.getElementById("blatt-titel").textContent = titel;
     knoepfe.textContent = "";
@@ -4266,8 +4273,11 @@
 
   function duEinstellungen() {
     var e = daten.duell || {};
+    // Früher stand "Kevin" und "Kirsten" voreingestellt: gespeicherte Namen genau dieser Art werden einmalig auf die neutralen Namen zurückgesetzt
+    // (namenV 2 = die Namen sind seit der Umstellung gespeichert, dann bleibt alles, was jemand eintippt)
+    var altVoreinstellung = e.namenV !== 2 && e.namen && e.namen[0] === "Kevin" && e.namen[1] === "Kirsten";
     return {
-      namen: [e.namen && e.namen[0] || "Kevin", e.namen && e.namen[1] || "Kirsten"],
+      namen: altVoreinstellung ? ["Spieler 1", "Spieler 2"] : [e.namen && e.namen[0] || "Spieler 1", e.namen && e.namen[1] || "Spieler 2"],
       ziel: ["10", "20", "30", "alle", "p10"].indexOf(e.ziel) > -1 ? e.ziel : "10",
       zeit: [1, 2, 3, 4, 5, 6, 8, 10, 12].indexOf(e.zeit) > -1 ? e.zeit : 5,
       bsp: !!e.bsp,
@@ -4298,12 +4308,13 @@
     document.getElementById("du-reihe").value = e.reihe;
     duKartenInfo();
     duStatusZeigen();
+    duStatKurz();
   }
   function duEinstellungenMerken() {
-    var n1 = document.getElementById("du-name1").value.trim() || "Kevin";
-    var n2 = document.getElementById("du-name2").value.trim() || "Kirsten";
+    var n1 = document.getElementById("du-name1").value.trim() || "Spieler 1";
+    var n2 = document.getElementById("du-name2").value.trim() || "Spieler 2";
     daten.duell = {
-      namen: [n1, n2],
+      namen: [n1, n2], namenV: 2,
       ziel: document.getElementById("du-ziel").value,
       zeit: Number(document.getElementById("du-zeit").value) || 5,
       bsp: document.getElementById("du-bsp").checked,
@@ -5062,6 +5073,107 @@
       });
   }
 
+  /* ---------- Duell-Statistik ----------
+     Jedes beendete Duell zu zweit landet in daten.duellLog = [{ at, n:[Name 1, Name 2], p:[Punkte 1, Punkte 2], f:Fragen }]
+     (höchstens 100, nur auf diesem Gerät, je Kasten). Die Bilanz fasst nach Namen zusammen. Die Namen sind frei eingetippt:
+     das Fenster baut seine Texte darum nur mit textContent, nie mit HTML. */
+  function duStatistikMerken(g) {
+    if (!Array.isArray(daten.duellLog)) daten.duellLog = [];
+    daten.duellLog.push(g);
+    if (daten.duellLog.length > 100) daten.duellLog = daten.duellLog.slice(-100);
+    sichern();
+    duStatKurz();
+  }
+  function duStatistik() {
+    var log = (Array.isArray(daten.duellLog) ? daten.duellLog : []).filter(function (g) {
+      return g && Array.isArray(g.n) && Array.isArray(g.p) && typeof g.at === "number";
+    });
+    var map = {};
+    log.forEach(function (g) {
+      [0, 1].forEach(function (i) {
+        var name = String(g.n[i] || "").trim(), k = name.toLowerCase();
+        if (!k) return;
+        var s = map[k] || (map[k] = { name: name, spiele: 0, siege: 0, punkte: 0 });
+        s.spiele++;
+        s.punkte += Number(g.p[i]) || 0;
+        if ((Number(g.p[i]) || 0) > (Number(g.p[1 - i]) || 0)) s.siege++;
+      });
+    });
+    return {
+      log: log,
+      spieler: Object.keys(map).map(function (k) { return map[k]; })
+        .sort(function (a, b) { return b.spiele - a.spiele || b.siege - a.siege; }).slice(0, 4),
+      unentschieden: log.filter(function (g) { return (Number(g.p[0]) || 0) === (Number(g.p[1]) || 0); }).length,
+      fragen: log.reduce(function (s, g) { return s + (Number(g.f) || 0); }, 0)
+    };
+  }
+  function duStatKurz() {
+    var el = document.getElementById("du-stat-kurz");
+    if (!el) return;
+    var s = duStatistik(), l = s.log[s.log.length - 1];
+    el.textContent = !l ? "Noch kein Duell gespielt"
+      : s.log.length + (s.log.length === 1 ? " Spiel" : " Spiele") + " · zuletzt " + l.n[0] + " " + l.p[0] + " : " + l.p[1] + " " + l.n[1];
+  }
+  function duStatOeffnen() {
+    var s = duStatistik(), hat = s.log.length > 0;
+    var knoepfe = document.getElementById("blatt-knoepfe");
+    function neu(tag, cls, text) {
+      var e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+    document.getElementById("blatt-titel").textContent = "Duell-Statistik";
+    knoepfe.textContent = "";
+    var box = neu("div", "dst");
+    var zahlen = neu("div", "dst-zahlen");
+    [[s.log.length, "Spiele"], [s.unentschieden, "Unentschieden"], [s.fragen, "Fragen gespielt"]].forEach(function (z) {
+      var d = neu("div");
+      d.appendChild(neu("b", null, hat ? String(z[0]) : "–"));
+      d.appendChild(neu("span", null, z[1]));
+      zahlen.appendChild(d);
+    });
+    box.appendChild(zahlen);
+    box.appendChild(neu("h4", null, "Bilanz"));
+    var tab = neu("div", "dst-tab");
+    function zeile(werte, kopf) {
+      var z = neu("div", "dst-zeile" + (kopf ? " dst-kopf" : ""));
+      werte.forEach(function (w) { z.appendChild(neu("span", null, w)); });
+      tab.appendChild(z);
+    }
+    zeile(["Name", "Spiele", "Siege", "Ø Punkte"], true);
+    if (hat) s.spieler.forEach(function (p) { zeile([p.name, String(p.spiele), String(p.siege), (p.punkte / p.spiele).toFixed(1).replace(".", ",")]); });
+    else zeile(["–", "–", "–", "–"]);
+    box.appendChild(tab);
+    if (hat) {
+      box.appendChild(neu("h4", null, "Letzte Spiele"));
+      var liste = neu("div", "dst-liste");
+      s.log.slice(-6).reverse().forEach(function (g) {
+        var z = neu("div", "dst-zeile");
+        z.appendChild(neu("span", null, new Date(g.at).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "numeric" })));
+        z.appendChild(neu("span", "dst-ergebnis", g.n[0] + " " + g.p[0] + " : " + g.p[1] + " " + g.n[1]));
+        liste.appendChild(z);
+      });
+      box.appendChild(liste);
+    } else {
+      box.appendChild(neu("p", "dst-leer", "Noch kein Duell gespielt. Nach dem ersten Spiel steht hier die Bilanz – wer wie oft gewonnen hat und wie viele Punkte im Schnitt."));
+    }
+    var loeschen = neu("button", "ghost dst-loeschen", "Statistik löschen");
+    loeschen.type = "button";
+    loeschen.disabled = !hat;
+    loeschen.addEventListener("click", function () {
+      frage("Duell-Statistik wirklich löschen? Karten, Fächer und Einstellungen bleiben, nur die Spielergebnisse gehen verloren.", "Löschen", function () {
+        delete daten.duellLog; sichern(); duStatKurz(); melde("Duell-Statistik gelöscht.", "ok");
+      }, true);
+    });
+    box.appendChild(loeschen);
+    knoepfe.appendChild(box);
+    blattTaste("Schließen");
+    document.getElementById("blatt").hidden = false;
+    waechterAbgleichen();
+  }
+  document.getElementById("du-stat").addEventListener("click", duStatOeffnen);
+
   function duEnde() {
     if (!du) return;
     var lauf = ++du.lauf;
@@ -5078,6 +5190,10 @@
     }
     document.getElementById("du-nochmal").hidden = !!(du.solo && !aktuell && !faellig().length);
     document.getElementById("du-neu").hidden = !!du.solo;
+    if (!du.solo && !du.gespeichert && du.i > 0) {   // Duell für die Statistik merken (nur zu zweit, nur einmal je Spiel)
+      du.gespeichert = true;
+      duStatistikMerken({ at: Date.now(), n: n.slice(), p: p.slice(), f: du.i });
+    }
     if (du.solo) {
       duFaecherZeigen(0);
       duSetze("du-sieger", aktuell ? "Pause – der Rest wartet beim Üben" : "Kasten für heute geschafft!");
@@ -5566,6 +5682,7 @@
   // Einstellungen: Kasten umbenennen oder löschen (Englisch bleibt immer)
   function kastenUmbenennen(k) {
     // eigenes Fenster statt prompt() (siehe frage); gleiche Form wie „Vokabel bearbeiten“
+    blattTaste("Abbrechen");
     var knoepfe = document.getElementById("blatt-knoepfe");
     document.getElementById("blatt-titel").textContent = "Neuer Name für den Kasten";
     knoepfe.textContent = "";

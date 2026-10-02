@@ -1817,3 +1817,28 @@ html:not([data-vintage]) .sw-tag.heute { color: var(--ink); font-weight: 700; }
 .du-panel > .du-namen { margin-bottom: 4px; }
 .du-panel > .note { margin: 10px 0 14px; text-align: center; font-size: 13px; }
 .du-panel > .du-so { margin: 12px 0 0; }
+/* Duell-Statistik: Zeile auf der Quiz-Seite und das Fenster dazu */
+.du-statleiste { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; margin: 0 0 8px; padding: 8px 12px; text-align: left;
+  border: 1px solid var(--rule); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; }
+.dsl-ico { flex: none; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--kasten, #ef7b17) 15%, var(--card)); color: var(--indigo); }
+.dsl-ico svg, .dsl-chev svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.dsl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.dsl-text b { font-size: 14px; font-weight: 600; }
+.dsl-text small { font-size: 12.5px; color: var(--ink-soft); overflow-wrap: anywhere; }
+.dsl-chev { flex: none; display: flex; color: var(--ink-soft); }
+.dst h4 { margin: 14px 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.dst-zahlen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dst-zahlen div { background: var(--tab); border-radius: 12px; padding: 10px 6px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+.dst-zahlen b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.dst-zahlen span { font-size: 11.5px; color: var(--ink-soft); }
+.dst-zeile { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 10px; align-items: baseline; padding: 8px 2px; border-top: 1px solid var(--rule); font-size: 14px; font-variant-numeric: tabular-nums; }
+.dst-zeile:first-child { border-top: 0; }
+.dst-zeile span:not(:first-child) { text-align: right; min-width: 3.2em; }
+.dst-zeile > span:first-child { overflow-wrap: anywhere; }
+.dst-kopf { font-size: 11.5px; color: var(--ink-soft); font-weight: 600; }
+.dst-liste .dst-zeile { grid-template-columns: auto minmax(0, 1fr); }
+.dst-liste .dst-ergebnis { text-align: right; font-weight: 600; overflow-wrap: anywhere; }
+.dst-leer { margin: 12px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.dst-loeschen { width: 100%; margin: 16px 0 6px; padding: 10px; font-size: 13.5px; color: var(--ink-soft); }
+.dst-loeschen:disabled { opacity: .45; }

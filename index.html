@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-10-02-5">
+<link rel="stylesheet" href="./app.css?v=2026-10-02-6">
 </head>
 <body>
 
@@ -422,12 +422,17 @@
     <p class="du-warn"><b>Im Auto: Nur die mitfahrende Person bedient das Handy.</b> Wer fährt, spielt nur mit der Stimme mit und fasst das Handy nicht an.</p>
     <div class="hoer-panel du-panel">
       <div class="du-namen">
-        <label>Spieler 1<input type="text" id="du-name1" maxlength="16" autocomplete="off"></label>
-        <label>Spieler 2<input type="text" id="du-name2" maxlength="16" autocomplete="off"></label>
+        <label>Spieler 1<input type="text" id="du-name1" maxlength="16" autocomplete="off" placeholder="Spieler 1"></label>
+        <label>Spieler 2<input type="text" id="du-name2" maxlength="16" autocomplete="off" placeholder="Spieler 2"></label>
       </div>
       <p class="hoer-info" id="du-karten-info"></p>
       <button id="du-start" type="button" class="hoer-start">Duell starten</button>
       <p class="note">Ändert keine Fächer. Es gilt die Kategorie-Auswahl vom Üben.</p>
+      <button type="button" class="du-statleiste" id="du-stat" aria-label="Duell-Statistik öffnen">
+        <span class="dsl-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg></span>
+        <span class="dsl-text"><b>Statistik</b><small id="du-stat-kurz"></small></span>
+        <span class="dsl-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+      </button>
       <details class="du-mehr du-einst"><summary><span>Spiel-Einstellungen</span><small id="du-kurz"></small></summary>
       <div class="uw-optionen du-optionen">
         <label>Spiellänge
@@ -855,9 +860,9 @@
   </div>
 </section>
 
-<script src="./daten.js?v=2026-10-02-5"></script>
-<script src="./ts-fsrs.js?v=2026-10-02-5"></script>
-<script src="./lernen.js?v=2026-10-02-5"></script>
-<script src="./app.js?v=2026-10-02-5"></script>
+<script src="./daten.js?v=2026-10-02-6"></script>
+<script src="./ts-fsrs.js?v=2026-10-02-6"></script>
+<script src="./lernen.js?v=2026-10-02-6"></script>
+<script src="./app.js?v=2026-10-02-6"></script>
 </body>
 </html>
