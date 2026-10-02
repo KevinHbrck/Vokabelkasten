@@ -3674,6 +3674,14 @@
     el.appendChild(b);
     el.appendChild(document.createTextNode(n === 1 ? " Karte " + was : " Karten " + was));
     document.getElementById("btn-unterwegs").disabled = !n;
+    // Einstellungen zugeklappt: eine Zeile zeigt, womit es losgeht
+    document.getElementById("hoer-kurz").textContent = [auswahlText("uw-auswahl"), auswahlText("uw-denk") + " Denkpause", auswahlText("uw-richtung")]
+      .concat(e.bsp ? ["mit Beispielsatz"] : []).join(" · ");
+  }
+  // gewählter Text eines Auswahlfelds (für die Kurzfassungen in zugeklappten Einstellungen)
+  function auswahlText(id) {
+    var s = document.getElementById(id);
+    return s && s.selectedIndex > -1 ? s.options[s.selectedIndex].textContent.replace(/\s*\(.*\)\s*$/, "") : "";
   }
 
   /* ---------- Lernart: Karteikasten oder Unterwegs/Anhören ---------- */
@@ -4329,6 +4337,7 @@
     el.appendChild(b);
     el.appendChild(document.createTextNode(n === 1 ? " Karte zur Auswahl" : " Karten zur Auswahl"));
     document.getElementById("du-start").disabled = !n;
+    document.getElementById("du-kurz").textContent = [auswahlText("du-ziel"), auswahlText("du-zeit"), auswahlText("du-auswahl"), auswahlText("du-richtung")].join(" · ");
   }
 
   /* ---------- Was kann dieser Browser? (ehrlich, ohne Garantien) ---------- */

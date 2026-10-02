@@ -1751,7 +1751,8 @@ html[data-vintage] .antwortwahl svg { width: 15px; height: 15px; }
 /* Hören und Quiz: der Startknopf ist die Hauptaktion (Kastenfarbe) und bleibt beim Scrollen am unteren Rand erreichbar */
 html:not([data-vintage]) .hoer-start { background: var(--kasten, #ef7b17); border-color: var(--kasten, #ef7b17); color: #fff; font-weight: 600; }
 html:not([data-vintage]) .hoer-start:disabled { background: var(--tab); border-color: var(--rule); color: var(--ink-soft); }
-#du-start { position: sticky; bottom: 8px; z-index: 5; box-shadow: 0 8px 20px rgba(0, 0, 0, .2); }
+/* Start steht jetzt oben direkt unter den Namen bzw. der Kartenzahl (die Einstellungen sind darunter zugeklappt) */
+#du-start { position: static; }
 .du-mehr > .du-optionen, .du-mehr > .du-status, .du-mehr > .note, .du-mehr > .du-test, .du-mehr > .du-testergebnis { margin-left: 12px; margin-right: 12px; }
 .du-mehr > .du-test { width: calc(100% - 24px); }
 .du-mehr > :last-child { margin-bottom: 12px; }
@@ -1786,3 +1787,33 @@ html:not([data-vintage]) .sw-tag { color: var(--ink-soft); opacity: 1; }
 html:not([data-vintage]) .sw-tag i { background: color-mix(in srgb, var(--ink) 16%, transparent); }
 html:not([data-vintage]) .sw-tag.an i { background: var(--kasten-btn); }
 html:not([data-vintage]) .sw-tag.heute { color: var(--ink); font-weight: 700; }
+
+/* ---------- Hörtraining und Quiz-Duell: erst losspielen, Einstellungen bei Bedarf ----------
+   Der Startknopf steht ganz oben und ist groß; alle Einstellungen sind eine zugeklappte Zeile, die zeigt, was gerade gilt. */
+.hoer-panel .hoer-start, .du-panel .hoer-start { min-height: 64px; margin-top: 4px; border-radius: 16px; font-size: 18px; font-weight: 700; letter-spacing: .01em; }
+.hoer-panel .hoer-start svg { width: 24px; height: 24px; }
+.hoer-panel .hoer-info { margin: 2px 0 16px; }
+.du-panel .hoer-info { margin: 14px 0 12px; }
+.du-panel .hoer-info b { font-size: 28px; display: inline; margin-right: 6px; }
+.hoer-panel > .note { margin: 10px 0 14px; text-align: center; font-size: 13px; }
+.hoer-einst { border: 1px solid var(--rule); border-radius: 12px; background: var(--card); margin: 0; }
+.hoer-einst .uw-optionen { padding: 2px 12px 12px; }
+/* Kopfzeile mit Titel und Kurzfassung der aktuellen Einstellungen (Hören und Quiz) */
+.hoer-einst summary, .du-einst summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr auto; column-gap: 10px; row-gap: 1px; align-items: center;
+  min-height: 52px; padding: 9px 14px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.hoer-einst summary::-webkit-details-marker, .du-einst summary::-webkit-details-marker { display: none; }
+.hoer-einst summary > span, .du-einst summary > span { grid-column: 1; }
+.hoer-einst summary > small, .du-einst summary > small { grid-column: 1; font-size: 12.5px; font-weight: 400; line-height: 1.35; color: var(--ink-soft); }
+.hoer-einst summary::after { content: ""; grid-column: 2; grid-row: 1 / span 2; width: 8px; height: 8px; margin-top: -4px;
+  border-right: 2px solid var(--ink-soft); border-bottom: 2px solid var(--ink-soft); transform: rotate(45deg); transition: transform .15s ease; }
+.hoer-einst[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+/* in den zugeklappten Einstellungen zwei Felder nebeneinander, wo es passt (spart Höhe) */
+.hoer-einst .uw-optionen label:not(.zeile-check), .du-einst .du-optionen label:not(.zeile-check) { flex: 1 1 105px; }
+.hoer-einst .uw-optionen label:has(#uw-richtung), .du-einst .du-optionen label:has(#du-richtung), .du-einst .du-optionen label:has(#du-reihe), .du-einst .du-optionen label:has(#du-auswahl) { flex-basis: 100%; }
+.du-einst summary { margin: 0; }
+.du-einst summary::after { grid-column: 2; grid-row: 1 / span 2; }
+.du-einst > .du-optionen { margin-top: 2px; }
+.du-warn { padding: 9px 12px; margin: 0 0 12px; font-size: 13.5px; }
+.du-panel > .du-namen { margin-bottom: 4px; }
+.du-panel > .note { margin: 10px 0 14px; text-align: center; font-size: 13px; }
+.du-panel > .du-so { margin: 12px 0 0; }
