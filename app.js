@@ -2541,6 +2541,7 @@
         history.replaceState(null, "", location.pathname);
         setTimeout(function () {
           wechsle("neu");
+          neuTab("liste");
           var ta = document.getElementById("einfuegen");
           ta.value = zeilen.join("\n");
           zeichneVorschau();
@@ -2560,6 +2561,19 @@
       }, 0);
     } catch (e) {}
   })();
+
+  /* Seite „Neu“: entweder eine Karte einzeln anlegen oder eine ganze Liste einlesen */
+  function neuTab(name) {
+    var liste = name === "liste";
+    document.getElementById("neu-einzeln").hidden = liste;
+    document.getElementById("neu-liste").hidden = !liste;
+    Array.prototype.forEach.call(document.querySelectorAll("#neu-wahl button"), function (b) {
+      b.setAttribute("aria-pressed", (b.dataset.neu === "liste") === liste ? "true" : "false");
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#neu-wahl button"), function (b) {
+    b.addEventListener("click", function () { neuTab(b.dataset.neu); });
+  });
 
   document.getElementById("btn-add").addEventListener("click", function () {
     var vf = document.getElementById("in-vorne");

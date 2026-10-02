@@ -1120,8 +1120,8 @@
   .uw-weiter { margin-bottom: 10px; }
   .hg-option { align-items: flex-start; }
   .hg-option small { display: block; font-size: 12px; color: var(--ink-soft); line-height: 1.35; margin-top: 1px; }
-  .uw-weiter + .hoer-start { background: transparent; color: var(--ink); border-color: var(--rule); }
-  html[data-vintage] .uw-weiter + .hoer-start { background: var(--raised); color: var(--ink); border-color: var(--rule); }
+  .uw-weiter:not([hidden]) + .hoer-start { background: transparent; color: var(--ink); border-color: var(--rule); }
+  html[data-vintage] .uw-weiter:not([hidden]) + .hoer-start { background: var(--raised); color: var(--ink); border-color: var(--rule); }
 
   /* ---------- Statistik ---------- */
   .stat-kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
@@ -1716,3 +1716,44 @@ button.karten-eck.unten { right: 10px; bottom: 10px; }
 /* C60: die drei Antwortarten passten auf schmalen Handys nicht nebeneinander (Großbuchstaben mit Abstand) */
 html[data-vintage] .antwortwahl button { min-width: 0; padding-left: 6px; padding-right: 6px; gap: 4px; letter-spacing: 0; font-size: 12px; }
 html[data-vintage] .antwortwahl svg { width: 15px; height: 15px; }
+
+/* ---------- Liste, Neu, Hören, Quiz: ruhiger und für das Handy gebaut ---------- */
+/* aufklappbare Gruppen mit einheitlicher Kopfzeile (Liste: Filter, Quiz: Regeln und Einstellungen) */
+.lw-mehr, .du-so, .du-mehr { border: 1px solid var(--rule); border-radius: 12px; background: var(--card); margin: 8px 0 0; }
+.lw-mehr summary, .du-so summary, .du-mehr summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; min-height: 44px; padding: 8px 14px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.lw-mehr summary::-webkit-details-marker, .du-so summary::-webkit-details-marker, .du-mehr summary::-webkit-details-marker { display: none; }
+.lw-mehr summary::after, .du-so summary::after, .du-mehr summary::after { content: ""; flex: none; width: 8px; height: 8px; margin-top: -4px;
+  border-right: 2px solid var(--ink-soft); border-bottom: 2px solid var(--ink-soft); transform: rotate(45deg); transition: transform .15s ease; }
+.lw-mehr[open] summary::after, .du-so[open] summary::after, .du-mehr[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.lw-mehr .lw-zeile { margin: 0; padding: 0 12px 12px; }
+.lw-mehr summary:focus-visible, .du-so summary:focus-visible, .du-mehr summary:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; border-radius: 12px; }
+/* „In den Kasten“ schlanker: ohne Überschrift, „Kasten leeren“ als leiser Zusatz */
+.lw-kasten { margin: 10px 0 2px; padding: 8px; border-radius: 14px; }
+.lw-kasten-titel { display: none; }
+.lw-kasten-weitere { margin-top: 6px; }
+.lw-kasten-weitere > button { height: 34px; font-size: 13px; }
+#btn-leeren { border-color: transparent; color: var(--ink-soft); }
+/* Listenzeilen auf dem Handy: Deutsch und Bedienelemente oben, Englisch in voller Breite darunter (statt in 3 Zeilen gequetscht) */
+@media (max-width: 560px) {
+  ol.list li, html[data-vintage] ol.list li { grid-template-columns: 1.7em minmax(0, 1fr) auto; row-gap: 2px; }
+  ol.list .zelle.de { grid-column: 2; grid-row: 1; }
+  ol.list .zelle.en { grid-column: 2 / 4; grid-row: 2; border-left: 0; padding-left: 0; }
+  ol.list .steuer { grid-column: 3; grid-row: 1; }
+  ol.list .bsp-zeile { grid-column: 2 / 4; grid-row: 3; }
+}
+/* Neu: ein Weg nach dem anderen, jeweils als Karte mit durchgehendem Hauptknopf */
+#neu-wahl { margin: 0 0 4px; }
+.neu-karte { background: var(--card); border: 1px solid var(--rule); border-radius: 16px; padding: 16px; margin-top: 12px; }
+.neu-karte[hidden] { display: none; }
+.neu-karte > h2:first-child { margin-top: 0; }
+#btn-add, #btn-import-text { width: 100%; min-height: 50px; }
+/* Hören und Quiz: der Startknopf ist die Hauptaktion (Kastenfarbe) und bleibt beim Scrollen am unteren Rand erreichbar */
+html:not([data-vintage]) .hoer-start { background: var(--kasten, #ef7b17); border-color: var(--kasten, #ef7b17); color: #fff; font-weight: 600; }
+html:not([data-vintage]) .hoer-start:disabled { background: var(--tab); border-color: var(--rule); color: var(--ink-soft); }
+#du-start { position: sticky; bottom: 8px; z-index: 5; box-shadow: 0 8px 20px rgba(0, 0, 0, .2); }
+.du-mehr > .du-optionen, .du-mehr > .du-status, .du-mehr > .note, .du-mehr > .du-test, .du-mehr > .du-testergebnis { margin-left: 12px; margin-right: 12px; }
+.du-mehr > .du-test { width: calc(100% - 24px); }
+.du-mehr > :last-child { margin-bottom: 12px; }
+.du-so > .du-regeln { margin: 0; padding: 0 14px 14px; }
+.du-optionen label:has(#du-richtung), .du-optionen label:has(#du-reihe) { flex-basis: 100%; }

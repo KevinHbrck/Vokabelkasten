@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-10-02-2">
+<link rel="stylesheet" href="./app.css?v=2026-10-02-3">
 </head>
 <body>
 
@@ -308,6 +308,12 @@
   </section>
 
   <section id="view-neu" class="view">
+    <!-- zwei Wege, neue Karten anzulegen: einzeln tippen oder eine ganze Liste einlesen - immer nur einer davon zu sehen -->
+    <div class="modus" id="neu-wahl" role="group" aria-label="Wie möchtest du Karten anlegen?">
+      <button type="button" data-neu="einzeln" aria-pressed="true">Einzeln</button>
+      <button type="button" data-neu="liste" aria-pressed="false">Liste einlesen</button>
+    </div>
+    <div id="neu-einzeln" class="neu-karte">
     <h2>Neue Vokabel</h2>
     <label for="in-vorne">Deutsch</label>
     <input type="text" id="in-vorne" autocomplete="off">
@@ -320,8 +326,10 @@
     <button id="btn-add" type="button">Vokabel speichern</button>
     <p class="note" id="add-ok" hidden></p>
     <p class="note">Neue Karten starten in Fach 1.</p>
+    </div>
 
-    <h2 class="spaced">Ganze Liste einfügen</h2>
+    <div id="neu-liste" class="neu-karte" hidden>
+    <h2>Ganze Liste einfügen</h2>
     <p class="note" id="einf-hilfe">Eine Zeile pro Karte: <b>Deutsch · English · Beispiel</b>, getrennt durch Tab, |, ;, „ – “ oder „: “ – aus Excel einfach kopieren.</p>
     <!-- Datei hineinziehen, auswählen, aus der Zwischenablage holen oder eine Liste abfotografieren -->
     <div class="ablage" id="ablage">
@@ -353,6 +361,7 @@
     <select id="imp-kat"></select>
     <label class="zeile-check"><input type="checkbox" id="imp-aktiv"> Gleich in den Kasten legen</label>
     <button id="btn-import-text" type="button" disabled>Einlesen</button>
+    </div>
   </section>
 
   <section id="view-liste" class="view">
@@ -361,7 +370,9 @@
       <button class="filt" id="btn-nurmerk" type="button" aria-pressed="false" title="Nur schwierige zeigen" aria-label="Nur schwierige zeigen">&#9733;</button>
       <button class="filt" id="btn-nurkasten" type="button" aria-pressed="false" title="Nur Karten im Kasten zeigen">&#10003;</button>
     </div>
-    <!-- Filtern und Anzeigen: zwei schlanke Zeilen -->
+    <!-- Filtern und Anzeigen: zugeklappt, damit die Vokabeln gleich unter der Suche beginnen -->
+    <details class="lw-mehr">
+    <summary><span>Filter &amp; Anzeige</span></summary>
     <div class="lw-zeile">
       <select id="sel-listkat" aria-label="Nach Kategorie filtern"></select>
       <select id="sel-sort" aria-label="Sortieren">
@@ -379,6 +390,7 @@
       <button class="ghost lw-klein" id="btn-saetze" type="button">Sätze aus</button>
       <button class="ghost lw-klein" id="btn-liste-hoeren" type="button" title="Die angezeigte Liste der Reihe nach vorlesen">&#9654; Anhören</button>
     </div>
+    </details>
     <!-- Kasten füllen: die eine Hauptaktion der Liste, abgesetzt -->
     <div class="lw-kasten">
       <p class="lw-kasten-titel">In den Kasten</p>
@@ -407,7 +419,9 @@
     <div class="du-titel"><h2>Vokabel-Duell</h2><span class="du-exp">experimentell</span></div>
     <p class="du-warn"><b>Im Auto: Nur die mitfahrende Person bedient das Handy.</b> Wer fährt, spielt nur mit der Stimme mit und fasst das Handy nicht an.</p>
     <div class="hoer-panel du-panel">
+      <details class="du-so"><summary>So funktioniert's</summary>
       <p class="du-regeln">Ihr seid <b>abwechselnd dran</b>. Die App liest die Vokabel vor, direkt danach ist das Mikro an – die Bildschirmhälfte der Person, die dran ist, wird orange (Spieler 1 links, Spieler 2 rechts). Einfach antworten, ohne Namen. Richtig = <b>1 Punkt</b>. Falsch, „weiß nicht“ oder keine Antwort: Die andere Person ist dran und bekommt für die richtige Antwort <b>2 Punkte</b>.</p>
+      </details>
       <div class="du-namen">
         <label>Spieler 1<input type="text" id="du-name1" maxlength="16" autocomplete="off"></label>
         <label>Spieler 2<input type="text" id="du-name2" maxlength="16" autocomplete="off"></label>
@@ -449,6 +463,9 @@
             <option value="en">English → Deutsch</option>
           </select>
         </label>
+      </div>
+      <details class="du-mehr"><summary>Weitere Einstellungen</summary>
+      <div class="uw-optionen du-optionen">
         <label>Reihenfolge
           <select id="du-reihe">
             <option value="zufall">Zufällig gemischt</option>
@@ -469,11 +486,14 @@
         <label class="zeile-check"><input type="checkbox" id="du-manuell"> Ohne Mikrofon spielen (Punkte per Knopf)</label>
         <label class="zeile-check"><input type="checkbox" id="du-diagnose"> Diagnose zeigen (was die App gehört hat)</label>
       </div>
-      <p class="hoer-info" id="du-karten-info"></p>
+      </details>
+      <details class="du-mehr"><summary>Mikrofon &amp; Spracherkennung</summary>
       <div class="du-status" id="du-status"></div>
       <p class="note du-ds"><a href="privacy.html#spracherkennung" target="_blank" rel="noopener">Datenschutz bei der Spracherkennung</a></p>
       <button id="du-test" type="button" class="ghost du-test">&#127908; Mikrofon testen</button>
       <p class="du-testergebnis" id="du-testergebnis" hidden></p>
+      </details>
+      <p class="hoer-info" id="du-karten-info"></p>
       <button id="du-start" type="button" class="hoer-start">Duell starten</button>
       <p class="note">Ändert keine Fächer. Es gilt die Kategorie-Auswahl vom Üben.</p>
     </div>
@@ -502,9 +522,7 @@
           <button type="button" data-thema="hell">Hell</button>
           <button type="button" data-thema="dunkel">Dunkel</button>
           <button type="button" data-thema="nacht">Nacht</button>
-        </div>
-        <div class="themawahl vintage">
-          <button type="button" data-thema="kodak">C60</button>
+          <button type="button" data-thema="kodak" class="c60">C60</button>
         </div>
       </div>
       <div class="sk-block" id="sk-sicherung">
@@ -836,9 +854,9 @@
   </div>
 </section>
 
-<script src="./daten.js?v=2026-10-02-2"></script>
-<script src="./ts-fsrs.js?v=2026-10-02-2"></script>
-<script src="./lernen.js?v=2026-10-02-2"></script>
-<script src="./app.js?v=2026-10-02-2"></script>
+<script src="./daten.js?v=2026-10-02-3"></script>
+<script src="./ts-fsrs.js?v=2026-10-02-3"></script>
+<script src="./lernen.js?v=2026-10-02-3"></script>
+<script src="./app.js?v=2026-10-02-3"></script>
 </body>
 </html>
