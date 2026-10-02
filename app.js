@@ -121,6 +121,7 @@
   var richtung = "de";
   var nurMerk = false;
   var nurKasten = false;
+  var nurProblem = false;   // Liste: nur Problemfälle
   var filterFach = 0; // 0 = alle Fächer
   var paket = 15;
   var abdeck = "aus";
@@ -398,8 +399,13 @@
   function imKat(c) {
     if (filterKat === "alle") return true;
     if (filterKat === "merk") return !!c.merk;
+    if (filterKat === "problem") return problemfall(c);
     return c.kat === Number(filterKat);
   }
+  /* Problemfälle: Karten im Kasten, die schon mindestens PROBLEM_AB-mal vergessen wurden (FSRS-Zähler lapses, nichts Neues gespeichert) */
+  var PROBLEM_AB = 2;
+  function problemfall(c) { return !!(c.aktiv && c.fsrs && c.fsrs.lapses >= PROBLEM_AB); }
+  function anzahlProbleme() { return daten.cards.filter(problemfall).length; }
   // Kategorie und zusaetzlich das gewaehlte Fach
   function imFilter(c) {
     return imKat(c) && (!filterFach || fachVon(c) === filterFach);
@@ -437,7 +443,7 @@
     rundeBilanz = [0, 0];
     verlauf = [];
     extraOffen = {}; extraGehabt = {};
-    runde = mische(alle
+    runde = mische((alle || filterKat === "problem")
       ? daten.cards.filter(function (c) { return c.aktiv && imFilter(c); })
       : faellig());
     naechsteKarte();
@@ -1020,7 +1026,9 @@
     } else if (!imFach.length) {
       p.textContent = filterFach
         ? "Fach " + filterFach + " ist durch. Die Karten sind weitergewandert, schau in die Leiste oben."
-        : (filterKat === "merk"
+        : (filterKat === "problem"
+            ? "Keine Problemfälle – nichts wurde bisher mehrfach vergessen."
+            : filterKat === "merk"
             ? "In deinem Kasten liegt nichts Schwieriges."
             : "Aus dieser Kategorie liegt nichts im Kasten.");
       btn.className = "ghost";
@@ -1030,6 +1038,10 @@
         else { filterKat = "alle"; document.getElementById("sel-kat").value = "alle"; }
         rundeStarten(false);
       });
+    } else if (filterKat === "problem" && !filterFach) {
+      p.textContent = "Problemfälle einmal durch." + bilanzText();
+      btn.textContent = "Nochmal üben";
+      btn.addEventListener("click", function () { rundeStarten(false); });
     } else if (filterFach) {
       p.textContent = "Fach " + filterFach + " einmal durch. Die Karten sind dabei weitergewandert, schau in die Leiste oben.";
       btn.className = "ghost";
@@ -1090,7 +1102,7 @@
   function schreibeInfo(sichtbar, gesamt, q) {
     var info = document.getElementById("listinfo");
     var kasten = imKasten().length;
-    var teil = (q || nurMerk || nurKasten || listKat !== "alle") ? sichtbar + " von " + gesamt + " gezeigt" : gesamt + " Vokabeln";
+    var teil = (q || nurMerk || nurKasten || nurProblem || listKat !== "alle") ? sichtbar + " von " + gesamt + " gezeigt" : gesamt + " Vokabeln";
     info.textContent = teil + " \u00b7 " + kasten + " im Kasten \u00b7 " + anzahlMerk() + " schwierig";
     if (paketHinweis) {
       info.textContent += " \u00b7 " + paketHinweis + " neue Vokabeln aus dem Ergänzungspaket stehen hinten in der Liste";
@@ -1138,6 +1150,7 @@
     var treffer = alle.filter(function (c) {
       if (nurMerk && !c.merk) return false;
       if (nurKasten && !c.aktiv) return false;
+      if (nurProblem && !problemfall(c)) return false;
       if (!q) return true;
       return c.front.toLowerCase().indexOf(q) > -1 ||
              c.back.toLowerCase().indexOf(q) > -1 ||
@@ -1182,6 +1195,7 @@
     treffer.forEach(function (c) {
       if (c.id === bearbeiteId) { frag.appendChild(bearbeitenZeile(c, platz[c.id])); return; }
       var li = document.createElement("li");
+      if (problemfall(c)) li.title = c.fsrs.lapses + "-mal vergessen";
 
       var nr = document.createElement("span");
       nr.className = "num";
@@ -1272,7 +1286,7 @@
         }
         sichern();
         if (nurKasten && !c.aktiv) { zeichneListe(); return; }
-        li.className = c.aktiv ? "" : "ruht";
+        li.className = (c.aktiv ? "" : "ruht") + (problemfall(c) ? " problem" : "");
         fach.hidden = !c.aktiv;
         fach.value = String(fachVon(c));
         
@@ -1299,7 +1313,7 @@
       steuer.appendChild(haken);
       steuer.appendChild(stift);
 
-      li.className = (c.aktiv ? "" : "ruht") + (c.id === frischId || frischSet[c.id] ? " frisch" : "");
+      li.className = (c.aktiv ? "" : "ruht") + (c.id === frischId || frischSet[c.id] ? " frisch" : "") + (problemfall(c) ? " problem" : "");
       li.appendChild(nr);
       li.appendChild(de);
       li.appendChild(en);
@@ -2016,6 +2030,9 @@
     var m = document.createElement("option");
     m.value = "merk"; m.textContent = "\u2605 Nur schwierige";
     s.appendChild(m);
+    var pf = document.createElement("option");
+    pf.value = "problem"; pf.textContent = "⚠ Problemfälle";
+    s.appendChild(pf);
     KATS.forEach(function (k, i) {
       var a = document.createElement("option");
       a.value = String(i); a.textContent = k;
@@ -2976,6 +2993,7 @@
   /* ---------- Auswahl (Kategorie, Richtung) als zugeklappte Zeile ---------- */
   function zeichneAuswahlText() {
     var kat = document.getElementById("sel-kat"), ri = document.getElementById("sel-richtung");
+    Array.prototype.forEach.call(kat.options, function (o) { if (o.value === "problem") o.textContent = "⚠ Problemfälle (" + anzahlProbleme() + ")"; });
     var teile = [kat.options[kat.selectedIndex] ? kat.options[kat.selectedIndex].textContent : "Alle Kategorien"];
     if (modus !== "hoeren") teile.push(ri.options[ri.selectedIndex] ? ri.options[ri.selectedIndex].textContent : "");
     document.getElementById("aw-text").textContent = teile.filter(Boolean).join(" · ");
@@ -3225,6 +3243,13 @@
   });
   document.getElementById("sel-sort").addEventListener("change", function (e) {
     listSort = e.target.value; sichern(); zeichneListe();
+  });
+  document.getElementById("btn-nurproblem").addEventListener("click", function () {
+    nurProblem = !nurProblem;
+    var b = document.getElementById("btn-nurproblem");
+    b.className = "filt" + (nurProblem ? " on" : "");
+    b.setAttribute("aria-pressed", nurProblem ? "true" : "false");
+    zeichneListe();
   });
   document.getElementById("btn-nurmerk").addEventListener("click", function () {
     nurMerk = !nurMerk;
@@ -5526,7 +5551,7 @@
     SNAP_KEY = snapKey(); snapZeit = null;
     fremdeLogs = fremdeLogsLesen();
     // alles, was zu einem Kasten gehört, auf Anfang (wie beim Start der Seite)
-    filterKat = "alle"; richtung = "de"; nurMerk = false; nurKasten = false; filterFach = 0; paket = 15; abdeck = "aus";
+    filterKat = "alle"; richtung = "de"; nurMerk = false; nurKasten = false; nurProblem = false; filterFach = 0; paket = 15; abdeck = "aus";
     bearbeiteId = null; frischId = null; frischSet = {}; fokusNach = null; saetze = true;
     listKat = "alle"; listSort = "nr"; listeTreffer = [];
     runde = []; aktuell = null; aufgedeckt = false; rundeBilanz = [0, 0]; meldung = null; verlauf = [];

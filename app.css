@@ -1842,3 +1842,6 @@ html:not([data-vintage]) .sw-tag.heute { color: var(--ink); font-weight: 700; }
 .dst-leer { margin: 12px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
 .dst-loeschen { width: 100%; margin: 16px 0 6px; padding: 10px; font-size: 13.5px; color: var(--ink-soft); }
 .dst-loeschen:disabled { opacity: .45; }
+
+/* Problemfaelle in der Liste: dezenter Streifen links */
+ol.list li.problem { box-shadow: inset 3px 0 0 var(--mark); }
