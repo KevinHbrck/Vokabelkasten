@@ -1617,7 +1617,7 @@
   @media (prefers-color-scheme: dark) {
     html[data-thema="auto"], html[data-thema="klar"] { --indigo: color-mix(in srgb, var(--kasten, #ef7b17) 68%, #fff); }
   }
-  html:not([data-vintage]) button.known { background: var(--kasten, #ef7b17); border-color: var(--kasten, #ef7b17); color: #fff; }
+  html:not([data-vintage]) button.known { background: var(--kasten-btn, var(--kasten, #ef7b17)); border-color: var(--kasten-btn, var(--kasten, #ef7b17)); color: #fff; }
   html:not([data-vintage]) button.again { background: transparent; border-color: var(--rule); color: var(--ink); }
   html:not([data-vintage]) button.stufe.leicht { border-color: var(--kasten, #ef7b17); color: var(--indigo); }
   html:not([data-vintage]) .stempel.gewusst { color: var(--kasten, #ef7b17); }
@@ -1757,3 +1757,32 @@ html:not([data-vintage]) .hoer-start:disabled { background: var(--tab); border-c
 .du-mehr > :last-child { margin-bottom: 12px; }
 .du-so > .du-regeln { margin: 0; padding: 0 14px 14px; }
 .du-optionen label:has(#du-richtung), .du-optionen label:has(#du-reihe) { flex-basis: 100%; }
+
+/* ---------- Farblogik nach 60-30-10 ----------
+   ca. 60 % ruhige Flächen (--paper, --card), 30 % Schrift, Linien und Zweitflächen (--ink, --rule, --tab), höchstens 10 % Akzent
+   (die Farbe des offenen Kastens): für die Hauptaktion je Bildschirm und als zarte Tönung. „Ausgewählt“ ist deshalb tonal
+   (Tönung + feine Kontur + normale Schrift), nicht schwarz. Die Knopffarbe ist etwas dunkler als die Kastenfarbe: weißer Text bleibt lesbar. */
+:root {
+  --sel-bg: color-mix(in srgb, var(--kasten, #ef7b17) 15%, var(--card));
+  --sel-border: color-mix(in srgb, var(--kasten, #ef7b17) 50%, var(--rule));
+  --kasten-btn: color-mix(in srgb, var(--kasten, #ef7b17) 92%, #000);
+}
+html:not([data-vintage]) :is(#btn-add, #btn-import-text, #btn-export, #btn-teilen, #btn-next10, #sn-los, #eingabe-los, #btn-installieren,
+  .kasten-knoepfe button[type=submit], .blatt-speichern, .edit-knoepfe button:first-child),
+html:not([data-vintage]) button.known, html:not([data-vintage]) .hoer-start {
+  background: var(--kasten-btn); border-color: var(--kasten-btn); color: #fff; }
+html:not([data-vintage]) :is(#btn-import-text, #sn-los, .hoer-start):disabled { background: var(--tab); border-color: var(--rule); color: var(--ink-soft); opacity: 1; }
+html:not([data-vintage]) .themawahl button[aria-pressed="true"] { background: var(--sel-bg); color: var(--ink); border-color: var(--sel-border); font-weight: 700; }
+.kasten-reiter.an { background: color-mix(in srgb, var(--k) 16%, var(--card)); border-color: color-mix(in srgb, var(--k) 55%, var(--rule)); color: var(--ink); }
+/* Startkarte: ruhige, getönte Fläche mit dunkler Schrift (kein Verlauf, kein Leuchten) - nur „Jetzt üben“ trägt die Akzentfarbe */
+html:not([data-vintage]) .st-hero { background: color-mix(in srgb, var(--kasten, #ef7b17) 12%, var(--card)) !important; color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--kasten, #ef7b17) 34%, var(--rule)); box-shadow: none !important; }
+html:not([data-vintage]) .st-hero .st-ico-hell { background: color-mix(in srgb, var(--kasten, #ef7b17) 20%, var(--card)); color: var(--kasten-btn); }
+html:not([data-vintage]) .st-hero-titel small, html:not([data-vintage]) .st-hero-zahl span, html:not([data-vintage]) .st-ziel { color: var(--ink-soft); opacity: 1; }
+html:not([data-vintage]) .st-ziel-balken { background: color-mix(in srgb, var(--kasten, #ef7b17) 18%, var(--card)); }
+html:not([data-vintage]) .st-ziel-balken i { background: var(--kasten-btn); }
+html:not([data-vintage]) .st-cta { background: var(--kasten-btn); color: #fff !important; box-shadow: none; }
+html:not([data-vintage]) .sw-tag { color: var(--ink-soft); opacity: 1; }
+html:not([data-vintage]) .sw-tag i { background: color-mix(in srgb, var(--ink) 16%, transparent); }
+html:not([data-vintage]) .sw-tag.an i { background: var(--kasten-btn); }
+html:not([data-vintage]) .sw-tag.heute { color: var(--ink); font-weight: 700; }
