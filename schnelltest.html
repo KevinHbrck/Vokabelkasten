@@ -254,7 +254,7 @@
       pruefe(W.__ohneNeuladen === true, "Seite wurde neu geladen");
       pruefe(D.documentElement.hasAttribute("data-wissen"), "Wissenskasten nicht erkannt");
       pruefe(id("sn-de").placeholder === "Bedeutung", "Wissens-Texte fehlen: " + id("sn-de").placeholder);
-      pruefe(id("sel-kat").options.length === 7, "Kategorien im Wissenskasten: " + id("sel-kat").options.length);
+      pruefe(id("sel-kat").options.length === 6, "Kategorien im Wissenskasten: " + id("sel-kat").options.length);
       eingeben(id("sn-en"), "ABC");
       id("sn-de").value = "Testbedeutung";
       id("schnell").requestSubmit();
@@ -269,7 +269,7 @@
       pruefe(id("sn-de").placeholder === phVorher, "Texte nicht zurückgesetzt: " + id("sn-de").placeholder);
       var enNach = JSON.parse(W.localStorage.getItem(KEY));
       pruefe(enNach.cards.length === enKarten && JSON.stringify(enNach.cards) === JSON.stringify(JSON.parse(enVorher).cards), "Englisch-Kasten hat sich verändert");
-      pruefe(id("sel-kat").options.length === 3 + W.VK_DATEN.SEED.kats.length, "Kategorien doppelt oder falsch: " + id("sel-kat").options.length);
+      pruefe(id("sel-kat").options.length === 2 + W.VK_DATEN.SEED.kats.length, "Kategorien doppelt oder falsch: " + id("sel-kat").options.length);
       // wieder hin und den offenen Kasten löschen: zurück zu Englisch, Testkasten weg
       klick($$(".kasten-reiter")[1]);
       await bis(function () { return id("st-hero-name").textContent === "Testthemakasten"; }, 3000, "erneut im Testkasten");
