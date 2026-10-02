@@ -1665,3 +1665,54 @@
 .nachschub span { flex: 1; min-width: 0; }
 .nachschub button { padding: 8px 12px; font-size: 14px; min-height: 40px; }
 .nachschub button[hidden] { display: none; }
+
+/* ---------- Üben: aufgeräumt und für das Handy gebaut (2026-10-02) ----------
+   C60 (html[data-vintage]) behält bei Fächern und Karte seine eigene Gestaltung. */
+/* Kopfzeile: Auswahl links, Lautsprecher rechts in derselben Zeile (spart eine ganze Zeile) */
+.ue-kopf { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 10px; }
+#view-ueben .ue-kopf .auswahl { flex: 1; min-width: 0; margin: 0; }
+#view-ueben .ue-kopf .auswahl summary { min-height: 38px; align-items: center; }
+.ue-kopf .ue-laut { flex: none; margin: 0; }
+.ue-kopf .laut-knopf { width: 38px; height: 38px; }
+.ue-kopf .laut-knopf svg { width: 20px; height: 20px; }
+
+/* Fächer: runde Kacheln mit großer Zahl, gefüllte bekommen einen Strich in der Kastenfarbe */
+html:not([data-vintage]) .boxes { gap: 8px; margin-bottom: 12px; }
+html:not([data-vintage]) .box { position: relative; overflow: hidden; padding: 9px 2px 10px; border-radius: 14px; background: var(--card);
+  border: 1px solid var(--rule); font-size: 11.5px; line-height: 1.3; }
+html:not([data-vintage]) .box b { font-size: 21px; font-weight: 700; line-height: 1.15; }
+html:not([data-vintage]) .box::after { content: ""; position: absolute; left: 24%; right: 24%; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--rule); }
+html:not([data-vintage]) .box.filled { border-color: var(--rule); }
+html:not([data-vintage]) .box.filled::after { background: var(--kasten, var(--indigo)); }
+html:not([data-vintage]) .box.gewaehlt { background: color-mix(in srgb, var(--kasten, #ef7b17) 13%, var(--card)); border: 1px solid var(--kasten, #ef7b17); box-shadow: none; }
+html:not([data-vintage]) .box.gewaehlt::after { background: var(--kasten, #ef7b17); }
+
+/* Neue Karten aufnehmen: eigene Karte mit Symbol, klarem Text und drei zusammengehörigen Knöpfen */
+.nachschub { gap: 10px; margin: 0 0 14px; padding: 10px 10px 10px 12px; border: 1px solid var(--rule); border-radius: 16px; background: var(--card); color: var(--ink); }
+.nachschub .ns-ico { flex: none; width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--kasten, #ef7b17) 14%, transparent); color: var(--indigo); }
+.nachschub .ns-ico svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.nachschub .ns-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.nachschub .ns-text b { font-size: 14px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.nachschub .ns-text small { font-size: 12px; color: var(--ink-soft); }
+.nachschub .ns-knoepfe { flex: none; display: flex; gap: 5px; }
+.nachschub .ns-knoepfe button { min-width: 40px; min-height: 40px; padding: 0 8px; border-radius: 11px; border: none; font-size: 14px; font-weight: 700;
+  background: color-mix(in srgb, var(--kasten, #ef7b17) 14%, transparent); color: var(--indigo); box-shadow: none; }
+
+/* Lernkarte: weicher Schatten statt Stapel-Optik, größere Schrift, Kategorie als Etikett, Höhe nach Bildschirm */
+html:not([data-vintage]) .card { border-radius: 24px; padding: 40px 24px 34px; min-height: clamp(250px, 31vh, 380px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .09), 0 2px 6px rgba(0, 0, 0, .05); }
+html:not([data-vintage]) .card .kat { padding: 4px 12px; border-radius: 999px; background: var(--tab); font-size: 12px; font-weight: 600; margin-bottom: 22px; }
+html:not([data-vintage]) .card .front { font-size: clamp(27px, 7.4vw, 34px); }
+html:not([data-vintage]) .card .back { font-size: clamp(23px, 6.2vw, 28px); }
+html:not([data-vintage]) .card .divider { margin: 22px 0; }
+html:not([data-vintage]) .card .hint { margin-top: 28px; }
+button.karten-eck.links { left: 10px; top: 10px; }
+button.karten-eck.rechts { right: 10px; top: 10px; }
+button.karten-eck.unten { right: 10px; bottom: 10px; }
+@media (orientation: landscape) and (max-height: 560px) {
+  html:not([data-vintage]) .card { min-height: 0; padding: 26px 18px; }
+}
+/* C60: die drei Antwortarten passten auf schmalen Handys nicht nebeneinander (Großbuchstaben mit Abstand) */
+html[data-vintage] .antwortwahl button { min-width: 0; padding-left: 6px; padding-right: 6px; gap: 4px; letter-spacing: 0; font-size: 12px; }
+html[data-vintage] .antwortwahl svg { width: 15px; height: 15px; }

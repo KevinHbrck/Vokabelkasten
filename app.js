@@ -925,10 +925,10 @@
     var offen = daten.cards.filter(function (c) { return !c.aktiv; }).length;
     box.hidden = !offen;
     if (!offen) return;
-    document.getElementById("nachschub-txt").textContent = nachschubMeldung || ("Neue in den Kasten · " + offen + " warten");
+    document.getElementById("nachschub-txt").textContent = nachschubMeldung || (offen + (offen === 1 ? " neue Karte" : " neue Karten"));
     Array.prototype.forEach.call(box.querySelectorAll("[data-nachschub]"), function (b) {
       var n = Number(b.dataset.nachschub);
-      b.textContent = "+ " + Math.min(n, offen);
+      b.textContent = "+" + Math.min(n, offen);
       b.hidden = n > 10 && offen <= n - 10;   // „+ 20“ nur, wenn mehr als 10 warten usw.
     });
   }
