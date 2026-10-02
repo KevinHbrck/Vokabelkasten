@@ -301,10 +301,13 @@
       pruefe(JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten")).liste.length === 2, "Zurückholen hat nicht geklappt");
       $$(".kasten-reiter")[1].dispatchEvent(new W.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
       klick("#km-papierkorb");
-      W.confirm = function () { return true; };
       var endg = $$("#kasten-verwalten button").filter(function (x) { return x.textContent === "Endgültig löschen"; })[0];
       pruefe(endg, "Endgültig-löschen-Knopf fehlt");
       endg.click();
+      // Rückfrage kommt im eigenen Fenster (kein confirm): ohne Bestätigung bleibt der Kasten gespeichert
+      pruefe(!W.document.getElementById("blatt").hidden, "Rückfrage-Fenster fehlt");
+      pruefe(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv) !== null, "Kasten ohne Bestätigung gelöscht");
+      klick("#blatt-knoepfe .blatt-knopf");
       pruefe(W.localStorage.getItem("vokabelkasten.kasten." + reg.aktiv) === null, "endgültig gelöschter Kasten ist noch gespeichert");
       regK = JSON.parse(W.localStorage.getItem("vokabelkasten.kaesten"));
       pruefe(regK.liste.length === 1 && !regK.papierkorb.length, "Papierkorb nicht leer");

@@ -1447,14 +1447,15 @@
       });
     });
     weg.addEventListener("click", function () {
-      if (!confirm("„" + c.front + "“ wirklich löschen? Fach und Lernstand dieser Vokabel gehen dabei verloren.")) return;
-      daten.cards = daten.cards.filter(function (x) { return x.id !== c.id; });
-      if (c.bild) bildSetzen(c.id, null);
-      runde = runde.filter(function (x) { return x.id !== c.id; });
-      if (aktuell && aktuell.id === c.id) naechsteKarte();
-      sichern();
-      bearbeiteId = null;
-      zeichneListe();
+      frage("„" + c.front + "“ wirklich löschen? Fach und Lernstand dieser Vokabel gehen dabei verloren.", "Löschen", function () {
+        daten.cards = daten.cards.filter(function (x) { return x.id !== c.id; });
+        if (c.bild) bildSetzen(c.id, null);
+        runde = runde.filter(function (x) { return x.id !== c.id; });
+        if (aktuell && aktuell.id === c.id) naechsteKarte();
+        sichern();
+        bearbeiteId = null;
+        zeichneListe();
+      }, true);
     });
     // erst fokussieren, wenn die Zeile im Dokument steht
     setTimeout(function () { eVorne.focus(); }, 0);
@@ -1575,24 +1576,25 @@
   document.getElementById("btn-snap").addEventListener("click", function () {
     snapLesen().then(function (snap) {
       if (!snap || !snap.daten || !Array.isArray(snap.daten.cards)) return;
-      if (!confirm("Lernstand vom " + snapDatum(snap.zeit) + " wiederherstellen? Dein aktueller Stand auf diesem Gerät wird dabei ersetzt.")) return;
-      try { window.localStorage.setItem(KEY, JSON.stringify(snap.daten)); }
-      catch (e) { melde("Das hat nicht geklappt: Der Speicher dieses Browsers ist voll oder gesperrt."); return; }
-      daten = { v: 3, seeded: false, cards: [], reviews: [] };
-      laden();
-      document.getElementById("sel-paket").value = String(paket);
-      document.getElementById("sel-abdeck").value = abdeck;
-      setzeThema(thema);
-      setzeModus(daten.modus);
-      setzeWischen(daten.wischen);
-      setzeEingabe(daten.eingabe);
-      document.getElementById("btn-saetze").textContent = saetze ? "Sätze aus" : "Sätze ein";
-      document.getElementById("sel-richtung").value = richtung;
-      sichern();
-      zeichneListe();
-      zeichneStats();
-      rundeStarten(false);
-      zeichneHinweis();
+      frage("Lernstand vom " + snapDatum(snap.zeit) + " wiederherstellen? Dein aktueller Stand auf diesem Gerät wird dabei ersetzt.", "Wiederherstellen", function () {
+        try { window.localStorage.setItem(KEY, JSON.stringify(snap.daten)); }
+        catch (e) { melde("Das hat nicht geklappt: Der Speicher dieses Browsers ist voll oder gesperrt."); return; }
+        daten = { v: 3, seeded: false, cards: [], reviews: [] };
+        laden();
+        document.getElementById("sel-paket").value = String(paket);
+        document.getElementById("sel-abdeck").value = abdeck;
+        setzeThema(thema);
+        setzeModus(daten.modus);
+        setzeWischen(daten.wischen);
+        setzeEingabe(daten.eingabe);
+        document.getElementById("btn-saetze").textContent = saetze ? "Sätze aus" : "Sätze ein";
+        document.getElementById("sel-richtung").value = richtung;
+        sichern();
+        zeichneListe();
+        zeichneStats();
+        rundeStarten(false);
+        zeichneHinweis();
+      }, true);
     }).catch(function () {});
   });
 
@@ -2853,6 +2855,11 @@
     document.getElementById("blatt").hidden = true;
     waechterAbgleichen();
   }
+  /* Rückfrage im eigenen Fenster statt confirm() - das wird in installierten Web-Apps teils gar nicht gezeigt
+     (wie alert, siehe melde). gefaehrlich: roter Knopf. tun läuft erst nach dem Tipp auf den Knopf. */
+  function frage(text, knopf, tun, gefaehrlich) {
+    blattAuf(text, [{ text: knopf, leise: !!gefaehrlich, tun: tun }]);
+  }
   Array.prototype.forEach.call(document.querySelectorAll("[data-blattzu]"), function (el) {
     el.addEventListener("click", blattZu);
   });
@@ -3177,12 +3184,13 @@
 
   document.getElementById("btn-leeren").addEventListener("click", function () {
     var n = imKasten().length;
-    if (!confirm("Alle " + n + " Karten aus dem Kasten nehmen? Die Fächer bleiben erhalten, du kannst jederzeit wieder aufnehmen.")) return;
-    daten.cards.forEach(function (c) { c.aktiv = false; });
-    runde = []; aktuell = null;
-    sichern();
-    listMeldung(["Kasten geleert: ", n + (n === 1 ? " Karte" : " Karten"), " herausgenommen. Ihre Fächer bleiben gespeichert."]);
-    zeichneListe();
+    frage("Alle " + n + " Karten aus dem Kasten nehmen? Die Fächer bleiben erhalten, du kannst jederzeit wieder aufnehmen.", "Kasten leeren", function () {
+      daten.cards.forEach(function (c) { c.aktiv = false; });
+      runde = []; aktuell = null;
+      sichern();
+      listMeldung(["Kasten geleert: ", n + (n === 1 ? " Karte" : " Karten"), " herausgenommen. Ihre Fächer bleiben gespeichert."]);
+      zeichneListe();
+    });
   });
 
   document.getElementById("sel-paket").addEventListener("change", function (e) {
@@ -3522,23 +3530,25 @@
   });
 
   document.getElementById("btn-lernstand").addEventListener("click", function () {
-    if (!confirm("Alle Karten zurück auf Fach 1? Vokabeln, Kasten und Sterne bleiben erhalten.")) return;
-    var t = heute();
-    daten.cards.forEach(function (c) { c.box = 1; c.due = t; delete c.fsrs; });   // sichern() gibt allen einen neuen FSRS-Stand
-    sichern();
-    zeichneStats();
-    rundeStarten(false);
+    frage("Alle Karten zurück auf Fach 1? Vokabeln, Kasten und Sterne bleiben erhalten.", "Zurücksetzen", function () {
+      var t = heute();
+      daten.cards.forEach(function (c) { c.box = 1; c.due = t; delete c.fsrs; });   // sichern() gibt allen einen neuen FSRS-Stand
+      sichern();
+      zeichneStats();
+      rundeStarten(false);
+    }, true);
   });
 
   document.getElementById("btn-reset").addEventListener("click", function () {
-    if (!confirm("Wirklich alle Vokabeln löschen? Nur eine Sicherungsdatei bringt sie zurück.")) return;
-    daten = { v: 3, seeded: true, cards: [], reviews: [] };
-    try { window.localStorage.removeItem(VOR_V3 + KASTEN.id); } catch (e) {}   // gelöscht heißt gelöscht: auch die Sicherung vor dem FSRS-Umbau
-    bilderKastenLoeschen(KASTEN.id);
-    runde = []; aktuell = null;
-    sichern();
-    zeichneListe(); zeichneStats();
-    wechsle("ueben");
+    frage("Wirklich alle Vokabeln löschen? Nur eine Sicherungsdatei bringt sie zurück.", "Alle löschen", function () {
+      daten = { v: 3, seeded: true, cards: [], reviews: [] };
+      try { window.localStorage.removeItem(VOR_V3 + KASTEN.id); } catch (e) {}   // gelöscht heißt gelöscht: auch die Sicherung vor dem FSRS-Umbau
+      bilderKastenLoeschen(KASTEN.id);
+      runde = []; aktuell = null;
+      sichern();
+      zeichneListe(); zeichneStats();
+      wechsle("ueben");
+    }, true);
   });
 
   /* ---------- Offline-Unterstützung ---------- */
@@ -5532,10 +5542,34 @@
   })();
   // Einstellungen: Kasten umbenennen oder löschen (Englisch bleibt immer)
   function kastenUmbenennen(k) {
-    var neu = prompt("Neuer Name für den Kasten:", k.name);
-    if (!neu || !neu.trim()) return false;
-    k.name = neu.trim().slice(0, 30); kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen(); kastenTexte(); kopfZeigen();
-    return true;
+    // eigenes Fenster statt prompt() (siehe frage); gleiche Form wie „Vokabel bearbeiten“
+    var knoepfe = document.getElementById("blatt-knoepfe");
+    document.getElementById("blatt-titel").textContent = "Neuer Name für den Kasten";
+    knoepfe.textContent = "";
+    var form = document.createElement("div");
+    form.className = "blatt-form";
+    var l = document.createElement("label");
+    l.textContent = "Name";
+    var inp = document.createElement("input");
+    inp.type = "text"; inp.value = k.name || ""; inp.maxLength = 30; inp.autocomplete = "off";
+    l.appendChild(inp);
+    form.appendChild(l);
+    var ok = document.createElement("button");
+    ok.type = "button"; ok.className = "blatt-speichern";
+    ok.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Speichern';
+    form.appendChild(ok);
+    knoepfe.appendChild(form);
+    function speichern() {
+      var neu = inp.value.trim();
+      if (!neu) { inp.focus(); return; }
+      blattZu();
+      k.name = neu.slice(0, 30); kaestenSichern(); kastenVerwaltenZeichnen(); kastenLeisteZeichnen(); kastenTexte(); kopfZeigen();
+    }
+    ok.addEventListener("click", speichern);
+    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); speichern(); } });
+    document.getElementById("blatt").hidden = false;
+    waechterAbgleichen();
+    inp.focus(); inp.select();
   }
   /* Papierkorb: der Kasten verschwindet aus der Leiste, seine Karten bleiben gespeichert (KAESTEN.papierkorb).
      Zurückholen oder endgültig löschen in den Einstellungen unter „Kästen“. Englisch bleibt immer. */
@@ -5556,11 +5590,12 @@
     kaestenSichern(); fremdeLogs = fremdeLogsLesen(); kastenLeisteZeichnen(); kastenVerwaltenZeichnen();
   }
   function kastenEndgueltigLoeschen(k) {
-    if (!confirm("„" + kastenTitel(k) + "“ mit allen Karten endgültig löschen? Das lässt sich nur mit einer Sicherungsdatei rückgängig machen.")) return;
-    try { window.localStorage.removeItem(kastenKey(k.id)); window.localStorage.removeItem(VOR_V3 + k.id); } catch (e) {}   // samt Sicherung vor dem FSRS-Umbau
-    bilderKastenLoeschen(k.id);
-    KAESTEN.papierkorb = papierkorb().filter(function (x) { return x.id !== k.id; });
-    kaestenSichern(); kastenVerwaltenZeichnen();
+    frage("„" + kastenTitel(k) + "“ mit allen Karten endgültig löschen? Das lässt sich nur mit einer Sicherungsdatei rückgängig machen.", "Endgültig löschen", function () {
+      try { window.localStorage.removeItem(kastenKey(k.id)); window.localStorage.removeItem(VOR_V3 + k.id); } catch (e) {}   // samt Sicherung vor dem FSRS-Umbau
+      bilderKastenLoeschen(k.id);
+      KAESTEN.papierkorb = papierkorb().filter(function (x) { return x.id !== k.id; });
+      kaestenSichern(); kastenVerwaltenZeichnen();
+    }, true);
   }
   // Reihenfolge ändern - Englisch bleibt vorn (das Verzeichnis gilt nur mit Englisch an erster Stelle)
   function kastenVerschieben(k, um) {
