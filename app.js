@@ -3636,7 +3636,7 @@
     return {
       auswahl: ["faellig", "kasten", "alle", "liste"].indexOf(e.auswahl) > -1 ? e.auswahl : "faellig",
       denk: [1, 2, 3, 5, 8, 12].indexOf(e.denk) > -1 ? e.denk : 5,
-      richtung: e.richtung === "en" ? "en" : "de",
+      richtung: e.richtung === "en" || e.richtung === "mix" ? e.richtung : "de",
       bsp: e.bsp !== false,
       hintergrund: e.hintergrund === true,   // standardmäßig aus, damit Musik anderer Apps weiterläuft
       stimmeDe: e.stimmeDe || "",
@@ -3981,7 +3981,10 @@
     var c = uw.karten[uw.i];
     if (!c) { uwFertig(); return; }
     var e = uwEinstellungen();
-    var deZuerst = e.richtung === "de";
+    // „Gemischt“: je Karte einmal gewürfelt und für die Runde gemerkt (Zurück/Weiter bleibt gleich)
+    uw.wurf = uw.wurf || {};
+    if (e.richtung === "mix" && !(uw.i in uw.wurf)) uw.wurf[uw.i] = Math.random() < 0.5;
+    var deZuerst = e.richtung === "mix" ? uw.wurf[uw.i] : e.richtung === "de";
     var frage = deZuerst ? c.front : c.back, antwort = deZuerst ? c.back : c.front;
     var sFrage = deZuerst ? "de-DE" : "en-GB", sAntwort = deZuerst ? "en-GB" : "de-DE";
     var aktiv = function () { return uw && lauf === uw.lauf; };
