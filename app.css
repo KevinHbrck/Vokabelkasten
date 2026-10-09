@@ -1951,3 +1951,14 @@ html[data-vintage] ol.list .stat { font-family: var(--f-mono); letter-spacing: .
 html[data-vintage] ol.list .stat-fach { border-radius: 6px; }
 html[data-vintage] .du-lb { border-radius: 0; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: 12.5px; }
 html[data-vintage] .du-lb:active { transform: none; }
+
+/* Beim Schreiben (Tastatur offen): nur Kopfzeile, Karte, Feld und Bewertung – alles andere weicht, damit die Vokabel sichtbar bleibt */
+@media (pointer: coarse) {
+  html.tippt nav, html.tippt #view-ueben .ue-kopf, html.tippt #view-ueben .boxes, html.tippt #view-ueben .nachschub,
+  html.tippt #view-ueben .antwortwahl, html.tippt #view-ueben .tagesziel, html.tippt #view-ueben .meldung { display: none; }
+  html.tippt #view-ueben .card, html[data-vintage].tippt #view-ueben .card { min-height: 0; padding: 18px 20px 20px; }
+  html.tippt #view-ueben .card .hint { display: none; }
+  html.tippt #view-ueben #trainer .karten-rahmen { margin: 0; }
+  html.tippt #view-ueben #trainer .bedien { margin-top: 6px; }
+  html.tippt main { padding-top: 10px; }
+}

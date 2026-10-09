@@ -2022,6 +2022,7 @@
   var ansicht = "ueben";
   function wechsle(name) {
     ansicht = name;
+    document.documentElement.classList.remove("tippt");   // kompakte Ansicht beim Schreiben gilt nur auf der Lernseite
     ["start", "ueben", "liste", "neu", "quiz", "sichern", "statistik"].forEach(function (v) {
       document.getElementById("view-" + v).classList.toggle("active", v === name);
     });
@@ -2267,6 +2268,29 @@
     }
     if (eingabeModus === "tippen" && aktuell && !aufgedeckt) document.getElementById("eingabe-feld").focus();
   });
+  /* Beim Schreiben ist das halbe Handy von der Tastatur verdeckt: solange das Feld offen ist, rücken Auswahl, Fächer, Reiter und
+     untere Leiste weg (CSS: html.tippt), damit die Vokabel über dem Feld sichtbar bleibt. */
+  (function () {
+    var wurzel = document.documentElement;
+    function nachOben() {
+      var m = document.querySelector("main");
+      if (m && wurzel.classList.contains("tippt")) m.scrollTop = 0;
+    }
+    document.addEventListener("focusin", function (e) {
+      if (e.target.id !== "eingabe-feld") return;
+      wurzel.classList.add("tippt");
+      requestAnimationFrame(nachOben);
+      setTimeout(nachOben, 350);   // die Tastatur fährt erst danach ganz hoch
+    });
+    document.addEventListener("focusout", function (e) {
+      if (e.target.id !== "eingabe-feld") return;
+      setTimeout(function () {   // ein Tipp auf „Prüfen“ nimmt kurz den Fokus: dann bleibt es kompakt
+        var a = document.activeElement;
+        if (a && a.closest && a.closest("#eingabe")) return;
+        wurzel.classList.remove("tippt");
+      }, 150);
+    });
+  })();
 
   /* ---------- Wischen: rechts = gewusst, links = nochmal (erst nach dem Aufdecken) ---------- */
   var wischen = true, wischGerade = false;
