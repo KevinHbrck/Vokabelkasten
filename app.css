@@ -1860,14 +1860,14 @@ html:not([data-vintage]) .sw-tag.heute { color: var(--ink); font-weight: 700; }
 .star.auto { color: var(--mark); opacity: .55; }
 
 /* Sprechen/Quiz: die Leiste unten leise wie Aufdecken · Schreiben · Sprechen – Text mit Symbol, nur eine feine Linie statt Kacheln (C60 behält seine Knöpfe) */
-html:not([data-vintage]) .du-leiste { gap: 0; margin: 0 16px; padding: 0 0 calc(env(safe-area-inset-bottom) + 10px); border-top: 1px solid var(--rule); }
-html:not([data-vintage]) .du-lb { flex: 1 1 auto; flex-direction: row; justify-content: center; gap: 6px; min-height: 52px; padding: 0 6px; white-space: nowrap;
+html .du-leiste { gap: 0; margin: 0 16px; padding: 0 0 calc(env(safe-area-inset-bottom) + 10px); border-top: 1px solid var(--rule); }
+html .du-lb { flex: 1 1 auto; flex-direction: row; justify-content: center; gap: 6px; min-height: 52px; padding: 0 6px; white-space: nowrap;
   border: 0; border-radius: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
   color: var(--ink-soft); font-size: 14px; font-weight: 500; }
-html:not([data-vintage]) .du-lb svg { width: 18px; height: 18px; }
-html:not([data-vintage]) .du-lb .du-stern { font-size: 18px; }
-html:not([data-vintage]) .du-lb:active { transform: none; color: var(--ink); }
-html:not([data-vintage]) #du-merk.on span { color: var(--ink); }
+html .du-lb svg { width: 18px; height: 18px; }
+html .du-lb .du-stern { font-size: 18px; }
+html .du-lb:active { transform: none; color: var(--ink); }
+html #du-merk.on span { color: var(--ink); }
 /* Fächer im Sprechen: dieselbe flache Kachel wie beim Üben */
 html:not([data-vintage]) #duell.solo .du-faecher { gap: 6px; }
 html:not([data-vintage]) .du-fach { padding: 7px 0 8px; border-radius: 12px; border-width: 1px; }
@@ -1902,19 +1902,19 @@ ol.list li:not(.bearbeiten) { -webkit-user-select: none; user-select: none; -web
 .kmn-zwei b { font-size: 20px; font-weight: 400; line-height: 1; }
 .kmn-zwei button[aria-pressed="true"] b { color: #e0a100; }
 .stat { display: none; }
-html:not([data-vintage]) ol.list { margin-top: 10px; }
-html:not([data-vintage]) ol.list li:not(.bearbeiten) { padding: 12px 14px; margin: 0 0 10px; border: 1px solid var(--rule); border-radius: 16px; background: var(--card);
+html ol.list { margin-top: 10px; }
+html ol.list li:not(.bearbeiten) { padding: 12px 14px; margin: 0 0 10px; border: 1px solid var(--rule); border-radius: 16px; background: var(--card);
   cursor: pointer; transition: transform .12s ease, background-color .12s ease, box-shadow .12s ease; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
-html:not([data-vintage]) ol.list li.gedrueckt { transform: scale(.985); background: color-mix(in srgb, var(--kasten, #ef7b17) 8%, var(--card)); }
-html:not([data-vintage]) ol.list li.ruht:not(.bearbeiten) { background: transparent; border-style: dashed; box-shadow: none; }
-html:not([data-vintage]) ol.list li.bearbeiten { padding: 14px; margin: 0 0 10px; border: 1px solid var(--rule); border-radius: 16px; background: var(--card); }
-html:not([data-vintage]) ol.list li.frisch { animation: none; background: color-mix(in srgb, var(--kasten, #ef7b17) 12%, var(--card)); }
-html:not([data-vintage]) ol.list .steuer .fachsel, html:not([data-vintage]) ol.list .steuer .star,
-html:not([data-vintage]) ol.list .steuer .haken, html:not([data-vintage]) ol.list .steuer .edit-btn { display: none; }
-html:not([data-vintage]) ol.list .stat { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-soft); font-style: normal; }
-html:not([data-vintage]) ol.list .stat i { font-style: normal; }
-html:not([data-vintage]) ol.list .stat-fach { padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--kasten, #ef7b17) 14%, transparent); color: var(--ink); font-weight: 600; }
-html:not([data-vintage]) ol.list .stat-stern { color: #e0a100; font-size: 15px; }
+html ol.list li.gedrueckt { transform: scale(.985); background: color-mix(in srgb, var(--kasten, #ef7b17) 8%, var(--card)); }
+html ol.list li.ruht:not(.bearbeiten) { background: transparent; border-style: dashed; box-shadow: none; }
+html ol.list li.bearbeiten { padding: 14px; margin: 0 0 10px; border: 1px solid var(--rule); border-radius: 16px; background: var(--card); }
+html ol.list li.frisch { animation: none; background: color-mix(in srgb, var(--kasten, #ef7b17) 12%, var(--card)); }
+html ol.list .steuer .fachsel, html ol.list .steuer .star,
+html ol.list .steuer .haken, html ol.list .steuer .edit-btn { display: none; }
+html ol.list .stat { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-soft); font-style: normal; }
+html ol.list .stat i { font-style: normal; }
+html ol.list .stat-fach { padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--kasten, #ef7b17) 14%, transparent); color: var(--ink); font-weight: 600; }
+html ol.list .stat-stern { color: #e0a100; font-size: 15px; }
 
 /* Untere Leiste ohne „Üben“: gelernt wird über die Startseite (Karteikasten, Hörtraining, Quiz-Duell); die Seite selbst bleibt erhalten */
 nav button[data-view="ueben"] { display: none; }
@@ -1936,3 +1936,18 @@ nav button[data-view="ueben"] { display: none; }
 .imp-info b { color: var(--ink); font-weight: 600; }
 .imp-info pre { margin: 6px 0 4px; padding: 8px 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--rule); color: var(--ink);
   font: 12.5px/1.5 ui-monospace, Consolas, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* C60: dieselbe ruhige Bedienung (Unterstrich-Umschalter, Kacheln in der Liste, leise Leiste beim Sprechen) in der Schrift und den Farben des Designs */
+html[data-vintage] .modus { background: none; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; padding: 0; box-shadow: none; }
+html[data-vintage] .modus button, html[data-vintage] .modus button[data-modus], html[data-vintage] .modus button[data-eingabe],
+html[data-vintage] .modus button[data-wischen], html[data-vintage] .antwortwahl #btn-sprache {
+  background: none !important; box-shadow: none !important; border: 0 !important; border-bottom: 2px solid transparent !important; border-radius: 0 !important;
+  color: var(--ink-soft) !important; margin-bottom: -1px; padding: 10px 4px; }
+html[data-vintage] .modus button[aria-pressed="true"], html[data-vintage] .modus button[data-modus][aria-pressed="true"],
+html[data-vintage] .modus button[data-eingabe][aria-pressed="true"], html[data-vintage] .modus button[data-wischen][aria-pressed="true"] {
+  background: none !important; box-shadow: none !important; color: var(--ink) !important; border-bottom-color: var(--ink) !important; }
+html[data-vintage] ol.list li:not(.bearbeiten), html[data-vintage] ol.list li.bearbeiten { border-radius: 10px; }
+html[data-vintage] ol.list .stat { font-family: var(--f-mono); letter-spacing: .04em; text-transform: uppercase; }
+html[data-vintage] ol.list .stat-fach { border-radius: 6px; }
+html[data-vintage] .du-lb { border-radius: 0; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: 12.5px; }
+html[data-vintage] .du-lb:active { transform: none; }
