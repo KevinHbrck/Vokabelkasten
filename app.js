@@ -1328,8 +1328,10 @@
         bz.textContent = c.bsp;
         li.appendChild(bz);
       }
+      kachelDruck(li, c, platz[c.id]);
       frag.appendChild(li);
     });
+    langDruckHinweis();
 
     ol.textContent = "";
     ol.appendChild(frag);
@@ -1464,21 +1466,106 @@
         else if (e.key === "Escape") schliessen();
       });
     });
-    weg.addEventListener("click", function () {
-      frage("„" + c.front + "“ wirklich löschen? Fach und Lernstand dieser Vokabel gehen dabei verloren.", "Löschen", function () {
-        daten.cards = daten.cards.filter(function (x) { return x.id !== c.id; });
-        if (c.bild) bildSetzen(c.id, null);
-        runde = runde.filter(function (x) { return x.id !== c.id; });
-        if (aktuell && aktuell.id === c.id) naechsteKarte();
-        sichern();
-        bearbeiteId = null;
-        zeichneListe();
-      }, true);
-    });
+    weg.addEventListener("click", function () { karteLoeschenFragen(c); });
     // erst fokussieren, wenn die Zeile im Dokument steht
     setTimeout(function () { eVorne.focus(); }, 0);
     return li;
   }
+
+  // Löschen mit Rückfrage – gilt für das Bearbeiten-Formular und für das Menü beim langen Drücken
+  function karteLoeschenFragen(c) {
+    frage("„" + c.front + "“ wirklich löschen? Fach und Lernstand dieser Vokabel gehen dabei verloren.", "Löschen", function () {
+      daten.cards = daten.cards.filter(function (x) { return x.id !== c.id; });
+      if (c.bild) bildSetzen(c.id, null);
+      runde = runde.filter(function (x) { return x.id !== c.id; });
+      if (aktuell && aktuell.id === c.id) naechsteKarte();
+      sichern();
+      bearbeiteId = null;
+      zeichneListe();
+    }, true);
+  }
+
+  /* Lange auf eine Kachel der Liste drücken: unten klappt ein Menü auf – bearbeiten, in ein Fach legen oder löschen.
+     Tippen auf Knöpfe, Häkchen und Fach-Auswahl in der Zeile löst nichts aus; wer wegwischt (scrollt), bricht ab. */
+  var menueKarte = null, langDruckGesehen = null;   // null: noch nicht nachgesehen
+  function langDruckHinweis() {
+    if (langDruckGesehen === null) {
+      langDruckGesehen = false;
+      try { langDruckGesehen = localStorage.getItem("vokabelkasten.langdruck") === "1"; } catch (e) {}
+    }
+    var h = document.getElementById("lang-hinweis");
+    if (h) h.hidden = langDruckGesehen;
+  }
+  function kartenMenueAuf(c, nr) {
+    menueKarte = c;
+    document.getElementById("kmn-titel").textContent = c.front;
+    document.getElementById("kmn-info").textContent = "Nr. " + nr + " · " + c.back + (c.aktiv ? " · Fach " + fachVon(c) : " · noch nicht im Kasten");
+    Array.prototype.forEach.call(document.querySelectorAll("#kmn-faecher button"), function (b) {
+      var an = c.aktiv && Number(b.dataset.fach) === fachVon(c);
+      b.setAttribute("aria-pressed", an ? "true" : "false");
+    });
+    document.getElementById("karten-menue").hidden = false;
+    if (!langDruckGesehen) {
+      langDruckGesehen = true;
+      try { localStorage.setItem("vokabelkasten.langdruck", "1"); } catch (e) {}
+      langDruckHinweis();
+    }
+  }
+  function kartenMenueZu() { document.getElementById("karten-menue").hidden = true; menueKarte = null; }
+  function kachelDruck(li, c, nr) {
+    var timer = null, x0 = 0, y0 = 0, ausgeloest = false;
+    function ab() { if (timer) { clearTimeout(timer); timer = null; } }
+    li.addEventListener("pointerdown", function (e) {
+      if (e.button > 0 || e.target.closest("select, input, button, textarea")) return;
+      ausgeloest = false; x0 = e.clientX; y0 = e.clientY;
+      ab();
+      timer = setTimeout(function () {
+        timer = null; ausgeloest = true;
+        if (navigator.vibrate) { try { navigator.vibrate(12); } catch (x) {} }
+        kartenMenueAuf(c, nr);
+      }, 480);
+    });
+    li.addEventListener("pointermove", function (e) {
+      if (timer && (Math.abs(e.clientX - x0) > 9 || Math.abs(e.clientY - y0) > 9)) ab();
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (n) { li.addEventListener(n, ab); });
+    // der Tipp, der das Menü geöffnet hat, soll nicht auch noch das Wort vorlesen
+    li.addEventListener("click", function (e) { if (ausgeloest) { ausgeloest = false; e.stopPropagation(); e.preventDefault(); } }, true);
+    // Android öffnet beim langen Drücken sonst sein eigenes Textmenü; am Computer: Rechtsklick
+    li.addEventListener("contextmenu", function (e) {
+      if (e.target.closest("select, input, textarea")) return;
+      e.preventDefault();
+      if (!ausgeloest) kartenMenueAuf(c, nr);
+    });
+  }
+  document.getElementById("kmn-abbruch").addEventListener("click", kartenMenueZu);
+  document.getElementById("karten-menue").addEventListener("click", function (e) { if (e.target.id === "karten-menue") kartenMenueZu(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !document.getElementById("karten-menue").hidden) kartenMenueZu();
+  });
+  document.getElementById("kmn-edit").addEventListener("click", function () {
+    var c = menueKarte; kartenMenueZu();
+    if (!c) return;
+    bearbeiteId = c.id;
+    zeichneListe();
+  });
+  document.getElementById("kmn-weg").addEventListener("click", function () {
+    var c = menueKarte; kartenMenueZu();
+    if (c) karteLoeschenFragen(c);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#kmn-faecher button"), function (b) {
+    b.addEventListener("click", function () {
+      var c = menueKarte, neu = Number(b.dataset.fach);
+      kartenMenueZu();
+      if (!c) return;
+      if (!c.aktiv) { c.aktiv = true; fachSetzen(c, neu); sichern(); }   // noch draußen: kommt dabei gleich in den Kasten
+      else if (!inFach(c, neu)) return;
+      runde = runde.filter(function (x) { return x.id !== c.id; });
+      if (aktuell && aktuell.id === c.id) naechsteKarte();
+      frischId = c.id;
+      zeichneListe();
+    });
+  });
 
   /* Die Fassung steht nur in sw.js: die App fragt den Service Worker danach.
      Keine Antwort (als Datei geöffnet, Service Worker noch nicht aktiv): Zeile bleibt leer. */

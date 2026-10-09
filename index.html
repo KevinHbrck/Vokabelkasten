@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-10-09-6">
+<link rel="stylesheet" href="./app.css?v=2026-10-09-12">
 </head>
 <body>
 
@@ -42,6 +42,28 @@
       <div class="km-reihe"><button type="button" class="ghost" id="km-links"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Nach links</button><button type="button" class="ghost" id="km-rechts">Nach rechts<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <button type="button" class="ghost" id="km-umbenennen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>Umbenennen</button>
       <button type="button" class="ghost" id="km-abbruch">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<div class="kasten-dialog" id="karten-menue" hidden>
+  <div class="kasten-karte" role="dialog" aria-labelledby="kmn-titel">
+    <h2 id="kmn-titel"></h2>
+    <p class="note" id="kmn-info"></p>
+    <div class="km-knoepfe">
+      <button type="button" class="ghost" id="kmn-edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>Bearbeiten</button>
+      <div class="kmn-fach" role="group" aria-label="In ein Fach legen">
+        <span class="kmn-label">In ein Fach legen</span>
+        <div class="km-reihe" id="kmn-faecher">
+          <button type="button" class="ghost" data-fach="1" aria-pressed="false">1</button>
+          <button type="button" class="ghost" data-fach="2" aria-pressed="false">2</button>
+          <button type="button" class="ghost" data-fach="3" aria-pressed="false">3</button>
+          <button type="button" class="ghost" data-fach="4" aria-pressed="false">4</button>
+          <button type="button" class="ghost" data-fach="5" aria-pressed="false">5</button>
+        </div>
+      </div>
+      <button type="button" class="ghost km-weg" id="kmn-weg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Löschen</button>
+      <button type="button" class="ghost" id="kmn-abbruch">Abbrechen</button>
     </div>
   </div>
 </div>
@@ -414,6 +436,7 @@
       </div>
     </div>
     <p class="note" id="listinfo"></p>
+    <p class="note lang-hinweis" id="lang-hinweis" hidden>Tipp: Eine Kachel lange gedrückt halten – dann kannst du die Vokabel bearbeiten, in ein Fach legen oder löschen.</p>
     <p class="meldung liste-meldung" id="listmeldung" hidden></p>
     <ol class="list" id="liste"></ol>
   </section>
@@ -862,9 +885,9 @@
   </div>
 </section>
 
-<script src="./daten.js?v=2026-10-09-6"></script>
-<script src="./ts-fsrs.js?v=2026-10-09-6"></script>
-<script src="./lernen.js?v=2026-10-09-6"></script>
-<script src="./app.js?v=2026-10-09-6"></script>
+<script src="./daten.js?v=2026-10-09-12"></script>
+<script src="./ts-fsrs.js?v=2026-10-09-12"></script>
+<script src="./lernen.js?v=2026-10-09-12"></script>
+<script src="./app.js?v=2026-10-09-12"></script>
 </body>
 </html>

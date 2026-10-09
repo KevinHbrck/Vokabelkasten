@@ -1704,11 +1704,13 @@ html:not([data-vintage]) .box.gewaehlt::after { background: var(--kasten, #ef7b1
 .ns-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .ns-toggle[aria-expanded="true"] { border-color: var(--kasten, #ef7b17); color: var(--kasten, #ef7b17); }
 
-/* Antwortart (Aufdecken · Schreiben · Sprechen): wie in BLOC nur Text mit Unterstrich statt gefüllter Pille; C60 behält seine Knöpfe */
-html:not([data-vintage]) .antwortwahl { background: none; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; padding: 0; margin-top: 12px; }
-html:not([data-vintage]) .antwortwahl button { border-radius: 0; background: none; box-shadow: none; color: var(--ink-soft); font-weight: 500;
+/* Umschalter in der ganzen App (Aufdecken · Schreiben · Sprechen, Einzeln · Liste einlesen, Optionen …): wie in BLOC nur Text mit Unterstrich
+   statt gefüllter Pille; C60 behält seine Knöpfe */
+html:not([data-vintage]) .modus { background: none; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; padding: 0; }
+html:not([data-vintage]) .modus button { border-radius: 0; background: none; box-shadow: none; color: var(--ink-soft); font-weight: 500;
   border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 10px 4px; }
-html:not([data-vintage]) .antwortwahl button[aria-pressed="true"] { background: none; box-shadow: none; color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+html:not([data-vintage]) .modus button[aria-pressed="true"] { background: none; box-shadow: none; color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+html:not([data-vintage]) .antwortwahl { margin-top: 12px; }
 
 /* Lernkarte: weicher Schatten statt Stapel-Optik, größere Schrift, Kategorie als Etikett, Höhe nach Bildschirm */
 html:not([data-vintage]) .card { border-radius: 24px; padding: 40px 24px 34px; min-height: clamp(250px, 31vh, 380px);
@@ -1871,3 +1873,26 @@ html:not([data-vintage]) #duell.solo .du-faecher { gap: 6px; }
 html:not([data-vintage]) .du-fach { padding: 7px 0 8px; border-radius: 12px; border-width: 1px; }
 html:not([data-vintage]) .du-fach b { font-size: 19px; font-weight: 700; }
 html:not([data-vintage]) .du-fach small { font-size: 11px; font-weight: 500; letter-spacing: 0; }
+
+/* Üben nutzt den ganzen Bildschirm: oben Kopf und Fächer, die Karte in der Mitte, unten die Bedienung (nicht im flachen Querformat) */
+@media (orientation: portrait), (min-height: 561px) {
+  main:has(#view-ueben.active) { display: flex; flex-direction: column; }
+  #view-ueben.active { display: flex; flex-direction: column; flex: 1 0 auto; width: 100%; }
+  #view-ueben #modus-karten:not([hidden]) { flex: 1 0 auto; display: flex; flex-direction: column; }
+  #view-ueben #trainer:not([hidden]) { flex: 1 0 auto; display: flex; flex-direction: column; }
+  #view-ueben #trainer .karten-rahmen { margin: auto 0; }
+  #view-ueben #trainer .bedien { margin-top: 10px; }
+  #view-ueben #trainer .bedien .merkzeile { margin-top: 6px; }
+  #view-ueben #trainer .bedien .antwortwahl { margin-top: 4px; }
+  html:not([data-vintage]) #view-ueben .card { min-height: clamp(250px, 33vh, 420px); }
+}
+
+/* Liste: lange auf eine Kachel drücken öffnet das Menü – dabei soll Android keinen Text markieren */
+ol.list li:not(.bearbeiten) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.kmn-fach { display: flex; flex-direction: column; gap: 6px; }
+.kmn-label { font-size: 13px; color: var(--ink-soft); }
+.kmn-fach .km-reihe button { min-height: 48px; font-weight: 600; }
+.kmn-fach .km-reihe button[aria-pressed="true"] { border-color: var(--kasten, #ef7b17); color: var(--kasten, #ef7b17); background: color-mix(in srgb, var(--kasten, #ef7b17) 12%, transparent); }
+#kasten-menue .km-knoepfe, #karten-menue .km-knoepfe { padding-bottom: env(safe-area-inset-bottom); }
+.lang-hinweis { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); }
+.lang-hinweis[hidden] { display: none; }
