@@ -925,11 +925,13 @@
   }
 
   /* Neue Karten direkt auf der Lernseite in den Kasten legen (wie „Nächste … aufnehmen“ in der Liste) */
-  var nachschubMeldung = "";
+  var nachschubMeldung = "", nachschubAuf = false;   // die Leiste bleibt zu, bis man oben auf das Karten-Symbol tippt
   function zeichneNachschub() {
-    var box = document.getElementById("nachschub");
+    var box = document.getElementById("nachschub"), umschalter = document.getElementById("ns-toggle");
     var offen = daten.cards.filter(function (c) { return !c.aktiv; }).length;
-    box.hidden = !offen;
+    umschalter.hidden = !offen;
+    umschalter.setAttribute("aria-expanded", nachschubAuf ? "true" : "false");
+    box.hidden = !offen || !(nachschubAuf || nachschubMeldung);
     if (!offen) return;
     document.getElementById("nachschub-txt").textContent = nachschubMeldung || (offen + (offen === 1 ? " neue Karte" : " neue Karten"));
     Array.prototype.forEach.call(box.querySelectorAll("[data-nachschub]"), function (b) {
@@ -938,12 +940,17 @@
       b.hidden = n > 10 && offen <= n - 10;   // „+ 20“ nur, wenn mehr als 10 warten usw.
     });
   }
+  document.getElementById("ns-toggle").addEventListener("click", function () {
+    nachschubAuf = !nachschubAuf;
+    zeichneNachschub();
+  });
   Array.prototype.forEach.call(document.querySelectorAll("[data-nachschub]"), function (b) {
     b.addEventListener("click", function () {
       var liste = naechsteOffene(Number(b.dataset.nachschub));
       if (!liste.length) return;
       aufnehmen(liste);
-      nachschubMeldung = liste.length + (liste.length === 1 ? " Karte" : " Karten") + " aufgenommen · Fach 1";
+      nachschubAuf = false;   // nach dem Aufnehmen klappt die Leiste von selbst zu (die Meldung bleibt kurz stehen)
+      nachschubMeldung = liste.length + (liste.length === 1 ? " Karte" : " Karten") + " aufgenommen";
       setTimeout(function () { nachschubMeldung = ""; if (ansicht === "ueben") zeichneNachschub(); }, 4000);
       if (!aktuell) rundeStarten(false); else zeichneUeben();
     });

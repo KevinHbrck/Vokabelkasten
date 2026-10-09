@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-10-03-1">
+<link rel="stylesheet" href="./app.css?v=2026-10-09-3">
 </head>
 <body>
 
@@ -157,6 +157,7 @@
         </select>
       </div>
     </details>
+    <button type="button" class="ns-toggle" id="ns-toggle" aria-expanded="false" aria-controls="nachschub" aria-label="Neue Karten in den Kasten legen" title="Neue Karten aufnehmen" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/><path d="M10 10.5v6M7 13.5h6"/></svg></button>
     <div class="ue-laut" id="ue-laut-zeile"><div class="laut" data-laut></div></div>
     </div>
 
@@ -207,7 +208,7 @@
     <div class="boxes" id="boxes"></div>
     <div class="nachschub" id="nachschub" hidden>
       <span class="ns-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="13" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/><path d="M10 10.5v6M7 13.5h6"/></svg></span>
-      <span class="ns-text"><b id="nachschub-txt">Neue in den Kasten</b><small>In den Kasten legen</small></span>
+      <span class="ns-text"><b id="nachschub-txt">Neue in den Kasten</b></span>
       <span class="ns-knoepfe" role="group" aria-label="Neue Karten in den Kasten legen">
         <button type="button" class="ghost" data-nachschub="10">+10</button>
         <button type="button" class="ghost" data-nachschub="20">+20</button>
@@ -861,9 +862,9 @@
   </div>
 </section>
 
-<script src="./daten.js?v=2026-10-03-1"></script>
-<script src="./ts-fsrs.js?v=2026-10-03-1"></script>
-<script src="./lernen.js?v=2026-10-03-1"></script>
-<script src="./app.js?v=2026-10-03-1"></script>
+<script src="./daten.js?v=2026-10-09-3"></script>
+<script src="./ts-fsrs.js?v=2026-10-09-3"></script>
+<script src="./lernen.js?v=2026-10-09-3"></script>
+<script src="./app.js?v=2026-10-09-3"></script>
 </body>
 </html>
