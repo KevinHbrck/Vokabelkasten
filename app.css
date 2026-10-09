@@ -1918,3 +1918,21 @@ html:not([data-vintage]) ol.list .stat-stern { color: #e0a100; font-size: 15px; 
 
 /* Untere Leiste ohne „Üben“: gelernt wird über die Startseite (Karteikasten, Hörtraining, Quiz-Duell); die Seite selbst bleibt erhalten */
 nav button[data-view="ueben"] { display: none; }
+
+/* Liste einlesen: Info-Symbol neben der Überschrift klappt die Anleitung zum Format auf */
+.neu-kopf { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; }
+.neu-kopf h2 { margin: 0; }
+.info-knopf { flex: none; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid var(--rule); background: none; color: var(--ink-soft);
+  display: inline-flex; align-items: center; justify-content: center; box-shadow: none; min-height: 0; }
+.info-knopf svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.info-knopf[aria-expanded="true"] { color: var(--kasten, #ef7b17); border-color: var(--kasten, #ef7b17); }
+.imp-info { margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--tab); font-size: 14px; line-height: 1.45; }
+.imp-info[hidden] { display: none; }
+.imp-info h3 { margin: 12px 0 4px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.imp-info h3:first-child { margin-top: 0; }
+.imp-info p { margin: 0 0 6px; color: var(--ink-soft); }
+.imp-info ul { margin: 0 0 6px; padding-left: 18px; color: var(--ink-soft); }
+.imp-info li { margin: 2px 0; }
+.imp-info b { color: var(--ink); font-weight: 600; }
+.imp-info pre { margin: 6px 0 4px; padding: 8px 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--rule); color: var(--ink);
+  font: 12.5px/1.5 ui-monospace, Consolas, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }

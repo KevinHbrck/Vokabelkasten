@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-10-09-14">
+<link rel="stylesheet" href="./app.css?v=2026-10-09-15">
 </head>
 <body>
 
@@ -359,7 +359,39 @@
     </div>
 
     <div id="neu-liste" class="neu-karte" hidden>
-    <h2>Ganze Liste einfügen</h2>
+    <div class="neu-kopf">
+      <h2>Ganze Liste einfügen</h2>
+      <button type="button" class="info-knopf" id="imp-info-knopf" aria-expanded="false" aria-controls="imp-info" aria-label="So muss die Liste aussehen" title="So muss die Liste aussehen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>
+    </div>
+    <div class="imp-info" id="imp-info" hidden>
+      <h3>So sieht eine Zeile aus</h3>
+      <p>Eine Zeile ist eine Karte: <b id="imp-info-spalten">Deutsch · English · Beispielsatz (optional)</b>.</p>
+      <h3>Trennzeichen – eines davon genügt</h3>
+      <ul>
+        <li><b>Tab</b> – so entsteht es beim Kopieren aus Excel oder Google Tabellen</li>
+        <li><b>|</b> oder <b>;</b></li>
+        <li><b>=</b>, <b>–</b> oder <b>-</b> mit Leerzeichen davor und danach (so bleibt „E-Mail“ ganz)</li>
+        <li><b>:</b> mit Leerzeichen dahinter</li>
+      </ul>
+      <pre id="imp-info-bsp">dennoch | nevertheless | It was raining; nevertheless, we went.
+sicherlich = certainly
+Haus – house; home
+Hund; dog</pre>
+      <h3>Oder untereinander</h3>
+      <p>Steht Begriff und Bedeutung je in einer eigenen Zeile (wie bei Fotos, PDFs oder Google Lens), liest die App immer zwei Zeilen als eine Karte.</p>
+      <pre>Haus
+house
+Hund
+dog</pre>
+      <h3>Das erledigt die App für dich</h3>
+      <ul>
+        <li>Eine Überschrift ganz oben („Deutsch · English“) wird übersprungen.</li>
+        <li>Nummern und Aufzählungspunkte vor den Zeilen werden entfernt.</li>
+        <li>Karten, die es schon gibt, werden nicht doppelt angelegt.</li>
+        <li>Steht die Rückseite vorn, hilft „Spalten tauschen“. Die Vorschau zeigt vorher, wie die erste Karte gelesen wird.</li>
+        <li>Statt Einfügen geht auch eine Datei (CSV, TXT oder eine Sicherung) oder ein Foto der Liste.</li>
+      </ul>
+    </div>
     <p class="note" id="einf-hilfe">Eine Zeile pro Karte: <b>Deutsch · English · Beispiel</b>, getrennt durch Tab, |, ;, „ – “ oder „: “ – aus Excel einfach kopieren.</p>
     <!-- Datei hineinziehen, auswählen, aus der Zwischenablage holen oder eine Liste abfotografieren -->
     <div class="ablage" id="ablage">
@@ -889,9 +921,9 @@
   </div>
 </section>
 
-<script src="./daten.js?v=2026-10-09-14"></script>
-<script src="./ts-fsrs.js?v=2026-10-09-14"></script>
-<script src="./lernen.js?v=2026-10-09-14"></script>
-<script src="./app.js?v=2026-10-09-14"></script>
+<script src="./daten.js?v=2026-10-09-15"></script>
+<script src="./ts-fsrs.js?v=2026-10-09-15"></script>
+<script src="./lernen.js?v=2026-10-09-15"></script>
+<script src="./app.js?v=2026-10-09-15"></script>
 </body>
 </html>

@@ -2864,6 +2864,12 @@
     });
   })();
 
+  // Info-Symbol bei „Ganze Liste einfügen“: Anleitung zum Format auf- und zuklappen
+  document.getElementById("imp-info-knopf").addEventListener("click", function () {
+    var panel = document.getElementById("imp-info"), auf = panel.hidden;
+    panel.hidden = !auf;
+    this.setAttribute("aria-expanded", auf ? "true" : "false");
+  });
   document.getElementById("btn-import-text").addEventListener("click", function () {
     var feld = document.getElementById("einfuegen");
     var r = zerlege(feld.value, document.getElementById("imp-tausch").checked);
@@ -5644,6 +5650,8 @@
     txt("#view-neu h2", "Neuer Begriff"); txt("#btn-add", "Begriff speichern");
     setze(document.getElementById("einf-hilfe"), "innerHTML", "Eine Zeile pro Karte: <b>Begriff · Bedeutung</b>, getrennt durch Tab, |, ;, „ = “, „ – “ oder „: “.");
     txt("#imp-tausch-text", "Bedeutung steht vorn (Spalten tauschen)");
+    txt("#imp-info-spalten", "Begriff · Bedeutung · Beispiel (optional)");
+    txt("#imp-info-bsp", "Leitzins = Zinssatz, zu dem Banken sich Geld leihen\nInflation | Anstieg des Preisniveaus\nRendite; Ertrag einer Geldanlage");
     setze(document.getElementById("einfuegen"), "placeholder", "Leitzins = Zinssatz, zu dem sich Banken bei der Zentralbank Geld leihen");
     opt("#sel-richtung", "de", "Begriff zuerst"); opt("#sel-richtung", "en", "Bedeutung zuerst");
     ["#uw-richtung", "#du-richtung"].forEach(function (sel) { opt(sel, "de", "Begriff → Bedeutung"); opt(sel, "en", "Bedeutung → Begriff"); });
