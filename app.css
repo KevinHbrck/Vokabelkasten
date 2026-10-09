@@ -1856,3 +1856,18 @@ html:not([data-vintage]) .sw-tag.heute { color: var(--ink); font-weight: 700; }
 
 /* Stern bei automatisch erkannten schwierigen Karten (mehrfach vergessen): zart gefaerbt */
 .star.auto { color: var(--mark); opacity: .55; }
+
+/* Sprechen/Quiz: die Leiste unten leise wie Aufdecken · Schreiben · Sprechen – Text mit Symbol, nur eine feine Linie statt Kacheln (C60 behält seine Knöpfe) */
+html:not([data-vintage]) .du-leiste { gap: 0; margin: 0 16px; padding: 0 0 calc(env(safe-area-inset-bottom) + 10px); border-top: 1px solid var(--rule); }
+html:not([data-vintage]) .du-lb { flex: 1 1 auto; flex-direction: row; justify-content: center; gap: 6px; min-height: 52px; padding: 0 6px; white-space: nowrap;
+  border: 0; border-radius: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  color: var(--ink-soft); font-size: 14px; font-weight: 500; }
+html:not([data-vintage]) .du-lb svg { width: 18px; height: 18px; }
+html:not([data-vintage]) .du-lb .du-stern { font-size: 18px; }
+html:not([data-vintage]) .du-lb:active { transform: none; color: var(--ink); }
+html:not([data-vintage]) #du-merk.on span { color: var(--ink); }
+/* Fächer im Sprechen: dieselbe flache Kachel wie beim Üben */
+html:not([data-vintage]) #duell.solo .du-faecher { gap: 6px; }
+html:not([data-vintage]) .du-fach { padding: 7px 0 8px; border-radius: 12px; border-width: 1px; }
+html:not([data-vintage]) .du-fach b { font-size: 19px; font-weight: 700; }
+html:not([data-vintage]) .du-fach small { font-size: 11px; font-weight: 500; letter-spacing: 0; }

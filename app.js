@@ -5360,7 +5360,7 @@
     duStopHoeren();
     sprache.cancel();
     duPhase("Pausiert");
-    duPauseKnopf("Weiter");
+    duPauseKnopf("Start");
   });
   window.addEventListener("online", function () { if (ansicht === "quiz") duStatusZeigen(); });
   window.addEventListener("offline", function () { if (ansicht === "quiz") duStatusZeigen(); });
