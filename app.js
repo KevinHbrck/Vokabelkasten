@@ -1778,7 +1778,7 @@
   var thema = "auto";
 
   var THEMAFARBE = {
-    hell: "#e9ebee", dunkel: "#15181c", nacht: "#17120e",
+    hell: "#f6f7f9", dunkel: "#15181c", nacht: "#17120e",
     kodak: "#f5f2ea"
   };
   // Diese Designs teilen sich Streifen, Tasten, Zählwerk usw. (CSS: html[data-vintage])
