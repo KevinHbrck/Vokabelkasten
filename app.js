@@ -1316,6 +1316,13 @@
       steuer.appendChild(stern);
       steuer.appendChild(haken);
       steuer.appendChild(stift);
+      // Auf dem Handy bleiben von den Bedienelementen nur kleine Anzeigen (Fach, Stern); bedient wird über das Menü beim langen Drücken
+      var stat = document.createElement("span");
+      stat.className = "stat";
+      stat.setAttribute("aria-hidden", "true");
+      if (schwierig(c)) { var sz = document.createElement("i"); sz.className = "stat-stern"; sz.textContent = "★"; stat.appendChild(sz); }
+      if (c.aktiv) { var fz = document.createElement("i"); fz.className = "stat-fach"; fz.textContent = "Fach " + fachVon(c); stat.appendChild(fz); }
+      steuer.appendChild(stat);
 
       li.className = (c.aktiv ? "" : "ruht") + (c.id === frischId || frischSet[c.id] ? " frisch" : "");
       li.appendChild(nr);
@@ -1504,6 +1511,11 @@
       var an = c.aktiv && Number(b.dataset.fach) === fachVon(c);
       b.setAttribute("aria-pressed", an ? "true" : "false");
     });
+    var mb = document.getElementById("kmn-merk");
+    mb.setAttribute("aria-pressed", c.merk ? "true" : "false");
+    mb.querySelector("span").textContent = c.merk ? "Schwierig" : "Als schwierig";
+    mb.querySelector("b").textContent = c.merk ? "★" : "☆";
+    document.getElementById("kmn-kasten").textContent = c.aktiv ? "Aus dem Kasten" : "In den Kasten";
     document.getElementById("karten-menue").hidden = false;
     if (!langDruckGesehen) {
       langDruckGesehen = true;
@@ -1514,13 +1526,14 @@
   function kartenMenueZu() { document.getElementById("karten-menue").hidden = true; menueKarte = null; }
   function kachelDruck(li, c, nr) {
     var timer = null, x0 = 0, y0 = 0, ausgeloest = false;
-    function ab() { if (timer) { clearTimeout(timer); timer = null; } }
+    function ab() { if (timer) { clearTimeout(timer); timer = null; } li.classList.remove("gedrueckt"); }
     li.addEventListener("pointerdown", function (e) {
       if (e.button > 0 || e.target.closest("select, input, button, textarea")) return;
       ausgeloest = false; x0 = e.clientX; y0 = e.clientY;
       ab();
+      li.classList.add("gedrueckt");   // die Kachel gibt sofort nach, damit man merkt, dass gleich etwas passiert
       timer = setTimeout(function () {
-        timer = null; ausgeloest = true;
+        timer = null; ausgeloest = true; li.classList.remove("gedrueckt");
         if (navigator.vibrate) { try { navigator.vibrate(12); } catch (x) {} }
         kartenMenueAuf(c, nr);
       }, 480);
@@ -1547,6 +1560,27 @@
     var c = menueKarte; kartenMenueZu();
     if (!c) return;
     bearbeiteId = c.id;
+    zeichneListe();
+  });
+  document.getElementById("kmn-merk").addEventListener("click", function () {
+    var c = menueKarte; kartenMenueZu();
+    if (!c) return;
+    c.merk = !c.merk;
+    sichern();
+    frischId = c.id;
+    zeichneListe();
+  });
+  document.getElementById("kmn-kasten").addEventListener("click", function () {
+    var c = menueKarte; kartenMenueZu();
+    if (!c) return;
+    c.aktiv = !c.aktiv;
+    if (c.aktiv && c.due < heute()) c.due = heute();
+    if (!c.aktiv) {
+      runde = runde.filter(function (x) { return x.id !== c.id; });
+      if (aktuell && aktuell.id === c.id) naechsteKarte();
+    }
+    sichern();
+    frischId = c.id;
     zeichneListe();
   });
   document.getElementById("kmn-weg").addEventListener("click", function () {
