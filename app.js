@@ -4637,24 +4637,21 @@
       if (!duTonCtx) duTonCtx = new AC();
       if (duTonCtx.state === "suspended") duTonCtx.resume();
       var t = duTonCtx.currentTime, o = duTonCtx.createOscillator(), g = duTonCtx.createGain();
-      var laut = duEinstellungen().tonLaut, dauer = kraeftig ? 0.34 : 0.22;
-      o.frequency.value = freq || (hoch ? 1175 : 880);
+      var laut = duEinstellungen().tonLaut, dauer = kraeftig ? 0.34 : 0.3;
+      // weicher „Glockenton“: Sinus (tiefer als früher) mit leisem Oberton, sanftem Einsatz und langem Ausklang
+      o.frequency.value = freq || (hoch ? 880 : 659);
+      o.type = "sine";
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(laut, t + 0.02);   // Signalton-Lautstärke (Quiz-Seite)
-      g.gain.setValueAtTime(laut, t + dauer - 0.12);
+      g.gain.exponentialRampToValueAtTime(laut, t + 0.045);   // Signalton-Lautstärke (Quiz-Seite)
       g.gain.exponentialRampToValueAtTime(0.0001, t + dauer);
-      if (kraeftig) {
-        // Rechteckwelle klingt deutlich lauter als ein Sinus; Tiefpass nimmt die Schärfe
-        o.type = "square";
-        var f = duTonCtx.createBiquadFilter();
-        f.type = "lowpass"; f.frequency.value = 3200;
-        o.connect(f); f.connect(g);
-      } else {
-        o.type = "sine";
-        o.connect(g);
-      }
+      o.connect(g);
+      var o2 = duTonCtx.createOscillator(), g2 = duTonCtx.createGain();
+      o2.type = "sine"; o2.frequency.value = o.frequency.value * 2;
+      g2.gain.value = 0.18;
+      o2.connect(g2); g2.connect(g);
       g.connect(duTonCtx.destination);
       o.start(t); o.stop(t + dauer + 0.03);
+      o2.start(t); o2.stop(t + dauer + 0.03);
     } catch (x) {}
   }
   function duSprich(text, lang, lauf) {
@@ -4878,7 +4875,7 @@
     du.fuerZwei = pkt === 2;
     duTafel(wer);
     duSeite(wer);                 // linke bzw. rechte Bildschirmhälfte wird orange - kein Name mehr
-    duTon(pkt === 2, 0, true);    // kräftiger Piep: Mikro ist an
+    duTon(pkt === 2, 0, true);    // sanfter Glockenton: Mikro ist an
     if (du.manuell) return duManuellRunde(lauf, wer, pkt);
     // das Mikro startet erst, wenn der Piep verklungen ist - sonst kann Android das Mikro blockieren
     return warteWenn(380, aktiv).then(function () { if (aktiv()) return duHoerRunde(lauf, wer, pkt); });
@@ -4998,10 +4995,10 @@
     if (!du.bsp || !c.bsp) return Promise.resolve();
     return duSprich(c.bsp, "en-GB", lauf);
   }
-  // kurzer, heller Zweiklang für „richtig“
+  // kurzer, sanfter Zweiklang für „richtig“
   function duErfolg() {
     duTon(true);
-    setTimeout(function () { duTon(true, 1568); }, 130);
+    setTimeout(function () { duTon(true, 1047); }, 150);
   }
   function duDiagZeigen() {
     if (!du || !du.frage) return;
