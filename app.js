@@ -2020,7 +2020,18 @@
 
   /* ---------- Ansichten ---------- */
   var ansicht = "ueben";
-  function wechsle(name) {
+  /* Wo man herkam: Zurück (Taste oder Pfeil oben) geht genau einen Schritt zurück, nicht gleich zur Startseite.
+     Wer zu einer Ansicht wechselt, die schon im Verlauf steht, springt dorthin zurück (kein Pendeln zwischen zwei Seiten). */
+  var ansichtVerlauf = [];
+  function eineEbeneZurueck() {
+    wechsle(ansichtVerlauf.length ? ansichtVerlauf.pop() : "start", true);
+  }
+  function wechsle(name, zurueck) {
+    if (!zurueck && name !== ansicht) {
+      var i = ansichtVerlauf.lastIndexOf(name);
+      if (i > -1) ansichtVerlauf.length = i;
+      else { ansichtVerlauf.push(ansicht); if (ansichtVerlauf.length > 12) ansichtVerlauf.shift(); }
+    }
     ansicht = name;
     document.documentElement.classList.remove("tippt");   // kompakte Ansicht beim Schreiben gilt nur auf der Lernseite
     ["start", "ueben", "liste", "neu", "quiz", "sichern", "statistik"].forEach(function (v) {
@@ -2136,9 +2147,7 @@
     });
   });
   document.getElementById("btn-einst").addEventListener("click", function () { wechsle("sichern"); });
-  document.getElementById("btn-start").addEventListener("click", function () {
-    wechsle(ansicht === "statistik" ? "ueben" : "start");
-  });
+  document.getElementById("btn-start").addEventListener("click", eineEbeneZurueck);
 
   /* ---------- Aufbau ---------- */
   function fuelleSelects() {
@@ -3264,10 +3273,18 @@
      steht genau ein zusätzlicher Eintrag im Browser-Verlauf. Die Zurück-Taste schließt dann das
      Oberste bzw. geht zum Üben; erst auf dem Üben-Bildschirm verlässt sie die App. */
   var waechter = false, waechterUeberspringen = 0;
+  var MENUE_IDS = ["karten-menue", "kasten-menue", "kasten-dialog"];   // kleine Menüs, die Zurück zuerst schließt
+  function menueOffen() {
+    return MENUE_IDS.filter(function (id) { return !document.getElementById(id).hidden; })[0] || null;
+  }
   function obenauf() {
     return !document.getElementById("einf").hidden || !document.getElementById("blatt").hidden || !document.getElementById("unterwegs").hidden || !document.getElementById("duell").hidden ||
-      document.getElementById("auswahl").open || ansicht !== "start";
+      !!menueOffen() || document.getElementById("auswahl").open || (ansicht === "liste" && bearbeiteId !== null) || ansicht !== "start";
   }
+  // wenn eines der Menüs auf- oder zugeht (egal wodurch), den Zurück-Eintrag nachziehen
+  MENUE_IDS.forEach(function (id) {
+    new MutationObserver(function () { waechterAbgleichen(); }).observe(document.getElementById(id), { attributes: true, attributeFilter: ["hidden"] });
+  });
   function waechterAbgleichen() {
     var soll = obenauf();
     if (soll && !waechter) { try { history.pushState({ vokabelkasten: 1 }, ""); waechter = true; } catch (e) {} }
@@ -3280,8 +3297,15 @@
     else if (!document.getElementById("blatt").hidden) document.getElementById("blatt").hidden = true;
     else if (!document.getElementById("unterwegs").hidden) uwBeenden();
     else if (!document.getElementById("duell").hidden) duSchliessen();
+    else if (menueOffen()) {
+      var m = menueOffen();
+      if (m === "karten-menue") kartenMenueZu();
+      else if (m === "kasten-menue") kastenMenueZu();
+      else document.getElementById(m).hidden = true;
+    }
     else if (document.getElementById("auswahl").open) document.getElementById("auswahl").open = false;
-    else if (ansicht !== "start") wechsle(ansicht === "statistik" ? "ueben" : "start");
+    else if (ansicht === "liste" && bearbeiteId !== null) { bearbeiteId = null; zeichneListe(); }   // offene Bearbeiten-Zeile zuerst zuklappen
+    else if (ansicht !== "start") eineEbeneZurueck();
     waechterAbgleichen();
   });
 
@@ -6052,5 +6076,6 @@
   uwWeiterKnopf();
   tonMischen(true);   // von Anfang an: Musik anderer Apps läuft weiter
   wechsle("start");
+  ansichtVerlauf = [];   // der erste Aufruf gehört nicht in den Verlauf
   if (ERSTER_START && !GEOEFFNET_PER_TEILEN) setTimeout(einfuehrungAuf, 250);
 })();
