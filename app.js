@@ -2256,8 +2256,28 @@
     var n = duNorm(t), nk = n.replace(DU_WEG_EN, "").replace(DU_WEG_DE, "");
     eingabe = { karte: aktuell, text: t, ok: !!treffer.ok, genau: !!t && (l.indexOf(n) > -1 || l.indexOf(nk) > -1) };
     aufgedeckt = true;
+    // genau richtig geschrieben: gleich zur nächsten Karte (wie „Gewusst“); bei kleinen Tippfehlern bleibt das Ergebnis sichtbar
+    if (eingabe.ok && eingabe.genau) { bewerten(true); return; }
     zeichneUeben();
   }
+  // Steht schon während des Tippens die genaue Lösung da, geht es nach einem kurzen Moment von selbst weiter
+  // (die kurze Pause lässt Zeit, ein längeres Wort fertig zu schreiben, das mit demselben Anfang ebenfalls gilt)
+  (function () {
+    var uhr = null, feld = document.getElementById("eingabe-feld");
+    feld.addEventListener("input", function () {
+      clearTimeout(uhr);
+      var karte = aktuell, wert = feld.value, t = wert.trim();
+      if (!karte || aufgedeckt || !t || eingabeModus !== "tippen") return;
+      var l = duLoesungen(seiten(karte)[1]), n = duNorm(t), nk = n.replace(DU_WEG_EN, "").replace(DU_WEG_DE, "");
+      if (l.indexOf(n) < 0 && !(nk && l.indexOf(nk) > -1)) return;
+      uhr = setTimeout(function () {
+        if (aktuell === karte && !aufgedeckt && feld.value === wert) {
+          eingabePruefen(wert);
+          if (eingabeModus === "tippen" && aktuell && !aufgedeckt) feld.focus();
+        }
+      }, 450);
+    });
+  })();
   document.getElementById("eingabe").addEventListener("submit", function (e) {
     e.preventDefault();
     if (!aktuell) return;
