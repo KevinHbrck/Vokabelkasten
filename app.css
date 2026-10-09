@@ -1962,3 +1962,24 @@ html[data-vintage] .du-lb:active { transform: none; }
   html.tippt #view-ueben #trainer .bedien { margin-top: 6px; }
   html.tippt main { padding-top: 10px; }
 }
+
+/* Sprechen (allein) sieht aus wie das Üben: Fächer an derselben Stelle oben, Karte in der Mitte, die Leiste unten dort, wo sonst die Reiter stehen */
+#duell.solo .du-mitte { flex: 1 0 auto; min-height: 0; justify-content: flex-start;
+  padding: calc(env(safe-area-inset-top) + 121px) 20px 0; }
+#duell.solo .du-faecher { margin: 0 0 14px; }
+#duell.solo .du-card { margin: auto 0; border-radius: 24px; min-height: clamp(250px, 33vh, 420px); padding: 20px 24px 26px;
+  display: flex; flex-direction: column; justify-content: center;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .09), 0 2px 6px rgba(0, 0, 0, .05); }
+#duell.solo .du-entscheid { margin: 0 0 auto; }
+#duell.solo .du-leiste { margin: 0 20px; padding-bottom: calc(env(safe-area-inset-bottom) + 90px); }
+html:not([data-vintage]) #duell.solo .du-zustand { align-self: center; text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 12px;
+  padding: 4px 12px; border-radius: 999px; background: var(--tab); }
+html:not([data-vintage]) #duell.solo .du-zustand:empty { display: none; }
+html:not([data-vintage]) #duell.solo .du-card.hoert .du-zustand { background: color-mix(in srgb, var(--du-farbe) 14%, transparent); }
+html:not([data-vintage]) #duell.solo .du-wort { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-weight: 400; font-size: clamp(27px, 7.4vw, 34px); margin-top: 22px; }
+html:not([data-vintage]) #duell.solo .du-loesung { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 400; font-size: clamp(23px, 6.2vw, 28px); }
+/* Kopfzeile wie im Üben, damit der Bildschirm beim Wechsel nicht springt */
+html:not([data-vintage]) #duell.solo #du-spiel::before { content: "Sprechen"; position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  padding: calc(env(safe-area-inset-top) + 14px) 20px 10px; border-bottom: 1px solid var(--rule); background: var(--paper);
+  font: 600 19px/1.5 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; color: var(--ink); }
