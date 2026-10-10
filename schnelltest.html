@@ -460,10 +460,22 @@
       pruefe(/^de-DE:/.test(gesprochen[0]) && /^en-GB:/.test(gesprochen[1]), "Reihenfolge Deutsch, dann Englisch: " + gesprochen.join(" | "));
       pruefe(/^\d \/ 3$/.test(id("uw-stand").textContent), "Stand: " + id("uw-stand").textContent);
       klick("#uw-ende");
+      // Gerät, dessen feste Stimme „synthesis-failed“ meldet: ohne feste Stimme klappt es - die Runde läuft weiter, ohne Meldung
+      proto.speak = function (u) {
+        setTimeout(function () {
+          if (u.voice) { if (u.onerror) u.onerror({ error: "synthesis-failed" }); }
+          else { if (u.onstart) u.onstart({}); if (u.onend) u.onend({}); }
+        }, 30);
+      };
+      id("meldung-leiste").hidden = true;
+      klick("#btn-unterwegs");
+      await bis(function () { return /^\d \/ 3$/.test(id("uw-stand").textContent) && id("uw-phase").textContent !== "Hör zu"; }, 6000, "Runde läuft trotz fehlgeschlagener Stimme weiter");
+      pruefe(id("meldung-leiste").hidden, "Keine Meldung, solange ein anderer Weg klappt: " + id("meldung-leiste").textContent);
+      klick("#uw-ende");
       // Fehler der Sprachausgabe sollen sichtbar werden, nicht stumm durchlaufen
       proto.speak = function (u) { setTimeout(function () { if (u.onerror) u.onerror({ error: "synthesis-failed" }); }, 30); };
       klick("#btn-unterwegs");
-      await bis(function () { var m = id("meldung-leiste"); return !m.hidden && /Sprachausgabe/.test(m.textContent); }, 3000, "Meldung bei Sprachfehler");
+      await bis(function () { var m = id("meldung-leiste"); return !m.hidden && /nicht sprechen/.test(m.textContent); }, 4000, "Meldung bei Sprachfehler (alle Wege durch)");
       klick("#uw-ende");
       proto.speak = echt;
     }],

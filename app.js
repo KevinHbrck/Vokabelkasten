@@ -3336,23 +3336,12 @@
     if (!sprache || !text || uw || !lang) return;
     tonMischen(true);
     sprache.cancel();
-    var u = new SpeechSynthesisUtterance(sprechbar(text));
-    u.lang = lang;
-    var st = stimmeFuer(lang);
-    if (st) { u.voice = st; u.lang = st.lang; }
-    u.rate = tempo(lang, 0.9);
-    u.volume = uwEinstellungen().laut;
     Array.prototype.forEach.call(document.querySelectorAll(".spricht"), function (x) { x.classList.remove("spricht"); });
     if (el) el.classList.add("spricht");
     function fertig() { if (el) el.classList.remove("spricht"); }
-    u.onend = fertig;
-    u.onerror = function (ev) { fertig(); sprachFehlerGezeigt = false; sprachFehler(ev && ev.error); };
-    setTimeout(fertig, 2500 + text.length * 150);   // falls der Browser das Ende nicht meldet
-    // kurze Anlaufzeit: direkt nach cancel() schneiden manche Browser den Anfang ab
-    setTimeout(function () {
-      try { if (sprache.paused) sprache.resume(); } catch (x) {}
-      sprache.speak(u);
-    }, 80);
+    // kurze Anlaufzeit: direkt nach cancel() schneiden manche Browser den Anfang ab; bei Fehlern probiert sprecheRobust andere Wege
+    sprecheRobust(text, lang, { tempo: 0.9, anlauf: 80, immer: true }).then(fertig);
+    setTimeout(fertig, 8000 + text.length * 150);   // falls der Browser das Ende nicht meldet
   }
   document.getElementById("btn-sprich").addEventListener("click", sprichKarte);
 
@@ -3864,6 +3853,7 @@
     document.getElementById("uw-laut-wert").textContent = document.getElementById("uw-laut").value + " %";
   }
   function uwEinstellungenMerken() {
+    sprachStufe = 0;   // geänderte Stimme/Lautstärke: Ausweichwege der Sprachausgabe von vorn
     daten.unterwegs = {
       auswahl: document.getElementById("uw-auswahl").value,
       denk: Number(document.getElementById("uw-denk").value) || 5,
@@ -4008,18 +3998,8 @@
     tonMischen(true);
     sprache.cancel();
     var lang = kurz === "de" ? "de-DE" : "en-GB";
-    var u = new SpeechSynthesisUtterance(kurz === "de"
-      ? "Hallo! So klingt diese Stimme." : "Hello! This is how this voice sounds.");
-    u.lang = lang;
-    var st = stimmeFuer(lang);
-    if (st) { u.voice = st; u.lang = st.lang; }
-    u.rate = tempo(lang, 0.95);
-    u.volume = uwEinstellungen().laut;
-    u.onerror = function (ev) { sprachFehlerGezeigt = false; sprachFehler(ev && ev.error); };   // bei der Probe immer sagen, was los ist
-    setTimeout(function () {
-      try { if (sprache.paused) sprache.resume(); } catch (x) {}
-      sprache.speak(u);
-    }, kurz === "de" ? 420 : 220);
+    var text = kurz === "de" ? "Hallo! So klingt diese Stimme." : "Hello! This is how this voice sounds.";
+    sprecheRobust(text, lang, { tempo: 0.95, anlauf: kurz === "de" ? 420 : 220, immer: true, probe: true });
   }
 
   // Spricht einen Text; das Versprechen erfüllt sich am Ende oder wenn die Runde abgebrochen wurde
@@ -4044,42 +4024,88 @@
   function sprachFehler(code) {
     if (sprachFehlerGezeigt || code === "interrupted" || code === "canceled") return;
     sprachFehlerGezeigt = true;
-    var tipp = istApple() ? " Am iPhone: Stumm-Schalter und Lautstärke prüfen." : " Medien-Lautstärke und die Stimme in den Optionen prüfen.";
-    if (/language|voice/.test(code || "")) melde("Für diese Sprache hat das Gerät keine Stimme. In den Optionen unter „Stimme und Hören“ steht, was es gibt.");
-    else if (code === "not-allowed") melde("Der Browser lässt die Sprachausgabe gerade nicht zu. Tippe noch einmal auf „Anhören starten“.");
-    else melde("Die Sprachausgabe klappt nicht" + (code && code !== "keine-ausgabe" ? " (" + code + ")" : "") + "." + tipp);
+    var anleitung = istApple() ? "Einstellungen \u2192 Bedienungshilfen \u2192 Gesprochene Inhalte \u2192 Stimmen: Deutsch und Englisch laden."
+      : istAndroid() ? "Android-Einstellungen \u2192 Text-in-Sprache \u2192 Google Sprachausgabe: Sprachdaten f\u00fcr Deutsch und Englisch installieren."
+      : "In den Spracheinstellungen des Ger\u00e4ts eine deutsche und eine englische Stimme installieren.";
+    if (/language|voice|synthesis/.test(code || "")) {
+      melde("Das Ger\u00e4t kann nicht sprechen (" + code + "). Meist fehlen Sprachdaten: " + anleitung);
+    } else if (code === "not-allowed") melde("Der Browser l\u00e4sst die Sprachausgabe gerade nicht zu. Tippe noch einmal auf \u201eAnh\u00f6ren starten\u201c.");
+    else melde("Die Sprachausgabe klappt nicht" + (code && code !== "keine-ausgabe" ? " (" + code + ")" : "") + "." +
+      (istApple() ? " Am iPhone: Stumm-Schalter und Lautst\u00e4rke pr\u00fcfen." : " Medien-Lautst\u00e4rke und die Stimme in den Optionen pr\u00fcfen."));
+  }
+
+  /* Sprechen mit Ausweichwegen. Meldet ein Gerät „synthesis-failed“ (häufig: die gewählte Stimme ist nicht wirklich
+     installiert oder braucht Netz), probieren wir nacheinander
+       Stufe 0: die gewählte bzw. automatisch gefundene Stimme
+       Stufe 1: keine feste Stimme, nur die Sprache (das nimmt die Standardstimme des Geräts)
+       Stufe 2: zusätzlich normales Tempo, kurzer Sprachcode („de“) und Audio-Sitzung „auto“
+     Was geklappt hat, merkt sich sprachStufe für den Rest der Sitzung (Stimmenwechsel in den Optionen setzt zurück). */
+  var sprachStufe = 0;
+  /* opt.laeuft: Funktion, solange die Runde noch läuft; opt.tempo: Grundtempo; opt.anlauf: ms vor dem Sprechen; opt.immer: Fehler jedes Mal zeigen */
+  function sprecheRobust(text, lang, opt) {
+    return new Promise(function (fertig) {
+      var laeuft = opt.laeuft || function () { return true; };
+      if (!text || !lang || !laeuft()) { fertig(); return; }
+      tonStandard();
+      var erledigt = false, notbremse = null, wacht = null, aktuell = null, stufe = sprachStufe;
+      function ende() { if (erledigt) return; erledigt = true; clearTimeout(notbremse); clearTimeout(wacht); fertig(); }
+      function weiter(code) {   // nächster Ausweichweg oder - wenn alle durch sind - sagen, was los ist
+        clearTimeout(wacht);
+        if (erledigt) return;
+        if (laeuft() && stufe < 2) {
+          stufe++;
+          try { sprache.cancel(); } catch (x) {}
+          setTimeout(function () { sprechen(); }, 160);
+          return;
+        }
+        if (opt.immer) sprachFehlerGezeigt = false;
+        sprachFehler(code);
+        ende();
+      }
+      function sprechen() {
+        if (!laeuft()) { ende(); return; }
+        if (stufe >= 2) {
+          // letzter Weg: nichts anderes soll am Audio-Ausgang hängen (stille Web-Audio-Schleife, Hintergrund-Audio) und die Sitzung steht auf „auto“
+          try { if (navigator.audioSession) navigator.audioSession.type = "auto"; } catch (x) {}
+          stilleAus();
+          if (uwAudio) { try { uwAudio.pause(); } catch (x) {} }
+        }
+        var u = new SpeechSynthesisUtterance(sprechbar(text)), gestartet = false;
+        aktuell = u;
+        u.lang = lang;
+        var st = stufe === 0 ? stimmeFuer(lang) : null;
+        if (st) { u.voice = st; u.lang = st.lang || lang; }
+        if (stufe >= 2) u.lang = lang.slice(0, 2);
+        u.rate = stufe >= 2 ? 1 : tempo(lang, opt.tempo || 0.95);
+        u.volume = uwEinstellungen().laut;
+        u.onstart = function () { if (u !== aktuell) return; gestartet = true; clearTimeout(wacht); if (stufe !== sprachStufe) sprachStufe = stufe; };
+        u.onend = function () { if (u === aktuell) ende(); };
+        u.onerror = function (ev) {
+          if (u !== aktuell) return;
+          var code = ev && ev.error;
+          if (code === "interrupted" || code === "canceled") { ende(); return; }
+          weiter(code);
+        };
+        // Manche Browser melden das Ende nicht zuverlässig - dann geht es nach einer Schätzung weiter
+        clearTimeout(notbremse);
+        notbremse = setTimeout(ende, 3500 + text.length * 120);
+        // Nach einem Anruf oder einem Wechsel der Audio-Sitzung bleibt die Sprachausgabe manchmal „pausiert“ - dann wäre alles stumm
+        try { if (sprache.paused) sprache.resume(); } catch (x) {}
+        sprache.speak(u);
+        // Läuft nach 2,5 s nichts an (und die Ausgabe meldet auch kein Sprechen), steckt sie fest: nächster Weg
+        clearTimeout(wacht);
+        wacht = setTimeout(function () {
+          if (u === aktuell && !gestartet && !erledigt && laeuft() && !sprache.speaking) weiter("keine-ausgabe");
+        }, 2500);
+      }
+      // Kurze Anlaufzeit: direkt nach cancel() schneiden manche Browser den Anfang ab
+      setTimeout(sprechen, opt.anlauf != null ? opt.anlauf : 220);
+    });
   }
   // wie sprich(), aber mit eigener Prüfung, ob die Runde noch läuft (auch fürs Duell)
   function sprichWenn(text, lang, laeuft) {
     lang = spracheFuer(lang);
-    return new Promise(function (fertig) {
-      if (!text || !lang || !laeuft()) { fertig(); return; }
-      tonStandard();
-      var u = new SpeechSynthesisUtterance(sprechbar(text));
-      u.lang = lang;
-      var st = stimmeFuer(lang);
-      if (st) { u.voice = st; u.lang = st.lang || lang; }
-      u.rate = tempo(lang, 0.95);
-      u.volume = uwEinstellungen().laut;
-      var erledigt = false, notbremse = null, wacht = null, gestartet = false;
-      function ende() { if (erledigt) return; erledigt = true; clearTimeout(notbremse); clearTimeout(wacht); fertig(); }
-      u.onstart = function () { gestartet = true; clearTimeout(wacht); };
-      u.onend = ende;
-      u.onerror = function (ev) { sprachFehler(ev && ev.error); ende(); };
-      // Kurze Anlaufzeit: direkt nach cancel() schneiden manche Browser den Anfang ab
-      setTimeout(function () {
-        if (!laeuft()) { ende(); return; }
-        // Manche Browser melden das Ende nicht zuverlässig - dann geht es nach einer Schätzung weiter
-        notbremse = setTimeout(ende, 3000 + text.length * 120);
-        // Nach einem Anruf oder einem Wechsel der Audio-Sitzung bleibt die Sprachausgabe manchmal „pausiert“ - dann wäre alles stumm
-        try { if (sprache.paused) sprache.resume(); } catch (x) {}
-        sprache.speak(u);
-        // Läuft nach 2,5 s nichts an (und die Ausgabe meldet auch kein Sprechen), steckt sie fest: lieber sagen als stumm bleiben
-        wacht = setTimeout(function () {
-          if (!gestartet && !erledigt && laeuft() && !sprache.speaking) sprachFehler("keine-ausgabe");
-        }, 2500);
-      }, lang.indexOf("de") === 0 ? 420 : 220);   // Deutsch bekommt 0,2 s mehr Anlauf
-    });
+    return sprecheRobust(text, lang, { laeuft: laeuft, tempo: 0.95, anlauf: lang && lang.indexOf("de") === 0 ? 420 : 220 });   // Deutsch bekommt 0,2 s mehr Anlauf
   }
 
   /* Hält den Audio-Ausgang wach, solange die Runde läuft: unhörbare Stille über Web Audio.
@@ -4091,7 +4117,7 @@
      Nur mit „Im Hintergrund weiterlaufen“ läuft eine echte Wiedergabe ("playback"). */
   function tonMischen(mischen) {
     try {
-      var soll = mischen ? "ambient" : "playback";
+      var soll = sprachStufe >= 2 ? "auto" : mischen ? "ambient" : "playback";   // „auto“, wenn die Sprachausgabe sonst nicht anläuft
       if (navigator.audioSession && navigator.audioSession.type !== soll) navigator.audioSession.type = soll;
     } catch (e) {}
   }
@@ -4099,7 +4125,7 @@
   function tonStandard() { tonMischen(!(uw && uwEinstellungen().hintergrund)); }
   function stilleAn() {
     tonMischen(!uwEinstellungen().hintergrund);
-    if (uwStille) return;
+    if (uwStille || sprachStufe >= 2) return;   // ab Stufe 2 läuft die Sprachausgabe ohne die stille Web-Audio-Schleife
     var AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     try {
@@ -4161,6 +4187,7 @@
     // Ohne die Option keine stumme Wiedergabe: die würde Spotify & Co. anhalten
     if (!uwEinstellungen().hintergrund) { tonMischen(true); return; }
     tonMischen(false);
+    if (sprachStufe >= 2) return;   // die Sprachausgabe lief nur ohne zweite Tonquelle: keine stumme Schleife
     try {
       if (!uwAudio) { uwAudio = new Audio(stummeWavUrl()); uwAudio.loop = true; }
       var p = uwAudio.play();
