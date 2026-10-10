@@ -3853,7 +3853,7 @@
     document.getElementById("uw-laut-wert").textContent = document.getElementById("uw-laut").value + " %";
   }
   function uwEinstellungenMerken() {
-    sprachStufe = 0;   // geänderte Stimme/Lautstärke: Ausweichwege der Sprachausgabe von vorn
+    sprachStufe = 0; deAusfall = false;   // geänderte Stimme/Lautstärke: Ausweichwege der Sprachausgabe von vorn
     daten.unterwegs = {
       auswahl: document.getElementById("uw-auswahl").value,
       denk: Number(document.getElementById("uw-denk").value) || 5,
@@ -3989,12 +3989,17 @@
       if (sel.value !== x[2]) sel.value = "";   // gemerkte Stimme gibt es auf diesem Gerät nicht
     });
     // Wie viele Stimmen das Gerät hat - fehlt eine Sprache ganz, liegt es nicht an der App
-    var st = document.getElementById("stimm-status"), nd = stimmenFuer("de").length, ne = stimmenFuer("en").length;
-    if (st) st.textContent = "Stimmen auf diesem Gerät: Deutsch " + nd + " · Englisch " + ne + (nd && ne ? "." : ". Fehlt eine Sprache, hilft der Tipp darunter.");
+    var st = document.getElementById("stimm-status"), ld = stimmenFuer("de"), le = stimmenFuer("en");
+    function namen(l) {   // bei wenigen Stimmen die Namen zeigen (auch „online“ = braucht Netz): hilft zu sehen, was das Gerät wirklich hat
+      return l.length && l.length <= 3 ? " (" + l.map(function (v) { return String(v.name).replace(/\s+-\s+[^-]+\([^)]*\)\s*$/, "") + (v.localService ? "" : " \u00b7 online"); }).join(", ") + ")" : "";
+    }
+    if (st) st.textContent = "Stimmen auf diesem Ger\u00e4t: Deutsch " + ld.length + namen(ld) + " \u00b7 Englisch " + le.length + namen(le) +
+      (ld.length && le.length ? "." : ". Fehlt eine Sprache, hilft der Tipp darunter.");
   }
   // Probe hören: kurzer Satz mit der gewählten Stimme und Lautstärke
   function stimmProbe(kurz) {
     if (!sprache) return;
+    deAusfall = false; sprachFehlerGezeigt = false;   // die Probe soll wirklich versuchen, nicht überspringen
     tonMischen(true);
     sprache.cancel();
     var lang = kurz === "de" ? "de-DE" : "en-GB";
@@ -4012,23 +4017,27 @@
   function enTempo() { return [1, 1.25, 1.5, 2].indexOf(daten.enTempo) > -1 ? daten.enTempo : 1; }
   function tempo(lang, basis) { return Math.min(2, basis * (/^de/i.test(lang) ? deTempo() : enTempo())); }
   function deModus() { return daten.deStimme === "en" || daten.deStimme === "aus" ? daten.deStimme : "de"; }
+  var deAusfall = false;   // Deutsch ließ sich nicht sprechen (alle Ausweichwege): bis zur nächsten Runde wird es übersprungen
   function spracheFuer(lang) {
     if (WISSEN) lang = "de-DE";   // Wissenskasten: Begriff und Bedeutung sind Deutsch
     if (!/^de/i.test(lang)) return lang;
     var m = deModus();
+    if (m === "de" && deAusfall && !WISSEN) return null;   // Deutsch ließ sich auf diesem Gerät nicht sprechen: nur Englisch weiter
     return m === "aus" ? null : m === "en" ? "en-GB" : lang;
   }
   /* Sagt der Nutzerin, dass die Sprachausgabe nicht klappt, statt stumm weiterzulaufen (einmal je Runde).
      „interrupted“/„canceled“ kommen von unserem eigenen cancel() und sind kein Fehler. */
   var sprachFehlerGezeigt = false;
-  function sprachFehler(code) {
+  function sprachFehler(code, lang, deUebersprungen) {
     if (sprachFehlerGezeigt || code === "interrupted" || code === "canceled") return;
     sprachFehlerGezeigt = true;
+    var name = /^de/i.test(lang || "") ? "Deutsch" : /^en/i.test(lang || "") ? "Englisch" : "";
     var anleitung = istApple() ? "Einstellungen \u2192 Bedienungshilfen \u2192 Gesprochene Inhalte \u2192 Stimmen: Deutsch und Englisch laden."
       : istAndroid() ? "Android-Einstellungen \u2192 Text-in-Sprache \u2192 Google Sprachausgabe: Sprachdaten f\u00fcr Deutsch und Englisch installieren."
       : "In den Spracheinstellungen des Ger\u00e4ts eine deutsche und eine englische Stimme installieren.";
     if (/language|voice|synthesis/.test(code || "")) {
-      melde("Das Ger\u00e4t kann nicht sprechen (" + code + "). Meist fehlen Sprachdaten: " + anleitung);
+      melde((name ? name + " l\u00e4sst sich auf diesem Ger\u00e4t nicht sprechen" : "Das Ger\u00e4t kann nicht sprechen") + " (" + code + ")." +
+        (deUebersprungen ? " Es l\u00e4uft nur Englisch weiter." : "") + " Meist fehlen Sprachdaten: " + anleitung);
     } else if (code === "not-allowed") melde("Der Browser l\u00e4sst die Sprachausgabe gerade nicht zu. Tippe noch einmal auf \u201eAnh\u00f6ren starten\u201c.");
     else melde("Die Sprachausgabe klappt nicht" + (code && code !== "keine-ausgabe" ? " (" + code + ")" : "") + "." +
       (istApple() ? " Am iPhone: Stumm-Schalter und Lautst\u00e4rke pr\u00fcfen." : " Medien-Lautst\u00e4rke und die Stimme in den Optionen pr\u00fcfen."));
@@ -4059,7 +4068,10 @@
           return;
         }
         if (opt.immer) sprachFehlerGezeigt = false;
-        sprachFehler(code);
+        // Deutsch klappt gar nicht: den Rest der Runde nur Englisch sprechen, statt bei jedem Wort neu zu scheitern
+        var deSkip = !opt.probe && !WISSEN && /^de/i.test(lang) && deModus() === "de" && code !== "not-allowed";
+        if (deSkip) deAusfall = true;
+        sprachFehler(code, lang, deSkip);
         ende();
       }
       function sprechen() {
@@ -4345,7 +4357,7 @@
   function uwStarten(eigene, fortsetzen) {
     if (!sprache) { melde("Dieser Browser kann leider nicht vorlesen."); return; }
     var reihe, karten;
-    sprachFehlerGezeigt = false;   // Hinweis bei Sprachproblemen gilt je Runde einmal
+    sprachFehlerGezeigt = false; deAusfall = false;   // Hinweis bei Sprachproblemen gilt je Runde einmal; Deutsch wird neu versucht
     if (fortsetzen) {
       uw = { karten: fortsetzen.karten, reihe: fortsetzen.reihe, i: fortsetzen.i, lauf: 0, pausiert: false, fertig: false, neu: {} };
       uwEinstellungenZeigen();
@@ -4401,7 +4413,7 @@
   document.getElementById("uw-pause").addEventListener("click", function () {
     if (!uw) return;
     if (uw.fertig) {                        // „Nochmal“: dieselben Karten neu gemischt
-      sprachFehlerGezeigt = false;
+      sprachFehlerGezeigt = false; deAusfall = false;
       uw = { karten: uw.reihe ? uw.karten : mische(uw.karten.slice()), reihe: uw.reihe,
              i: 0, lauf: uw.lauf, pausiert: false, fertig: false, neu: uw.neu, geaendert: uw.geaendert };
       stilleAn();
@@ -4993,7 +5005,7 @@
 
   /* ---------- Spielablauf ---------- */
   function duStarten(nochmal) {
-    sprachFehlerGezeigt = false;
+    sprachFehlerGezeigt = false; deAusfall = false;
     if (!sprache) { melde("Dieser Browser kann leider nicht vorlesen."); return; }
     duEinstellungenMerken();
     var e = duEinstellungen();

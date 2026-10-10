@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sprachtest – Vokabelkasten</title>
+<style>
+  :root { --bg:#f6f7f9; --ink:#1d1f23; --soft:#5d636c; --rule:#d9dce1; --card:#fff; --ok:#2f7d4a; --bad:#b3402a; --acc:#d9731a; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#15171a; --ink:#ecedef; --soft:#a1a7b0; --rule:#33373d; --card:#1e2125; --ok:#6cc58b; --bad:#ff8a73; --acc:#f08a2e; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:620px; margin:0 auto; padding:16px 16px 60px; }
+  a { color:var(--acc); }
+  h1 { font-size:22px; margin:14px 0 6px; }
+  h2 { font-size:16px; margin:22px 0 8px; }
+  p, small { color:var(--soft); }
+  .karte { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px; }
+  .zeile { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+  button { font:inherit; padding:10px 14px; border-radius:8px; border:1px solid var(--acc); background:var(--acc); color:#fff; cursor:pointer; }
+  button.leise { background:transparent; color:var(--acc); }
+  .stimme { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--rule); }
+  .stimme:first-child { border-top:0; }
+  .stimme b { display:block; font-weight:600; }
+  pre { margin:0; white-space:pre-wrap; word-break:break-word; font:13px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); }
+</style>
+</head>
+<body>
+<main>
+  <a href="./">&larr; Zur&uuml;ck zum Vokabelkasten</a>
+  <h1>Sprachausgabe testen</h1>
+  <p>Diese Seite nutzt nichts aus der App: Sie spricht direkt &uuml;ber die Sprachausgabe deines Ger&auml;ts. Es wird nichts gespeichert oder gesendet.
+     Klappt es hier nicht, liegt es am Ger&auml;t (Sprachdaten, Sprachausgabe-App), nicht am Vokabelkasten.</p>
+
+  <div class="karte" id="info"></div>
+
+  <div class="zeile">
+    <button type="button" id="alle">Alles durchprobieren</button>
+    <button type="button" id="de" class="leise">Deutsch</button>
+    <button type="button" id="en" class="leise">English</button>
+    <button type="button" id="stopp" class="leise">Stopp</button>
+  </div>
+
+  <h2>Ergebnis</h2>
+  <div class="karte"><pre id="log">Noch nichts probiert.</pre></div>
+
+  <h2>Stimmen auf diesem Ger&auml;t</h2>
+  <div class="karte" id="stimmen"></div>
+</main>
+<script>
+(function () {
+  "use strict";
+  var ss = window.speechSynthesis || null;
+  var logEl = document.getElementById("log"), zeilen = [];
+  function log(text, art) {
+    var z = new Date().toTimeString().slice(0, 8) + "  " + text;
+    zeilen.push(art ? { t: z, a: art } : { t: z });
+    logEl.textContent = "";
+    zeilen.slice(-40).forEach(function (x) {
+      var s = document.createElement("span");
+      s.className = x.a || ""; s.textContent = x.t + "\n";
+      logEl.appendChild(s);
+    });
+  }
+  function infoZeigen() {
+    var v = ss ? ss.getVoices() : [];
+    var de = v.filter(function (x) { return /^de/i.test(x.lang); }).length, en = v.filter(function (x) { return /^en/i.test(x.lang); }).length;
+    var rows = [
+      ["Sprachausgabe im Browser", ss ? "vorhanden" : "FEHLT"],
+      ["Stimmen", v.length + " (Deutsch " + de + ", Englisch " + en + ")"],
+      ["Zustand", ss ? (ss.speaking ? "spricht" : "ruht") + (ss.paused ? ", pausiert" : "") + (ss.pending ? ", wartet" : "") : "-"],
+      ["Verbindung", navigator.onLine ? "online" : "offline"],
+      ["Gerät", (navigator.userAgent.match(/\(([^)]+)\)/) || [0, ""])[1] + " · " + (navigator.userAgent.match(/(Chrome|Firefox|Safari|Edg)\/[\d.]+/) || [""])[0]]
+    ];
+    var box = document.getElementById("info");
+    box.textContent = "";
+    rows.forEach(function (r) {
+      var d = document.createElement("div");
+      var b = document.createElement("b"); b.textContent = r[0] + ": ";
+      d.appendChild(b); d.appendChild(document.createTextNode(r[1]));
+      box.appendChild(d);
+    });
+  }
+  function stimmenZeigen() {
+    var box = document.getElementById("stimmen"), v = ss ? ss.getVoices() : [];
+    box.textContent = "";
+    if (!v.length) { box.textContent = "Keine Stimmen gemeldet (manche Geräte melden sie erst nach dem ersten Sprechen)."; return; }
+    v.slice().sort(function (a, b) { return a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name); }).forEach(function (st) {
+      var z = document.createElement("div"); z.className = "stimme";
+      var t = document.createElement("div");
+      var b = document.createElement("b"); b.textContent = st.name;
+      var s = document.createElement("small"); s.textContent = st.lang + " · " + (st.localService ? "auf dem Gerät" : "online") + (st.default ? " · Standard" : "");
+      t.appendChild(b); t.appendChild(s);
+      var k = document.createElement("button"); k.type = "button"; k.className = "leise"; k.textContent = "▶";
+      k.addEventListener("click", function () { sprich(probeText(st.lang), st.lang, { voice: st, name: st.name }); });
+      z.appendChild(t); z.appendChild(k);
+      box.appendChild(z);
+    });
+  }
+  function probeText(lang) { return /^de/i.test(lang) ? "Hallo! Das ist ein Test der Sprachausgabe." : "Hello! This is a test of the speech output."; }
+
+  // Spricht einen Text und meldet das Ergebnis; liefert ein Versprechen mit "ok" oder dem Fehlercode
+  function sprich(text, lang, opt) {
+    opt = opt || {};
+    return new Promise(function (fertig) {
+      if (!ss) { log("Keine Sprachausgabe im Browser.", "bad"); fertig("keine"); return; }
+      var name = opt.name || "Standardstimme", u = new SpeechSynthesisUtterance(text), erledigt = false, gestartet = false;
+      u.lang = lang;
+      if (opt.voice) u.voice = opt.voice;
+      u.rate = opt.rate || 1;
+      function ende(erg, art) {
+        if (erledigt) return; erledigt = true; clearTimeout(uhr);
+        log((art === "bad" ? "✗ " : "✓ ") + lang + " · " + name + " · Tempo " + u.rate + ": " + erg, art);
+        fertig(erg);
+      }
+      u.onstart = function () { gestartet = true; };
+      u.onend = function () { ende(gestartet ? "ok" : "ok (ohne Start-Meldung)", "ok"); };
+      u.onerror = function (e) { ende("Fehler " + (e && e.error), "bad"); };
+      var uhr = setTimeout(function () { ende(gestartet ? "kein Ende gemeldet" : "keine Reaktion nach 8 s", "bad"); }, 8000);
+      try { ss.cancel(); if (ss.paused) ss.resume(); } catch (x) {}
+      setTimeout(function () { ss.speak(u); }, 150);
+    });
+  }
+  async function alle() {
+    zeilen = []; log("Test läuft …");
+    var l = ss ? ss.getVoices() : [];
+    var deV = l.filter(function (x) { return /^de/i.test(x.lang); })[0], enV = l.filter(function (x) { return /^en/i.test(x.lang); })[0];
+    await sprich(probeText("de-DE"), "de-DE");
+    await sprich(probeText("de-DE"), "de-DE", { rate: 1.4, name: "Standardstimme, schnell" });
+    if (deV) await sprich(probeText("de-DE"), deV.lang, { voice: deV, name: deV.name });
+    await sprich(probeText("en-GB"), "en-GB");
+    if (enV) await sprich(probeText("en-GB"), enV.lang, { voice: enV, name: enV.name });
+    log("Fertig. Ergebnis bitte so weitergeben (Screenshot).");
+  }
+  document.getElementById("alle").addEventListener("click", alle);
+  document.getElementById("de").addEventListener("click", function () { sprich(probeText("de-DE"), "de-DE"); });
+  document.getElementById("en").addEventListener("click", function () { sprich(probeText("en-GB"), "en-GB"); });
+  document.getElementById("stopp").addEventListener("click", function () { if (ss) ss.cancel(); });
+  infoZeigen(); stimmenZeigen();
+  if (ss && ss.addEventListener) ss.addEventListener("voiceschanged", function () { infoZeigen(); stimmenZeigen(); });
+  setTimeout(function () { infoZeigen(); stimmenZeigen(); }, 800);
+})();
+</script>
+</body>
+</html>
