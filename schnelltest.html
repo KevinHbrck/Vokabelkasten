@@ -434,6 +434,39 @@
       pruefe(imKasten === faecher, "Lernstand verändert: vorher " + faecher + " im Kasten, nachher " + imKasten);
       iframe.removeAttribute("srcdoc");
     }],
+    ["Hörtraining: nichts fällig bietet den Kasten an, spricht Frage und Lösung, meldet Sprachfehler", async function () {
+      // Zustand: drei Karten im Kasten, alle erst in ein paar Tagen fällig (die Seite vorher verlassen, damit sie den Stand nicht überschreibt)
+      iframe.src = "about:blank";
+      await warte(150);
+      var db = JSON.parse(localStorage.getItem(KEY)), fern = Date.now() + 5 * 86400000;
+      db.cards.forEach(function (c) { c.aktiv = false; });
+      db.cards.slice(0, 3).forEach(function (c) {
+        c.aktiv = true; c.box = 3; c.due = fern;
+        if (c.fsrs) { c.fsrs.due = fern; c.fsrs.state = 2; c.fsrs.reps = 3; c.fsrs.stability = 8; c.fsrs.difficulty = 4; c.fsrs.last_review = Date.now() - 86400000; }
+      });
+      db.unterwegs = { auswahl: "faellig", denk: 1, richtung: "de", bsp: false, hintergrund: false, stimmeDe: "", stimmeEn: "", laut: 1 };
+      localStorage.setItem(KEY, JSON.stringify(db));
+      await laden();
+      await bis(function () { return $('[data-ziel="hoeren"]'); }, 5000, "Startseite");
+      klick('[data-ziel="hoeren"]');
+      await bis(function () { return !id("modus-hoeren").hidden; }, 3000, "Hörtraining");
+      pruefe(/Heute ist nichts fällig/.test(id("hoer-info").textContent) && !id("btn-unterwegs").disabled, "Nichts fällig: der Kasten soll angeboten werden - " + id("hoer-info").textContent);
+      pruefe(id("hoer-ton-tipp").textContent.length > 5, "Tipp „Kein Ton?“ fehlt");
+      // Sprachausgabe mitschneiden statt wirklich zu sprechen
+      var gesprochen = [], proto = W.SpeechSynthesis.prototype, echt = proto.speak;
+      proto.speak = function (u) { gesprochen.push(u.lang + ":" + u.text); setTimeout(function () { if (u.onstart) u.onstart({}); if (u.onend) u.onend({}); }, 30); };
+      klick("#btn-unterwegs");
+      await bis(function () { return gesprochen.length >= 2; }, 6000, "Hörtraining spricht Frage und Lösung");
+      pruefe(/^de-DE:/.test(gesprochen[0]) && /^en-GB:/.test(gesprochen[1]), "Reihenfolge Deutsch, dann Englisch: " + gesprochen.join(" | "));
+      pruefe(/^\d \/ 3$/.test(id("uw-stand").textContent), "Stand: " + id("uw-stand").textContent);
+      klick("#uw-ende");
+      // Fehler der Sprachausgabe sollen sichtbar werden, nicht stumm durchlaufen
+      proto.speak = function (u) { setTimeout(function () { if (u.onerror) u.onerror({ error: "synthesis-failed" }); }, 30); };
+      klick("#btn-unterwegs");
+      await bis(function () { var m = id("meldung-leiste"); return !m.hidden && /Sprachausgabe/.test(m.textContent); }, 3000, "Meldung bei Sprachfehler");
+      klick("#uw-ende");
+      proto.speak = echt;
+    }],
     ["Keine Skriptfehler", async function () {
       pruefe(!fehler.length, fehler.slice(0, 3).join(" | "));
     }]

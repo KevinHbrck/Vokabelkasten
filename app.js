@@ -2128,7 +2128,7 @@
     document.getElementById("st-ziel-txt").textContent = "Tagesziel " + h + " / " + ziel + (h >= ziel ? " ✓" : "");
     document.getElementById("st-cta-txt").textContent = !k ? (start ? "Die ersten " + start + " lernen" : "Loslegen") : f ? "Jetzt üben" : "Alles erledigt · trotzdem üben";
     // Lernarten und Verwalten
-    var n = uwKartenAuswahl(uwEinstellungen().auswahl).length;
+    var n = uwKartenAuswahl(uwAuswahlWirksam(uwEinstellungen().auswahl)).length;
     document.getElementById("k-hoeren").textContent = n ? n + (n === 1 ? " Karte" : " Karten") + " · freihändig" : "Vorlesen lassen, freihändig";
     var kListe = document.getElementById("k-liste");   // Zeile „Liste“ gibt es auf der Startseite nicht mehr (steht in der Leiste unten)
     if (kListe) kListe.textContent = daten.cards.length + (WISSEN ? " Karten · " : " Vokabeln · ") + k + " im Kasten";
@@ -3346,10 +3346,13 @@
     if (el) el.classList.add("spricht");
     function fertig() { if (el) el.classList.remove("spricht"); }
     u.onend = fertig;
-    u.onerror = fertig;
+    u.onerror = function (ev) { fertig(); sprachFehlerGezeigt = false; sprachFehler(ev && ev.error); };
     setTimeout(fertig, 2500 + text.length * 150);   // falls der Browser das Ende nicht meldet
     // kurze Anlaufzeit: direkt nach cancel() schneiden manche Browser den Anfang ab
-    setTimeout(function () { sprache.speak(u); }, 80);
+    setTimeout(function () {
+      try { if (sprache.paused) sprache.resume(); } catch (x) {}
+      sprache.speak(u);
+    }, 80);
   }
   document.getElementById("btn-sprich").addEventListener("click", sprichKarte);
 
@@ -3885,16 +3888,29 @@
       return auswahl === "kasten" || istDran(c, t);
     });
   }
+  /* Heute nichts fällig, aber Karten im Kasten: dann alle im Kasten anbieten, statt einen toten Knopf zu zeigen */
+  function uwAuswahlWirksam(auswahl) {
+    if (auswahl === "faellig" && !uwKartenAuswahl("faellig").length && uwKartenAuswahl("kasten").length) return "kasten";
+    return auswahl;
+  }
   function hoerInfo() {
-    var e = uwEinstellungen(), n = uwKartenAuswahl(e.auswahl).length;
-    var was = { faellig: "fällig", kasten: "im Kasten", alle: "in der Auswahl", liste: "in der Liste" }[e.auswahl];
+    var e = uwEinstellungen(), wirksam = uwAuswahlWirksam(e.auswahl), n = uwKartenAuswahl(wirksam).length;
+    var was = { faellig: "fällig", kasten: "im Kasten", alle: "in der Auswahl", liste: "in der Liste" }[wirksam];
     var el = document.getElementById("hoer-info");
     el.textContent = "";
     var b = document.createElement("b");
     b.textContent = String(n);
     el.appendChild(b);
     el.appendChild(document.createTextNode(n === 1 ? " Karte " + was : " Karten " + was));
+    if (wirksam !== e.auswahl) {
+      var s = document.createElement("small");
+      s.textContent = "Heute ist nichts fällig – du kannst alle Karten im Kasten trotzdem anhören.";
+      el.appendChild(document.createElement("br"));
+      el.appendChild(s);
+    }
     document.getElementById("btn-unterwegs").disabled = !n;
+    document.getElementById("hoer-ton-tipp").textContent = istApple() ? "Kein Ton? Das iPhone nicht auf lautlos stellen und die Lautstärke prüfen."
+      : istAndroid() ? "Kein Ton? Medien-Lautstärke prüfen." : "Kein Ton? Lautstärke und die Stimme in den Optionen prüfen.";
     // Einstellungen zugeklappt: eine Zeile zeigt, womit es losgeht
     document.getElementById("hoer-kurz").textContent = [auswahlText("uw-auswahl"), auswahlText("uw-denk") + " Denkpause", auswahlText("uw-richtung")]
       .concat(e.bsp ? ["mit Beispielsatz"] : []).join(" · ");
@@ -3982,6 +3998,9 @@
       sel.value = x[2];
       if (sel.value !== x[2]) sel.value = "";   // gemerkte Stimme gibt es auf diesem Gerät nicht
     });
+    // Wie viele Stimmen das Gerät hat - fehlt eine Sprache ganz, liegt es nicht an der App
+    var st = document.getElementById("stimm-status"), nd = stimmenFuer("de").length, ne = stimmenFuer("en").length;
+    if (st) st.textContent = "Stimmen auf diesem Gerät: Deutsch " + nd + " · Englisch " + ne + (nd && ne ? "." : ". Fehlt eine Sprache, hilft der Tipp darunter.");
   }
   // Probe hören: kurzer Satz mit der gewählten Stimme und Lautstärke
   function stimmProbe(kurz) {
@@ -3996,7 +4015,11 @@
     if (st) { u.voice = st; u.lang = st.lang; }
     u.rate = tempo(lang, 0.95);
     u.volume = uwEinstellungen().laut;
-    setTimeout(function () { sprache.speak(u); }, kurz === "de" ? 420 : 220);
+    u.onerror = function (ev) { sprachFehlerGezeigt = false; sprachFehler(ev && ev.error); };   // bei der Probe immer sagen, was los ist
+    setTimeout(function () {
+      try { if (sprache.paused) sprache.resume(); } catch (x) {}
+      sprache.speak(u);
+    }, kurz === "de" ? 420 : 220);
   }
 
   // Spricht einen Text; das Versprechen erfüllt sich am Ende oder wenn die Runde abgebrochen wurde
@@ -4015,6 +4038,17 @@
     var m = deModus();
     return m === "aus" ? null : m === "en" ? "en-GB" : lang;
   }
+  /* Sagt der Nutzerin, dass die Sprachausgabe nicht klappt, statt stumm weiterzulaufen (einmal je Runde).
+     „interrupted“/„canceled“ kommen von unserem eigenen cancel() und sind kein Fehler. */
+  var sprachFehlerGezeigt = false;
+  function sprachFehler(code) {
+    if (sprachFehlerGezeigt || code === "interrupted" || code === "canceled") return;
+    sprachFehlerGezeigt = true;
+    var tipp = istApple() ? " Am iPhone: Stumm-Schalter und Lautstärke prüfen." : " Medien-Lautstärke und die Stimme in den Optionen prüfen.";
+    if (/language|voice/.test(code || "")) melde("Für diese Sprache hat das Gerät keine Stimme. In den Optionen unter „Stimme und Hören“ steht, was es gibt.");
+    else if (code === "not-allowed") melde("Der Browser lässt die Sprachausgabe gerade nicht zu. Tippe noch einmal auf „Anhören starten“.");
+    else melde("Die Sprachausgabe klappt nicht" + (code && code !== "keine-ausgabe" ? " (" + code + ")" : "") + "." + tipp);
+  }
   // wie sprich(), aber mit eigener Prüfung, ob die Runde noch läuft (auch fürs Duell)
   function sprichWenn(text, lang, laeuft) {
     lang = spracheFuer(lang);
@@ -4024,19 +4058,26 @@
       var u = new SpeechSynthesisUtterance(sprechbar(text));
       u.lang = lang;
       var st = stimmeFuer(lang);
-      if (st) u.voice = st;
+      if (st) { u.voice = st; u.lang = st.lang || lang; }
       u.rate = tempo(lang, 0.95);
       u.volume = uwEinstellungen().laut;
-      var erledigt = false, notbremse = null;
-      function ende() { if (erledigt) return; erledigt = true; clearTimeout(notbremse); fertig(); }
+      var erledigt = false, notbremse = null, wacht = null, gestartet = false;
+      function ende() { if (erledigt) return; erledigt = true; clearTimeout(notbremse); clearTimeout(wacht); fertig(); }
+      u.onstart = function () { gestartet = true; clearTimeout(wacht); };
       u.onend = ende;
-      u.onerror = ende;
+      u.onerror = function (ev) { sprachFehler(ev && ev.error); ende(); };
       // Kurze Anlaufzeit: direkt nach cancel() schneiden manche Browser den Anfang ab
       setTimeout(function () {
         if (!laeuft()) { ende(); return; }
         // Manche Browser melden das Ende nicht zuverlässig - dann geht es nach einer Schätzung weiter
         notbremse = setTimeout(ende, 3000 + text.length * 120);
+        // Nach einem Anruf oder einem Wechsel der Audio-Sitzung bleibt die Sprachausgabe manchmal „pausiert“ - dann wäre alles stumm
+        try { if (sprache.paused) sprache.resume(); } catch (x) {}
         sprache.speak(u);
+        // Läuft nach 2,5 s nichts an (und die Ausgabe meldet auch kein Sprechen), steckt sie fest: lieber sagen als stumm bleiben
+        wacht = setTimeout(function () {
+          if (!gestartet && !erledigt && laeuft() && !sprache.speaking) sprachFehler("keine-ausgabe");
+        }, 2500);
       }, lang.indexOf("de") === 0 ? 420 : 220);   // Deutsch bekommt 0,2 s mehr Anlauf
     });
   }
@@ -4277,6 +4318,7 @@
   function uwStarten(eigene, fortsetzen) {
     if (!sprache) { melde("Dieser Browser kann leider nicht vorlesen."); return; }
     var reihe, karten;
+    sprachFehlerGezeigt = false;   // Hinweis bei Sprachproblemen gilt je Runde einmal
     if (fortsetzen) {
       uw = { karten: fortsetzen.karten, reihe: fortsetzen.reihe, i: fortsetzen.i, lauf: 0, pausiert: false, fertig: false, neu: {} };
       uwEinstellungenZeigen();
@@ -4290,7 +4332,7 @@
     }
     if (Array.isArray(eigene)) { karten = eigene; reihe = true; }
     else {
-      var auswahl = uwEinstellungen().auswahl;
+      var auswahl = uwAuswahlWirksam(uwEinstellungen().auswahl);
       karten = uwKartenAuswahl(auswahl);
       reihe = auswahl === "liste";
       if (!karten.length) { hoerInfo(); return; }
@@ -4332,6 +4374,7 @@
   document.getElementById("uw-pause").addEventListener("click", function () {
     if (!uw) return;
     if (uw.fertig) {                        // „Nochmal“: dieselben Karten neu gemischt
+      sprachFehlerGezeigt = false;
       uw = { karten: uw.reihe ? uw.karten : mische(uw.karten.slice()), reihe: uw.reihe,
              i: 0, lauf: uw.lauf, pausiert: false, fertig: false, neu: uw.neu, geaendert: uw.geaendert };
       stilleAn();
@@ -4923,6 +4966,7 @@
 
   /* ---------- Spielablauf ---------- */
   function duStarten(nochmal) {
+    sprachFehlerGezeigt = false;
     if (!sprache) { melde("Dieser Browser kann leider nicht vorlesen."); return; }
     duEinstellungenMerken();
     var e = duEinstellungen();

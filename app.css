@@ -688,6 +688,8 @@
   .hoer-panel { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 18px 16px; }
   .hoer-info { text-align: center; margin: 0 0 14px; color: var(--ink-soft); font-size: 15px; }
   .hoer-info b { display: block; font-size: 34px; line-height: 1.1; color: var(--ink); font-weight: 600; }
+  .hoer-info small { display: block; margin-top: 6px; font-size: 13px; color: var(--ink-soft); }
+  .hoer-ton-tipp { text-align: center; margin-top: -4px; }
   .hoer-panel .uw-optionen { margin-top: 0; }
   .hoer-panel .uw-optionen label:not(.zeile-check) { flex: 1 1 140px; }
   .hoer-panel .uw-optionen select { width: 100%; }

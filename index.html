@@ -10,7 +10,7 @@
 <meta name="referrer" content="no-referrer">
 <title>Vokabelkasten</title>
 <!-- ?v= gehört zu FASSUNG in sw.js: bei jeder neuen Fassung beide ändern -->
-<link rel="stylesheet" href="./app.css?v=2026-10-09-23">
+<link rel="stylesheet" href="./app.css?v=2026-10-10-1">
 </head>
 <body>
 
@@ -196,6 +196,7 @@
           Anhören starten
         </button>
         <p class="note">Liest Karte und Lösung vor – nur zum Wiederholen, Fächer bleiben unverändert. Musik läuft weiter.</p>
+        <p class="note hoer-ton-tipp" id="hoer-ton-tipp"></p>
         <details class="hoer-einst"><summary><span>Einstellungen</span><small id="hoer-kurz"></small></summary>
         <div class="uw-optionen">
           <label>Welche Karten
@@ -702,6 +703,7 @@ dog</pre>
         <label for="uw-laut">Lautstärke <span id="uw-laut-wert"></span></label>
         <input type="range" id="uw-laut" min="10" max="100" step="5">
         <p class="note" style="margin:6px 0 0">Musik läuft weiter. iPhone auf lautlos = keine Stimme.</p>
+        <p class="note" id="stimm-status"></p>
         <p class="note" id="stimm-tipp"></p>
       </div>
       </div>
@@ -921,9 +923,9 @@ dog</pre>
   </div>
 </section>
 
-<script src="./daten.js?v=2026-10-09-23"></script>
-<script src="./ts-fsrs.js?v=2026-10-09-23"></script>
-<script src="./lernen.js?v=2026-10-09-23"></script>
-<script src="./app.js?v=2026-10-09-23"></script>
+<script src="./daten.js?v=2026-10-10-1"></script>
+<script src="./ts-fsrs.js?v=2026-10-10-1"></script>
+<script src="./lernen.js?v=2026-10-10-1"></script>
+<script src="./app.js?v=2026-10-10-1"></script>
 </body>
 </html>
