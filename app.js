@@ -4037,7 +4037,7 @@
       : "In den Spracheinstellungen des Ger\u00e4ts eine deutsche und eine englische Stimme installieren.";
     if (/language|voice|synthesis/.test(code || "")) {
       melde((name ? name + " l\u00e4sst sich auf diesem Ger\u00e4t nicht sprechen" : "Das Ger\u00e4t kann nicht sprechen") + " (" + code + ")." +
-        (deUebersprungen ? " Es l\u00e4uft nur Englisch weiter." : "") + " Meist fehlen Sprachdaten: " + anleitung);
+        (deUebersprungen ? " Es l\u00e4uft nur Englisch weiter." : "") + " Meist fehlen Sprachdaten oder die Sprachausgabe h00e4ngt (Handy neu starten hilft oft): " + anleitung);
     } else if (code === "not-allowed") melde("Der Browser l\u00e4sst die Sprachausgabe gerade nicht zu. Tippe noch einmal auf \u201eAnh\u00f6ren starten\u201c.");
     else melde("Die Sprachausgabe klappt nicht" + (code && code !== "keine-ausgabe" ? " (" + code + ")" : "") + "." +
       (istApple() ? " Am iPhone: Stumm-Schalter und Lautst\u00e4rke pr\u00fcfen." : " Medien-Lautst\u00e4rke und die Stimme in den Optionen pr\u00fcfen."));

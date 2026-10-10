@@ -122,15 +122,22 @@
     });
   }
   async function alle() {
-    zeilen = []; log("Test läuft …");
+    zeilen = []; log("Test l\u00e4uft \u2026");
     var l = ss ? ss.getVoices() : [];
     var deV = l.filter(function (x) { return /^de/i.test(x.lang); })[0], enV = l.filter(function (x) { return /^en/i.test(x.lang); })[0];
-    await sprich(probeText("de-DE"), "de-DE");
-    await sprich(probeText("de-DE"), "de-DE", { rate: 1.4, name: "Standardstimme, schnell" });
-    if (deV) await sprich(probeText("de-DE"), deV.lang, { voice: deV, name: deV.name });
-    await sprich(probeText("en-GB"), "en-GB");
-    if (enV) await sprich(probeText("en-GB"), enV.lang, { voice: enV, name: enV.name });
-    log("Fertig. Ergebnis bitte so weitergeben (Screenshot).");
+    var erg = [];
+    erg.push(await sprich(probeText("de-DE"), "de-DE"));
+    erg.push(await sprich(probeText("de-DE"), "de-DE", { rate: 1.4, name: "Standardstimme, schnell" }));
+    if (deV) erg.push(await sprich(probeText("de-DE"), deV.lang, { voice: deV, name: deV.name }));
+    erg.push(await sprich(probeText("en-GB"), "en-GB"));
+    if (enV) erg.push(await sprich(probeText("en-GB"), enV.lang, { voice: enV, name: enV.name }));
+    var gut = erg.filter(function (x) { return /^ok/.test(x); }).length, schlecht = erg.length - gut;
+    log("");
+    if (!schlecht) log("\u2713 Alles in Ordnung: Die Sprachausgabe des Ger\u00e4ts funktioniert. Klappt es im Vokabelkasten trotzdem nicht, bitte melden.", "ok");
+    else if (!gut) {
+      log("\u2717 Nichts wird gesprochen, auch die Standardstimme nicht. Die Sprachausgabe des Ger\u00e4ts (nicht die App) h\u00e4ngt oder ist kaputt. Der Reihe nach probieren:", "bad");
+      log("1. Handy neu starten und hier noch einmal testen.\n2. Einstellungen \u2192 Apps \u2192 \u201eSprachdienste von Google\u201c (Speech Services by Google) \u2192 Speicher \u2192 Cache leeren; im Play Store aktualisieren.\n3. Einstellungen \u2192 Sprache & Eingabe \u2192 Text-in-Sprache-Ausgabe: Engine \u201eSprachdienste von Google\u201c, \u201eBeispiel anh\u00f6ren\u201c tippen - klappt das auch nicht, ist es sicher nicht die App.\n4. Dort Sprachdaten f\u00fcr Deutsch und Englisch (neu) installieren.\n5. Chrome aktualisieren.");
+    } else log("Teilweise: " + gut + " von " + erg.length + " klappen. Stimmen, die fehlschlagen, in den Spracheinstellungen neu installieren; die anderen funktionieren.", "bad");
   }
   document.getElementById("alle").addEventListener("click", alle);
   document.getElementById("de").addEventListener("click", function () { sprich(probeText("de-DE"), "de-DE"); });
