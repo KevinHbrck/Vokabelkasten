@@ -3883,6 +3883,48 @@
     if (auswahl === "faellig" && !uwKartenAuswahl("faellig").length && uwKartenAuswahl("kasten").length) return "kasten";
     return auswahl;
   }
+  /* Hängt die Sprachausgabe des Geräts, merkt man das erst beim Anhören - deshalb prüft die App beim Öffnen des Hörtrainings einmal kurz
+     und lautlos (Lautstärke 0): kommt kein Start und kein Ende, steht eine Warnung mit Link zur Testseite da. */
+  var sprachProblem = "", sprachGeprueft = false;
+  function sprachTippZeigen() {
+    var el = document.getElementById("hoer-ton-tipp");
+    el.textContent = "";
+    if (sprachProblem) {
+      var b = document.createElement("b");
+      b.textContent = "\u26a0 Die Sprachausgabe deines Ger\u00e4ts antwortet nicht" + (sprachProblem !== "keine-ausgabe" ? " (" + sprachProblem + ")" : "") + ". ";
+      el.appendChild(b);
+      el.appendChild(document.createTextNode("Handy neu starten hilft meist. "));
+      var a = document.createElement("a");
+      a.href = "sprachtest.html"; a.textContent = "Sprachausgabe testen";
+      el.appendChild(a);
+      return;
+    }
+    el.textContent = istApple() ? "Kein Ton? Das iPhone nicht auf lautlos stellen und die Lautst\u00e4rke pr\u00fcfen."
+      : istAndroid() ? "Kein Ton? Medien-Lautst\u00e4rke pr\u00fcfen." : "Kein Ton? Lautst\u00e4rke und die Stimme in den Optionen pr\u00fcfen.";
+  }
+  function sprachCheck() {
+    if (!sprache || sprachGeprueft || uw) return;
+    sprachGeprueft = true;
+    var u = new SpeechSynthesisUtterance("Test"), fertig = false, uhr = null;
+    u.volume = 0;
+    u.lang = "de-DE";
+    function ergebnis(problem) {
+      if (fertig) return;
+      fertig = true; clearTimeout(uhr);
+      sprachProblem = problem;
+      if (problem) sprachGeprueft = false;   // beim n\u00e4chsten \u00d6ffnen noch einmal pr\u00fcfen (z. B. nach einem Neustart der Sprachausgabe)
+      sprachTippZeigen();
+    }
+    u.onstart = function () { ergebnis(""); };
+    u.onend = function () { ergebnis(""); };
+    u.onerror = function (ev) {
+      var c = ev && ev.error;
+      if (c === "interrupted" || c === "canceled" || c === "not-allowed") { ergebnis(""); return; }   // kein Ger\u00e4teproblem
+      ergebnis(c || "Fehler");
+    };
+    uhr = setTimeout(function () { if (!sprache.speaking) ergebnis("keine-ausgabe"); else ergebnis(""); }, 3500);
+    try { if (sprache.paused) sprache.resume(); sprache.speak(u); } catch (e) { ergebnis(""); }
+  }
   function hoerInfo() {
     var e = uwEinstellungen(), wirksam = uwAuswahlWirksam(e.auswahl), n = uwKartenAuswahl(wirksam).length;
     var was = { faellig: "fällig", kasten: "im Kasten", alle: "in der Auswahl", liste: "in der Liste" }[wirksam];
@@ -3899,8 +3941,7 @@
       el.appendChild(s);
     }
     document.getElementById("btn-unterwegs").disabled = !n;
-    document.getElementById("hoer-ton-tipp").textContent = istApple() ? "Kein Ton? Das iPhone nicht auf lautlos stellen und die Lautstärke prüfen."
-      : istAndroid() ? "Kein Ton? Medien-Lautstärke prüfen." : "Kein Ton? Lautstärke und die Stimme in den Optionen prüfen.";
+    sprachTippZeigen();
     // Einstellungen zugeklappt: eine Zeile zeigt, womit es losgeht
     document.getElementById("hoer-kurz").textContent = [auswahlText("uw-auswahl"), auswahlText("uw-denk") + " Denkpause", auswahlText("uw-richtung")]
       .concat(e.bsp ? ["mit Beispielsatz"] : []).join(" · ");
@@ -3923,7 +3964,7 @@
     Array.prototype.forEach.call(document.querySelectorAll("#modus button"), function (b) {
       b.setAttribute("aria-pressed", b.dataset.modus === modus ? "true" : "false");
     });
-    if (hoeren) { uwEinstellungenZeigen(); hoerInfo(); }
+    if (hoeren) { uwEinstellungenZeigen(); hoerInfo(); sprachCheck(); }
     if (typeof ansicht !== "undefined") kopfZeigen();
     zeichneAuswahlText();   // die Abfragerichtung gilt nur für den Karteikasten
   }

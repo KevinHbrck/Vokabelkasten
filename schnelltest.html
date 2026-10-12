@@ -493,6 +493,20 @@
       klick("#uw-ende");
       proto.speak = echt;
     }],
+    ["Hörtraining: hängende Sprachausgabe wird beim Öffnen erkannt und mit Link zur Testseite gemeldet", async function () {
+      iframe.src = "about:blank";   // die Seite verlassen, damit sie den Stand nicht überschreibt; „Üben“ statt Hörtraining vorgemerkt (sonst prüft schon der Start)
+      await warte(150);
+      var dbm = JSON.parse(localStorage.getItem(KEY)); dbm.modus = "karten"; localStorage.setItem(KEY, JSON.stringify(dbm));
+      await laden();
+      await bis(function () { return $('[data-ziel="hoeren"]'); }, 5000, "Startseite");
+      var proto = W.SpeechSynthesis.prototype;
+      proto.speak = function () {};   // die Sprachausgabe „hängt“: kein Start, kein Ende
+      klick('[data-ziel="hoeren"]');
+      await bis(function () { return !id("modus-hoeren").hidden; }, 3000, "Hörtraining");
+      try {
+        await bis(function () { var a = $("#hoer-ton-tipp a"); return a && /sprachtest\.html$/.test(a.getAttribute("href")) && /antwortet nicht/.test(id("hoer-ton-tipp").textContent); }, 6000, "Warnung");
+      } catch (e) { throw new Error("Keine Warnung mit Link zur Testseite. Tipp: „" + id("hoer-ton-tipp").textContent + "“, spricht: " + W.speechSynthesis.speaking); }
+    }],
     ["Keine Skriptfehler", async function () {
       pruefe(!fehler.length, fehler.slice(0, 3).join(" | "));
     }]
