@@ -1985,3 +1985,114 @@ html:not([data-vintage]) #duell.solo .du-loesung { font-family: "Iowan Old Style
 html:not([data-vintage]) #duell.solo #du-spiel::before { content: "Sprechen"; position: absolute; top: 0; left: 0; right: 0; z-index: 2;
   padding: calc(env(safe-area-inset-top) + 14px) 20px 10px; border-bottom: 1px solid var(--rule); background: var(--paper);
   font: 600 19px/1.5 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; color: var(--ink); }
+
+/* ===== Testdesign "Editorial Performance" (nur Testkopie) =====
+   Tiefschwarz, warmes Off-White, durchscheinende Graufläche, große Rundungen,
+   keine Schatten, Glas nur als leichte Unschärfe hinter Karten und Pillen.
+   Nur Systemschriften - die App lädt nichts von außen. */
+html[data-thema="editorial"] , html[data-thema="editorial-bahn"] , html[data-thema="editorial-innen"] {
+  color-scheme: dark;
+  --ink: #f1ede6; --ink-soft: rgba(241,237,230,.56); --paper: #0c0c0d; --card: rgba(255,255,255,.055);
+  --rule: rgba(255,255,255,.09); --indigo: #e2dacb; --moss: #9aa67e; --clay: #b9957a; --mark: #d8c39a;
+  --tab: rgba(255,255,255,.07); --auf-ink: #0c0c0d;
+  --merk-bg: rgba(216,195,154,.10); --merk-rule: rgba(216,195,154,.25);
+  --alarm-bg: rgba(185,149,122,.14); --alarm-rule: rgba(185,149,122,.35); --alarm-ink: #e8b9a0;
+}
+html[data-thema="editorial"] body, html[data-thema="editorial-bahn"] body, html[data-thema="editorial-innen"] body {
+  font-family: "Helvetica Neue", Inter, Helvetica, Roboto, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-thema="editorial"] .card, html[data-thema="editorial-bahn"] .card, html[data-thema="editorial-innen"] .card,
+html[data-thema="editorial"] .themawahl button, html[data-thema="editorial-bahn"] .themawahl button, html[data-thema="editorial-innen"] .themawahl button,
+html[data-thema="editorial"] .kasten-reiter, html[data-thema="editorial-bahn"] .kasten-reiter, html[data-thema="editorial-innen"] .kasten-reiter {
+  border-radius: 28px;
+  box-shadow: none;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+html[data-thema="editorial"] button, html[data-thema="editorial-bahn"] button, html[data-thema="editorial-innen"] button {
+  border-radius: 999px;
+  box-shadow: none;
+}
+html[data-thema="editorial"] h1, html[data-thema="editorial-bahn"] h1, html[data-thema="editorial-innen"] h1,
+html[data-thema="editorial"] h2, html[data-thema="editorial-bahn"] h2, html[data-thema="editorial-innen"] h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Testdesign "Editorial": Fotohintergrund (Bibliothek) hinter der App, weich unscharf und abgedunkelt.
+   Die Datei liegt lokal im Ordner bilder/ - nichts wird von außen geladen. */
+html[data-thema="editorial"] body, html[data-thema="editorial-bahn"] body, html[data-thema="editorial-innen"] body {
+  background: transparent;
+  position: relative;
+  isolation: isolate;
+}
+html[data-thema="editorial"] body::before, html[data-thema="editorial-bahn"] body::before, html[data-thema="editorial-innen"] body::before {
+  content: "";
+  position: fixed;
+  inset: -20px;
+  z-index: -1;
+  background: linear-gradient(rgba(12,12,13,.28), rgba(12,12,13,.62)), url("bilder/2.jpg") center / cover no-repeat;
+  filter: blur(6px);
+  pointer-events: none;
+}
+html[data-thema="editorial"] header, html[data-thema="editorial-bahn"] header, html[data-thema="editorial-innen"] header,
+html[data-thema="editorial"] nav, html[data-thema="editorial-bahn"] nav, html[data-thema="editorial-innen"] nav,
+html[data-thema="editorial"] .unten, html[data-thema="editorial-bahn"] .unten, html[data-thema="editorial-innen"] .unten,
+html[data-thema="editorial"] .kopf, html[data-thema="editorial-bahn"] .kopf, html[data-thema="editorial-innen"] .kopf {
+  background: rgba(12,12,13,.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom-color: rgba(255,255,255,.06);
+}
+
+/* Alternative "Editorial Bahn": dasselbe Design, Hintergrund ist das Straßenbahn-Foto (Abenddämmerung) */
+html[data-thema="editorial-bahn"] body::before {
+  background: linear-gradient(rgba(12,12,13,.28), rgba(12,12,13,.62)), url("bilder/4.jpg") center / cover no-repeat;
+}
+/* Dritte Variante "Editorial Innen": Innenraum der Straßenbahn als Hintergrund */
+html[data-thema="editorial-innen"] body::before {
+  background: linear-gradient(rgba(12,12,13,.28), rgba(12,12,13,.62)), url("bilder/6.webp") center / cover no-repeat;
+}
+
+/* Hörtraining (Ansicht "Üben" im Modus hören): im Grundlayout "Editorial" wechselt der Hintergrund auf die Straßenbahn-Innenansicht */
+html[data-thema="editorial"] body:has(#view-ueben.hoeren.active)::before {
+  background: linear-gradient(rgba(12,12,13,.45), rgba(12,12,13,.8)), url("bilder/6.webp") center / cover no-repeat;
+}
+/* Startkacheln im Editorial-Design: abgerundete Rechtecke statt Kreise, Schrift passt in die Breite */
+html[data-thema="editorial"] #view-start .st-kachel,
+html[data-thema="editorial-bahn"] #view-start .st-kachel,
+html[data-thema="editorial-innen"] #view-start .st-kachel {
+  border-radius: 26px; aspect-ratio: auto; min-height: 150px; padding: 14px 14px 16px; overflow: hidden;
+}
+html[data-thema="editorial"] #view-start .st-kachel b,
+html[data-thema="editorial-bahn"] #view-start .st-kachel b,
+html[data-thema="editorial-innen"] #view-start .st-kachel b { font-size: 16px; margin-top: 10px; line-height: 1.2; overflow-wrap: anywhere; }
+html[data-thema="editorial"] #view-start .st-kachel small,
+html[data-thema="editorial-bahn"] #view-start .st-kachel small,
+html[data-thema="editorial-innen"] #view-start .st-kachel small { font-size: 12px; line-height: 1.3; overflow-wrap: anywhere; }
+html[data-thema="editorial"] #view-start .st-kachel .st-ico,
+html[data-thema="editorial-bahn"] #view-start .st-kachel .st-ico,
+html[data-thema="editorial-innen"] #view-start .st-kachel .st-ico { width: 42px; height: 42px; border-radius: 50%; }
+/* Designwahl im Editorial-Design: Namen bleiben in einer Zeile, Pillen werden breit genug */
+html[data-thema="editorial"] .themawahl button,
+html[data-thema="editorial-bahn"] .themawahl button,
+html[data-thema="editorial-innen"] .themawahl button {
+  white-space: nowrap; font-size: 13px; padding: 11px 14px; flex: 1 1 auto; border-radius: 999px;
+}
+/* Modern "Bahnsteig" (Hell): heller Glas-Look mit dunkler Schrift, weil das Foto hell ist */
+html[data-thema="editorial-innen"] {
+  color-scheme: light;
+  --ink: #1d1b18; --ink-soft: rgba(29,27,24,.66); --paper: #f1efea; --card: rgba(255,255,255,.42);
+  --rule: rgba(0,0,0,.09); --tab: rgba(255,255,255,.5); --auf-ink: #ffffff;
+  --mark: #9a6a22; --indigo: #3d4f8f; --moss: #2f6b4f; --clay: #9c6b45;
+}
+html[data-thema="editorial-innen"] body::before {
+  background: linear-gradient(rgba(241,239,234,.18), rgba(241,239,234,.5)), url("bilder/6.webp") center / cover no-repeat;
+  filter: blur(4px);
+}
+/* Bahnsteig (Hell): Kopfleiste hell statt dunkel */
+html[data-thema="editorial-innen"] header,
+html[data-thema="editorial-innen"] nav {
+  background: rgba(241,239,234,.6); border-bottom-color: rgba(0,0,0,.06);
+}

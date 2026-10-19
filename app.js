@@ -166,6 +166,7 @@
     if (typeof daten.saetze === "boolean") saetze = daten.saetze;
     if (typeof daten.thema === "string") thema = daten.thema;
     if (["retro", "tapedeck", "klar"].indexOf(thema) > -1) thema = "auto";   // diese Designs gibt es nicht mehr (2026-09)
+    if (["auto", "retro", "tapedeck", "klar"].indexOf(thema) > -1) thema = "hell";   // Auto gibt es nicht mehr (2026-10): Standard ist Hell
     if (typeof daten.listKat === "string") listKat = daten.listKat;
     if (["nr", "de", "en"].indexOf(daten.listSort) > -1) listSort = daten.listSort;
     /* Lernverfahren unter eigenem Namen "verfahren": daten.modus gehört der Übungsart (Karten/Hören) und hat eine
@@ -1775,11 +1776,11 @@
     return seitStart !== null && seitStart >= 7 && imKasten().length > 0;
   }
 
-  var thema = "auto";
+  var thema = "hell";
 
   var THEMAFARBE = {
     hell: "#f6f7f9", dunkel: "#15181c", nacht: "#17120e",
-    kodak: "#f5f2ea"
+    kodak: "#f5f2ea", editorial: "#0c0c0d", "editorial-bahn": "#0c0c0d", "editorial-innen": "#0c0c0d"
   };
   // Diese Designs teilen sich Streifen, Tasten, Zählwerk usw. (CSS: html[data-vintage])
   var VINTAGE = ["kodak"];
